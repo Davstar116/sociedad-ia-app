@@ -49,6 +49,7 @@ export default function PostulacionPage() {
   // Helpers
   const handleChange = (f: string, v: any) => setFormData(p => ({ ...p, [f]: v }));
   const handleRespuesta = (f: string, v: string) => setFormData(p => ({ ...p, respuestas: { ...p.respuestas, [f]: v } }));
+  const [file, setFile] = useState<File | null>(null);
   const handleSkill = (cat: "lenguajes" | "tecnologias" | "micros", key: string, val: number) => {
     setFormData(p => ({ ...p, skills: { ...p.skills, [cat]: { ...p.skills[cat], [key]: val } } }));
   };
@@ -63,32 +64,51 @@ export default function PostulacionPage() {
     setMensaje("");
 
     try {
+      let finalCvLink = formData.cvLink;
+
+      // 1. SUBIDA DEL ARCHIVO A VERCEL BLOB
+      if (file) {
+        // Notificamos al usuario visualmente
+        setMensaje("Subiendo documento a servidor seguro...");
+        
+        // Creamos un nombre único: Nombre_CV.pdf
+        const uniqueName = `${formData.nombre.replace(/\s+/g, '_')}_CV.pdf`;
+        
+        const responseUpload = await fetch(
+          `/api/upload?filename=${encodeURIComponent(uniqueName)}`,
+          {
+            method: 'POST',
+            body: file,
+          }
+        );
+
+        if (!responseUpload.ok) throw new Error("Error subiendo el archivo");
+        
+        const newBlob = await responseUpload.json();
+        finalCvLink = newBlob.url; // ¡Obtenemos el link real!
+      }
+
+      // 2. GUARDADO EN NOTION
+      const dataToSend = { ...formData, cvLink: finalCvLink };
+
+      setMensaje("Encriptando perfil en Notion...");
       const res = await fetch("/api/registro", {
-        method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(formData)
+        method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(dataToSend)
       });
 
       if (res.ok) {
-        // FASE 1: Éxito visual en el formulario
         setMensaje("¡Datos enviados correctamente!");
         setStatus('success_wait');
-        
-        // FASE 2: Esperar 2 segundos y pasar a "Procesando"
-        setTimeout(() => {
-          setStatus('processing');
-        }, 2000);
-
-        // FASE 3: Esperar 3 segundos de "Procesando" y pasar a "Completado"
-        setTimeout(() => {
-          setStatus('completed');
-        }, 5000); // 2000 + 3000
-
+        setTimeout(() => setStatus('processing'), 2000);
+        setTimeout(() => setStatus('completed'), 5000);
       } else {
         const err = await res.json();
         setMensaje("Error: " + err.message);
-        setLoading(false); // Solo quitamos loading si falla
+        setLoading(false);
       }
-    } catch {
-      setMensaje("Error de conexión.");
+    } catch (error: any) {
+      console.error(error);
+      setMensaje("Error en el proceso: " + (error.message || "Desconocido"));
       setLoading(false);
     }
   };
@@ -224,8 +244,23 @@ export default function PostulacionPage() {
                 </div>
 
                 <div className="border border-dashed border-white/20 rounded p-4 text-center bg-black/20 mt-4 relative">
-                    <input type="file" accept=".pdf" onChange={(e) => setFileName(e.target.files?.[0]?.name || "")} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
-                    <span className="text-gray-400 text-sm">{fileName || "📂 Subir CV (PDF)"}</span>
+                    <input 
+                        type="file" 
+                        accept=".pdf" 
+                        onChange={(e) => {
+                            const selected = e.target.files?.[0];
+                            if (selected) {
+                                if (selected.size > 5 * 1024 * 1024) { // Validación 5MB
+                                    alert("El archivo pesa más de 5MB");
+                                    return;
+                                }
+                                setFile(selected);
+                                setFileName(selected.name);
+                            }
+                        }} 
+                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" 
+                    />
+                    <span className="text-gray-400 text-sm">{fileName || "📂 Subir CV (PDF - Máx 5MB)"}</span>
                 </div>
               </div>
             )}

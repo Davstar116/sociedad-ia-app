@@ -16,3 +16,5 @@ const nextConfig: NextConfig = {
 };
 
 export default nextConfig;
+
+// Acutalización forzada v2

@@ -53,3 +53,5 @@ export default function RootLayout({
     </html>
   );
 }
+
+// Actualización forzada v2

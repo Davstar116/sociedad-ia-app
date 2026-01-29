@@ -1,44 +1,53 @@
 import { NextResponse } from "next/server";
 
-// CAMBIO CRÍTICO: Usamos 'require' para asegurar que cargue la librería completa de Node
-const { Client } = require("@notionhq/client");
-
 export const runtime = 'nodejs'; 
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {
     const SLOTS_DB_ID = process.env.NOTION_SLOTS_ID;
+    const TOKEN = process.env.NOTION_TOKEN;
 
-    // Validación
-    if (!SLOTS_DB_ID) {
-      return NextResponse.json({ error: "Falta NOTION_SLOTS_ID" }, { status: 500 });
+    if (!SLOTS_DB_ID || !TOKEN) {
+      return NextResponse.json({ error: "Faltan credenciales (ID o Token)" }, { status: 500 });
     }
 
-    // Inicialización Limpia
-    const notion = new Client({ auth: process.env.NOTION_TOKEN });
+    console.log("🚀 Conectando a Notion vía FETCH nativo...");
 
-    console.log("🚀 Intentando conectar con Notion...");
-
-    // Consulta
-    const response = await notion.databases.query({
-      database_id: SLOTS_DB_ID,
-      filter: {
-        property: "Estado",
-        select: {
-          equals: "Disponible",
-        },
+    // Petición directa a la API de Notion (Sin intermediarios)
+    const response = await fetch(`https://api.notion.com/v1/databases/${SLOTS_DB_ID}/query`, {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${TOKEN}`,
+        "Notion-Version": "2022-06-28", // Versión estable de Notion
+        "Content-Type": "application/json",
       },
-      sorts: [
-        {
-          property: "Fecha y Hora",
-          direction: "ascending",
+      body: JSON.stringify({
+        filter: {
+          property: "Estado",
+          select: {
+            equals: "Disponible",
+          },
         },
-      ],
+        sorts: [
+          {
+            property: "Fecha y Hora",
+            direction: "ascending",
+          },
+        ],
+      }),
     });
 
-    const slots = response.results.map((page: any) => {
-      // Protección contra campos vacíos
+    if (!response.ok) {
+      const errorData = await response.text();
+      throw new Error(`Error de Notion (${response.status}): ${errorData}`);
+    }
+
+    const data = await response.json();
+
+    // Procesamos los datos igual que antes
+    const slots = data.results.map((page: any) => {
+      // Manejo seguro de propiedades
       const titulo = page.properties["ID Turno"]?.title?.[0]?.plain_text || "Turno sin nombre";
       const fecha = page.properties["Fecha y Hora"]?.date?.start || null;
       const link = page.properties["Link"]?.url || "";
@@ -50,9 +59,9 @@ export async function GET() {
     return NextResponse.json({ success: true, slots });
 
   } catch (error: any) {
-    console.error("❌ Error API Slots:", error);
+    console.error("❌ Error API Slots (Fetch):", error);
     return NextResponse.json({ 
-      error: "Error interno de Notion", 
+      error: "Error de conexión", 
       details: error.message 
     }, { status: 500 });
   }

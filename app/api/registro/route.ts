@@ -57,11 +57,14 @@ export async function POST(request: Request) {
           },
         });
 
+        // Definimos la URL base. En local es localhost, en prod es tu dominio de Vercel.
+        // IMPORTANTE: Asegúrate de tener NEXTAUTH_URL definido en tus variables de entorno de Vercel.
+        const appUrl = process.env.NEXTAUTH_URL || "https://sociedad-ia-app.vercel.app";
+
         // Convertimos tu diseño React a HTML puro
         const emailHtml = await render(WelcomeEmail({ 
-          nombre: data.nombre || "Postulante", 
-          carrera: data.carrera, 
-          semestre: data.semestre 
+          nombre: data.nombre || "Postulante",
+          baseUrl: appUrl // <--- Pasamos la URL aquí
         }));
 
         // Enviar

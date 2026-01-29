@@ -76,7 +76,7 @@ export const WelcomeEmail: React.FC<Readonly<EmailProps>> = ({
                       • SophIA te notificará por este medio si pasas a la siguiente etapa.
                     </p>
                     <p style={{ margin: '0', fontSize: '14px', color: '#555555', lineHeight: '1.5' }}>
-                      • Mantente atento a tu correo y a la App.
+                      • Mantente atento a tu correo.
                     </p>
                   </div>
 
@@ -87,7 +87,7 @@ export const WelcomeEmail: React.FC<Readonly<EmailProps>> = ({
                   <p style={{ margin: '0 0 0 0', color: '#334155', fontSize: '14px', lineHeight: 1.5 }}>
                     Atentamente,<br />
                     <strong style={{ color: '#0f172a' }}>Mesa Directiva & SophIA</strong><br />
-                    Sociedad de Inteligencia Artificial - UNAM
+                    SIAFI - UNAM
                   </p>
                 </td>
               </tr>

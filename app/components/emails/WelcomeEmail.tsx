@@ -2,16 +2,15 @@ import * as React from 'react';
 
 interface EmailProps {
   nombre: string;     // Nombre completo
-  baseUrl: string;    // La dirección web de tu app (para cargar las imágenes)
+  baseUrl: string;    // La dirección web de tu app
 }
 
 export const WelcomeEmail: React.FC<Readonly<EmailProps>> = ({
   nombre,
   baseUrl,
 }) => {
-  // Extraemos solo el primer nombre para que sea más personal
-  // Ej: "David Sánchez" -> "David"
-  const primerNombre = nombre.split(" ")[0];
+  // Extraemos solo el primer nombre
+  const primerNombre = nombre ? nombre.split(" ")[0] : "Candidato";
 
   return (
     <div style={{ margin: 0, padding: 0, backgroundColor: '#f4f5f7', fontFamily: "'Montserrat', 'Helvetica Neue', Arial, sans-serif", color: '#334155' }}>
@@ -88,7 +87,7 @@ export const WelcomeEmail: React.FC<Readonly<EmailProps>> = ({
                   </table>
 
                   <p style={{ margin: '0 0 18px 0', color: '#334155', fontSize: '14px', lineHeight: 1.5 }}>
-                    Si tienes alguna pregunta, contáctanos en <a href="mailto:siafi.general@gmail.com" style="color: '#00baff', textDecoration: 'none'">siafi.general@gmail.com</a>.
+                    Si tienes alguna pregunta, contáctanos en <a href="mailto:siafi.general@gmail.com" style={{ color: '#00baff', textDecoration: 'none' }}>siafi.general@gmail.com</a>.
                   </p>
 
                   <p style={{ margin: '0 0 0 0', color: '#334155', fontSize: '14px', lineHeight: 1.5 }}>

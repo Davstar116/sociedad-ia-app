@@ -13,29 +13,55 @@ export async function POST(request: Request) {
 
     if (!DATABASE_ID) throw new Error("Falta ID Base de Datos en .env");
 
-    // --- ESTRUCTURA DE LA PÁGINA ---
-    // 1. Propiedades (Columnas de la tabla)
+    // Validamos que el semestre sea un número
+    const semestreNumero = parseInt(data.semestre) || 1;
+
+    // --- MAPEO EXACTO A TUS COLUMNAS DE NOTION ---
     const properties: any = {
-      "Nombre Completo": { title: [{ text: { content: data.nombre || "Sin nombre" } }] },
-      "Correo Electrónico": { email: data.email || "" },
-      "Teléfono": { phone_number: data.telefono || "" },
-      "Carrera": { rich_text: [{ text: { content: data.carrera || "" } }] },
-      "Semestre": { rich_text: [{ text: { content: data.semestre || "" } }] },
-      "Area de Interes": { select: { name: data.area || "General" } },
+      // 1. Título (Nombre Completo)
+      "Nombre Completo": { 
+        title: [{ text: { content: data.nombre || "Sin nombre" } }] 
+      },
+      
+      // 2. Correo electrónico (Email)
+      "Correo electrónico": { 
+        email: data.email || null 
+      },
+
+      // 3. Celular (Teléfono)
+      "Celular": { 
+        phone_number: data.telefono || null 
+      },
+
+      // 4. Carrera (Texto)
+      "Carrera": { 
+        rich_text: [{ text: { content: data.carrera || "" } }] 
+      },
+
+      // 5. Semestre (Número)
+      "Semestre": { 
+        number: semestreNumero 
+      },
+
+      // 6. Núcleo (Selección múltiple) -> Aquí guardamos el Área de Interés
+      // OJO: La opción que envíes (ej. "Desarrollo") DEBE existir en tu Notion 
+      // o Notion debe permitir crear opciones nuevas.
+      "Núcleo": { 
+        multi_select: [{ name: data.area || "General" }] 
+      }
     };
 
-    // 2. Contenido (Bloques dentro de la página)
-    // Aquí es donde SophIA leerá las respuestas largas
+    // --- RESPUESTAS LARGAS (Van al cuerpo de la página) ---
     const children: any[] = [
       {
         object: 'block',
         type: 'heading_3',
-        heading_3: { rich_text: [{ text: { content: '🎯 Aportación a la Sociedad' } }] },
+        heading_3: { rich_text: [{ text: { content: '🎯 Aportación' } }] },
       },
       {
         object: 'block',
         type: 'paragraph',
-        paragraph: { rich_text: [{ text: { content: data.aportacion || "Sin respuesta" } }] },
+        paragraph: { rich_text: [{ text: { content: data.aportacion || "N/A" } }] },
       },
       {
         object: 'block',
@@ -45,17 +71,17 @@ export async function POST(request: Request) {
       {
         object: 'block',
         type: 'paragraph',
-        paragraph: { rich_text: [{ text: { content: data.orgullo || "Sin respuesta" } }] },
+        paragraph: { rich_text: [{ text: { content: data.orgullo || "N/A" } }] },
       },
       {
         object: 'block',
         type: 'heading_3',
-        heading_3: { rich_text: [{ text: { content: '🤝 Trabajo en Equipo' } }] },
+        heading_3: { rich_text: [{ text: { content: '🤝 Equipo' } }] },
       },
       {
         object: 'block',
         type: 'paragraph',
-        paragraph: { rich_text: [{ text: { content: data.equipo || "Sin respuesta" } }] },
+        paragraph: { rich_text: [{ text: { content: data.equipo || "N/A" } }] },
       },
       {
         object: 'block',
@@ -65,41 +91,41 @@ export async function POST(request: Request) {
       {
         object: 'block',
         type: 'paragraph',
-        paragraph: { rich_text: [{ text: { content: data.motivacion || "Sin respuesta" } }] },
+        paragraph: { rich_text: [{ text: { content: data.motivacion || "N/A" } }] },
       },
     ];
 
-    // CREAR LA PÁGINA EN NOTION
+    // CREAR LA PÁGINA
     await notion.pages.create({
       parent: { database_id: DATABASE_ID },
       properties: properties,
-      children: children, // <--- Aquí inyectamos las respuestas largas
+      children: children,
     });
 
-    console.log("✅ Candidato guardado con respuestas en el cuerpo.");
+    console.log("✅ Guardado exitoso en Notion.");
 
-    // ENVIAR CORREO (Si hay email válido)
+    // ENVIAR CORREO
     if (data.email) {
       try {
         await resend.emails.send({
-          from: 'SIAFI <onboarding@resend.dev>',
+          from: 'SIAFI <onboarding@resend.dev>', // Recuerda: Solo funciona a tu correo en el plan gratis
           to: [data.email],
           subject: 'Confirmación de Postulación - SIAFI',
           react: WelcomeEmail({ 
             nombre: data.nombre || "Postulante", 
-            carrera: data.carrera || "Ingeniería", 
-            semestre: data.semestre || "N/A" 
+            carrera: data.carrera, 
+            semestre: data.semestre 
           }),
         });
       } catch (e) {
-        console.error("⚠️ Correo no enviado (pero registro exitoso).");
+        console.error("⚠️ Error envío correo:", e);
       }
     }
 
     return NextResponse.json({ success: true });
 
   } catch (error: any) {
-    console.error("❌ Error CRÍTICO:", error);
+    console.error("❌ Error Notion:", error.body || error.message);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }

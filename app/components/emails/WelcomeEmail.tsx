@@ -62,20 +62,23 @@ export const WelcomeEmail: React.FC<Readonly<EmailProps>> = ({
                     SophIA ha comenzado el análisis preliminar de tu perfil.
                   </p>
 
-                  {/* (Se eliminó la sección del botón aquí) */}
-
                   <hr style={{ border: 'none', borderTop: '1px solid #e6eef2', margin: '18px 0' }} />
 
-                  <p style={{ margin: '0 0 6px 0', color: '#334155', fontSize: '14px', lineHeight: 1.5 }}><strong>¿Qué sigue ahora?</strong></p>
-                  <table role="presentation" border={0} cellPadding={0} cellSpacing={0} width="100%" style={{ margin: '8px 0 16px 0' }}>
-                    <tr>
-                      <td style={{ color: '#334155', fontSize: '14px', lineHeight: 1.5, paddingLeft: '18px' }}>
-                        • Espera a que termine el periodo de recepción.<br />
-                        • SophIA te notificará por este medio si pasas a la siguiente etapa.<br />
-                        • Mantente atento a tu correo y a la App.
-                      </td>
-                    </tr>
-                  </table>
+                  {/* CAJA ESTILO PRIMER DISEÑO: Gris con borde azul */}
+                  <div style={{ backgroundColor: '#F8FAFC', borderLeft: '4px solid #00BAFF', padding: '20px', margin: '20px 0' }}>
+                    <p style={{ margin: '0 0 10px 0', fontSize: '14px', color: '#333333', fontWeight: 'bold' }}>
+                      ¿Qué sigue ahora?
+                    </p>
+                    <p style={{ margin: '0 0 6px 0', fontSize: '14px', color: '#555555', lineHeight: '1.5' }}>
+                      • Espera a que termine el periodo de recepción.
+                    </p>
+                    <p style={{ margin: '0 0 6px 0', fontSize: '14px', color: '#555555', lineHeight: '1.5' }}>
+                      • SophIA te notificará por este medio si pasas a la siguiente etapa.
+                    </p>
+                    <p style={{ margin: '0', fontSize: '14px', color: '#555555', lineHeight: '1.5' }}>
+                      • Mantente atento a tu correo y a la App.
+                    </p>
+                  </div>
 
                   <p style={{ margin: '0 0 18px 0', color: '#334155', fontSize: '14px', lineHeight: 1.5 }}>
                     Si tienes alguna pregunta, contáctanos en <a href="mailto:siafi.general@gmail.com" style={{ color: '#00baff', textDecoration: 'none' }}>siafi.general@gmail.com</a>.

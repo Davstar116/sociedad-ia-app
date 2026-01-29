@@ -20,9 +20,9 @@ export const WelcomeEmail: React.FC<Readonly<EmailProps>> = ({
             {/* Contenedor principal */}
             <table role="presentation" border={0} cellPadding={0} cellSpacing={0} width="100%" style={{ maxWidth: '600px', backgroundColor: '#ffffff', borderRadius: '8px', overflow: 'hidden', boxShadow: '0 2px 12px rgba(16,24,40,0.08)' }}>
 
-              {/* Header */}
+              {/* Header Negro Sólido */}
               <tr>
-                <td style={{ padding: '16px 18px', backgroundColor: '#0f172a', backgroundImage: 'linear-gradient(90deg,#0051ff,#00baff)', color: '#ffffff' }}>
+                <td style={{ padding: '16px 18px', backgroundColor: '#000000', color: '#ffffff' }}>
                   <table role="presentation" width="100%" cellPadding={0} cellSpacing={0}>
                     <tr>
                       <td valign="middle" style={{ verticalAlign: 'middle' }}>
@@ -62,16 +62,7 @@ export const WelcomeEmail: React.FC<Readonly<EmailProps>> = ({
                     SophIA ha comenzado el análisis preliminar de tu perfil.
                   </p>
 
-                  {/* Botón */}
-                  <table role="presentation" border={0} cellPadding={0} cellSpacing={0} style={{ margin: '0 0 18px 0' }}>
-                    <tr>
-                      <td>
-                        <a href={`${baseUrl}/dashboard`} target="_blank" style={{ display: 'inline-block', padding: '12px 20px', backgroundColor: '#00baff', color: '#ffffff', textDecoration: 'none', borderRadius: '8px', fontWeight: 600, fontSize: '14px' }}>
-                          Ver Estado de Solicitud
-                        </a>
-                      </td>
-                    </tr>
-                  </table>
+                  {/* (Se eliminó la sección del botón aquí) */}
 
                   <hr style={{ border: 'none', borderTop: '1px solid #e6eef2', margin: '18px 0' }} />
 
@@ -98,12 +89,12 @@ export const WelcomeEmail: React.FC<Readonly<EmailProps>> = ({
                 </td>
               </tr>
 
-              {/* Footer */}
+              {/* Footer Restaurado */}
               <tr>
                 <td style={{ backgroundColor: '#f8fafc', padding: '14px 18px', fontSize: '12px', color: '#64748b', textAlign: 'center' }}>
                   <div style={{ maxWidth: '520px', margin: '0 auto' }}>
-                    <p style={{ margin: '0 0 6px 0' }}>Recibes esto porque te postulaste al Reclutamiento 2026-1.</p>
-                    <p style={{ margin: '0' }}>SIAFI • Facultad de Ingeniería, UNAM</p>
+                    <p style={{ margin: '0 0 6px 0' }}>© 2026 SIAFI - Facultad de Ingeniería, UNAM.</p>
+                    <p style={{ margin: '0' }}>Este es un mensaje automático generado por SophIA.</p>
                   </div>
                 </td>
               </tr>

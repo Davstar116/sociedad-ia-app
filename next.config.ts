@@ -4,15 +4,12 @@ const nextConfig: NextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
-  // AGREGA ESTO PARA LAS FOTOS DE PERFIL DE GOOGLE
+  // Borramos la parte de eslint que daba error
   images: {
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: 'lh3.googleusercontent.com', // Servidor de fotos de Google
+        hostname: 'lh3.googleusercontent.com', // Para las fotos de Google
       },
     ],
   },

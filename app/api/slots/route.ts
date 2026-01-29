@@ -1,59 +1,59 @@
 import { NextResponse } from "next/server";
 import { Client } from "@notionhq/client";
 
-// Forzamos que esta ruta sea dinámica (que no se guarde en caché)
+// --- CONFIGURACIÓN CRÍTICA ---
+// Esto obliga a Vercel a usar el entorno Node.js completo.
+// Sin esto, la librería de Notion puede fallar al minificarse.
+export const runtime = 'nodejs'; 
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {
-    // 1. Inicializamos el cliente DENTRO de la función para evitar errores de contexto
-    const notion = new Client({ auth: process.env.NOTION_TOKEN });
     const SLOTS_DB_ID = process.env.NOTION_SLOTS_ID;
 
+    // Validación temprana
     if (!SLOTS_DB_ID) {
-      console.error("❌ Falta el ID de la base de datos de slots.");
-      throw new Error("Falta NOTION_SLOTS_ID en variables de entorno");
+      return NextResponse.json({ error: "Falta NOTION_SLOTS_ID" }, { status: 500 });
     }
 
-    console.log("🔍 Buscando horarios en DB:", SLOTS_DB_ID);
+    // Inicializamos cliente
+    const notion = new Client({ auth: process.env.NOTION_TOKEN });
 
-    // 2. Hacemos la consulta
+    // Debug: Verificamos que el cliente tenga el método antes de usarlo
+    if (!notion.databases || typeof notion.databases.query !== 'function') {
+      throw new Error("La librería de Notion no se cargó correctamente (Error de Runtime).");
+    }
+
+    // Consulta
     const response = await notion.databases.query({
       database_id: SLOTS_DB_ID,
       filter: {
-        property: "Estado", // Asegúrate de que en Notion se llame "Estado"
+        property: "Estado",
         select: {
-          equals: "Disponible", // Asegúrate de que la opción sea "Disponible"
+          equals: "Disponible",
         },
       },
       sorts: [
         {
-          property: "Fecha y Hora", // Asegúrate de que en Notion se llame así
+          property: "Fecha y Hora",
           direction: "ascending",
         },
       ],
     });
 
-    // 3. Procesamos los datos
     const slots = response.results.map((page: any) => {
-      // Intentamos obtener el título de forma segura
-      const tituloProp = page.properties["ID Turno"]; // ¿Tu columna se llama ID Turno?
-      const fechaProp = page.properties["Fecha y Hora"];
-      const linkProp = page.properties["Link"];
+      // Manejo seguro de propiedades por si cambian nombres
+      const titulo = page.properties["ID Turno"]?.title?.[0]?.plain_text || "Turno sin nombre";
+      const fecha = page.properties["Fecha y Hora"]?.date?.start || null;
+      const link = page.properties["Link"]?.url || "";
 
-      return {
-        id: page.id,
-        titulo: tituloProp?.title?.[0]?.plain_text || "Turno sin nombre",
-        fecha: fechaProp?.date?.start || null,
-        link: linkProp?.url || "",
-      };
+      return { id: page.id, titulo, fecha, link };
     });
 
-    console.log(`✅ Se encontraron ${slots.length} horarios disponibles.`);
     return NextResponse.json({ success: true, slots });
 
   } catch (error: any) {
     console.error("❌ Error API Slots:", error);
-    return NextResponse.json({ error: error.message || "Error desconocido" }, { status: 500 });
+    return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }

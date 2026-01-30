@@ -29,7 +29,7 @@ export async function POST(request: Request) {
       const newPassword = generatePassword();
       await createUser({
         email: data.email,
-        name: `${data.nombre} ${data.apellidos}`,
+        name: data.nombre, // Usamos el nombre completo directo
         password: newPassword,
         role: "Postulante",
         provider: "credentials"
@@ -70,20 +70,29 @@ export async function POST(request: Request) {
         }
     }
 
-    // 3. GUARDAR EN NOTION (Sin campo Cuenta)
+    // 3. GUARDAR EN NOTION (ESQUEMA CORREGIDO)
     await notion.pages.create({
       parent: { database_id: CANDIDATOS_DB_ID! },
       properties: {
-        "Nombre": { title: [{ text: { content: data.nombre } }] },
-        "Apellidos": { rich_text: [{ text: { content: data.apellidos } }] },
-        "Correo": { email: data.email },
+        // --- COINCIDENCIA EXACTA CON TU ESQUEMA ---
+        "Nombre completo": { title: [{ text: { content: data.nombre } }] },
+        "Correo electrónico": { email: data.email },
+        "Estatus del postulante": { status: { name: "Recibido" } },
         "Celular": { phone_number: data.celular },
-        "Carrera": { select: { name: data.carrera } },
+        
+        // Núcleo es Multi-Select, mapeamos el array de strings a objetos {name: "x"}
+        "Núcleo": { 
+            multi_select: data.nucleos.map((n: string) => ({ name: n })) 
+        },
+        
+        // Carrera es Texto
+        "Carrera": { rich_text: [{ text: { content: data.carrera } }] },
+        
+        // Semestre es Número
         "Semestre": { number: parseInt(data.semestre) },
-        // ELIMINADO: "Cuenta"
-        "Area Interes": { select: { name: data.areaInteres } }, 
-        "CV Link": { url: data.cvLink || null },
-        "Estado": { status: { name: "Recibido" } },
+        
+        // CV es URL
+        "CV": { url: data.cvLink || null },
       },
       children: [
         { heading_1: { rich_text: [{ text: { content: "Perfil del Postulante" } }] } },

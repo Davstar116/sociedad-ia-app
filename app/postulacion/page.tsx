@@ -34,9 +34,7 @@ export default function PostulacionPage() {
   const [fileName, setFileName] = useState("");
 
   const [formData, setFormData] = useState({
-    nombre: "", 
-    apellidos: "", 
-    // ELIMINADO: numeroCuenta
+    nombre: "", // UNIFICADO: Nombre Completo
     email: "", 
     telefono: "", 
     carrera: "", 
@@ -78,7 +76,8 @@ export default function PostulacionPage() {
       // 1. SUBIDA CV
       if (file) {
         setMensaje("Subiendo documento...");
-        const uniqueName = `${formData.nombre}_${formData.apellidos}_CV.pdf`.replace(/\s+/g, '_');
+        // Usamos solo el nombre completo para el archivo
+        const uniqueName = `${formData.nombre.replace(/\s+/g, '_')}_CV.pdf`;
         
         try {
             const responseUpload = await fetch(`/api/upload?filename=${encodeURIComponent(uniqueName)}`, { method: 'POST', body: file });
@@ -93,14 +92,12 @@ export default function PostulacionPage() {
 
       // 2. ENVÍO A LA API MAESTRA
       const dataToSend = {
-        nombre: formData.nombre,
-        apellidos: formData.apellidos,
+        nombre: formData.nombre, // Solo enviamos el nombre completo
         email: formData.email,
         celular: formData.telefono,
         carrera: formData.carrera,
         semestre: formData.semestre,
-        // ELIMINADO: numeroCuenta
-        areaInteres: formData.nucleos.join(", "),
+        nucleos: formData.nucleos, // Enviamos el array directo
         respuestas: formData.respuestas,
         skills: formData.skills,
         cvLink: finalCvLink
@@ -189,11 +186,10 @@ export default function PostulacionPage() {
               <div className="space-y-4 animate-in fade-in slide-in-from-right-8">
                 <h2 className="text-xl font-bold text-white mb-6 border-l-4 border-[#00baff] pl-3">Identificación</h2>
                 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <input required placeholder="Nombre(s)" className="input-style bg-black/30 border border-white/10 rounded p-3 focus:border-[#00baff] outline-none"
+                {/* NOMBRE COMPLETO UNIFICADO */}
+                <div>
+                    <input required placeholder="Nombre Completo" className="input-style w-full bg-black/30 border border-white/10 rounded p-3 focus:border-[#00baff] outline-none"
                     value={formData.nombre} onChange={e => handleChange("nombre", e.target.value)} />
-                    <input required placeholder="Apellidos" className="input-style bg-black/30 border border-white/10 rounded p-3 focus:border-[#00baff] outline-none"
-                    value={formData.apellidos} onChange={e => handleChange("apellidos", e.target.value)} />
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -213,8 +209,6 @@ export default function PostulacionPage() {
                       value={formData.semestre} onChange={e => handleChange("semestre", e.target.value)} />
                   </div>
                 </div>
-
-                {/* ELIMINADO: INPUT DE NÚMERO DE CUENTA */}
 
                 <div className="mt-6">
                   <label className="block text-sm text-[#00baff] mb-2 font-medium tracking-wide">Selecciona el o los núcleos:</label>

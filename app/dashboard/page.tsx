@@ -40,7 +40,7 @@ export default async function DashboardPage() {
       <div className="text-5xl mb-4">👋</div>
       <h2 className="text-2xl font-bold text-white mb-4">Gracias por tu interés</h2>
       <p className="text-gray-400 mb-6">
-        Apreciamos mucho el tiempo que tomaste para postularte. En esta ocasión, 
+        Apreciamos el tiempo que invertiste en postularte. En esta ocasión, 
         el proceso de selección ha sido muy competitivo y no podremos continuar con tu proceso.
       </p>
       <p className="text-gray-500 text-sm">

@@ -50,8 +50,8 @@ function LoginContent() {
   return (
     <div className="relative z-10 w-full max-w-md bg-black/60 backdrop-blur-xl border border-[#0051ff]/30 rounded-2xl p-8 shadow-[0_0_40px_rgba(0,81,255,0.1)]">
       
-      {/* Header con gradiente */}
-      <div className="text-center mb-8">
+      {/* Header */}
+      <div className="text-center mb-6">
         <h1 className="text-3xl font-bold text-white tracking-tight">
           Bienvenid@ a <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#0051ff] to-[#00baff]">SophIA</span>
         </h1>
@@ -70,7 +70,7 @@ function LoginContent() {
         </div>
       )}
 
-      {/* Botón Google Estilizado */}
+      {/* Botón Google */}
       <button
         onClick={handleGoogleLogin}
         className="w-full bg-white text-black font-bold py-3 rounded-lg flex items-center justify-center gap-3 hover:bg-gray-200 transition-all hover:scale-[1.02] mb-6"
@@ -131,8 +131,29 @@ function LoginContent() {
         </Link>
       </div>
 
-      {/* FOOTER AGREGADO */}
-      <div className="mt-8 pt-6 border-t border-gray-800 text-center opacity-60 hover:opacity-100 transition-opacity">
+      {/* --- SECCIÓN NUEVA: ACCESO A RECLUTAMIENTO --- */}
+      <div className="mt-8 pt-6 border-t border-gray-800">
+        <p className="text-center text-sm text-gray-400 mb-3">¿Eres postulante?</p>
+        
+        {/* ENLACE CORREGIDO AQUI ABAJO 👇 */}
+        <Link href="/postulacion" className="block group">
+          <div className="relative overflow-hidden rounded-lg bg-gray-900 border border-[#0051ff]/30 p-4 hover:border-[#00baff] transition-all cursor-pointer text-center group-hover:shadow-[0_0_15px_rgba(0,186,255,0.2)]">
+            
+            {/* Efecto Hover gradiente fondo */}
+            <div className="absolute inset-0 bg-gradient-to-r from-[#0051ff]/10 to-[#00baff]/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+            
+            <p className="text-white font-bold text-sm relative z-10">
+              Reclutamiento 2026-2
+            </p>
+            <p className="text-[10px] text-[#00baff] mt-1 font-mono uppercase tracking-widest relative z-10 group-hover:tracking-[0.2em] transition-all">
+              Postulate Aquí →
+            </p>
+          </div>
+        </Link>
+      </div>
+
+      {/* FOOTER */}
+      <div className="mt-8 text-center opacity-60 hover:opacity-100 transition-opacity">
         <p className="text-[10px] text-gray-400 font-mono tracking-wider uppercase mb-1">
           SophIA by <span className="text-[#00baff] font-bold">SIAFI</span>
         </p>

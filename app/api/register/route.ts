@@ -90,7 +90,7 @@ export async function POST(request: Request) {
       properties: {
         "Nombre Completo": { title: [{ text: { content: data.nombre } }] },
         "Correo electrónico": { email: data.email },
-        "Estatus del postulante": { status: { name: "Recibido" } },
+        "Estatus del postulante": { status: { name: "Registrado" } },
         "Celular": { phone_number: data.celular },
         "Núcleo": { multi_select: data.nucleos.map((n: string) => ({ name: n })) },
         "Carrera": { rich_text: [{ text: { content: data.carrera } }] },

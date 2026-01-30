@@ -53,9 +53,9 @@ function LoginContent() {
       {/* Header con gradiente */}
       <div className="text-center mb-8">
         <h1 className="text-3xl font-bold text-white tracking-tight">
-          Bienvenido a <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#0051ff] to-[#00baff]">SIAFI</span>
+          Bienvenido a <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#0051ff] to-[#00baff]">SophIA</span>
         </h1>
-        <p className="text-gray-400 text-sm mt-2">Accede al portal neural</p>
+        <p className="text-gray-400 text-sm mt-2">Accede al nuestra comunidad</p>
       </div>
 
       {successMsg && (

@@ -44,9 +44,9 @@ export default function RegisterPage() {
         
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-white">
-            Únete a <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#0051ff] to-[#00baff]">SIAFI</span>
+            Únete a <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#0051ff] to-[#00baff]">SophIA</span>
           </h1>
-          <p className="text-gray-400 text-sm mt-2">Crea tu cuenta de Miembro</p>
+          <p className="text-gray-400 text-sm mt-2">Crea tu cuenta</p>
         </div>
 
         {error && (

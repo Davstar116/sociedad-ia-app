@@ -105,11 +105,21 @@ export default function PostulacionPage() {
 
       setMensaje("Procesando perfil y generando credenciales...");
       
-      const res = await fetch("/api/register", {
+     const res = await fetch("/api/register", {
         method: "POST", 
         headers: { "Content-Type": "application/json" }, 
         body: JSON.stringify(dataToSend)
       });
+
+      // LEER LA RESPUESTA CON CUIDADO
+      let dataRes;
+      try {
+        dataRes = await res.json();
+      } catch (e) {
+        // Si falla el JSON, es porque Vercel nos devolvió HTML de error (500)
+        console.error("Error parseando JSON:", e);
+        throw new Error(`Error crítico del servidor (${res.status}). Revisa los logs de Vercel.`);
+      }
 
       if (res.ok) {
         setMensaje("¡Éxito!");
@@ -117,13 +127,15 @@ export default function PostulacionPage() {
         setTimeout(() => setStatus('processing'), 1500);
         setTimeout(() => setStatus('completed'), 4000);
       } else {
-        const err = await res.json();
-        setMensaje("Error: " + (err.error || "Algo salió mal"));
+        // Mostramos el error exacto que nos manda el backend
+        setMensaje("Error Servidor: " + (dataRes.error || dataRes.message || "Error desconocido"));
         setLoading(false);
       }
+
     } catch (error: any) {
       console.error(error);
-      setMensaje("Error de conexión");
+      // AQUI CAMBIAMOS EL MENSAJE PARA VER EL ERROR REAL
+      setMensaje("Fallo Técnico: " + (error.message || "Error de red"));
       setLoading(false);
     }
   };

@@ -9,10 +9,13 @@ export default function EmailPreviewPage() {
       </div>
 
       <div className="shadow-2xl">
-        {/* Pasamos la URL de producción para que cargue las imágenes reales */}
+        {/* Pasamos la URL de producción y LAS NUEVAS CREDENCIALES SIMULADAS */}
         <WelcomeEmail 
           nombre="David Estudiante" 
-          baseUrl="https://sociedad-ia-app.vercel.app" 
+          baseUrl="https://sociedad-ia-app.vercel.app"
+          // 👇 Agregamos esto para que no de error y se vea completo
+          emailUsuario="david@comunidad.unam.mx"
+          passwordGenerada="X9P2-M5L1"
         />
       </div>
     </div>

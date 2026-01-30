@@ -79,7 +79,7 @@ export const WelcomeEmail: React.FC<Readonly<EmailProps>> = ({
                     </p>
                     <p style={{ margin: '0 0 6px 0', fontSize: '14px', color: '#555555' }}>• Puedes ingresar al portal usando tus credenciales para ver el estado de tu solicitud.</p>
                     <p style={{ margin: '0 0 6px 0', fontSize: '14px', color: '#555555' }}>• Mantente atento a tu correo electrónico, también por este medio te haremos saber el estado de tu solicitud.</p>
-                    <p style={{ margin: '0 0 6px 0', fontSize: '14px', color: '#555555' }}>• Mantente atent@ a nuestras redes sociales.</p>
+                    <p style={{ margin: '0 0 6px 0', fontSize: '14px', color: '#555555' }}>• Te recomendamos seguir nuestras redes sociales.</p>
                   </div>
 
                   {/* FIRMA ACTUALIZADA */}

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { createUser, getUserByEmail } from "@/app/lib/user-db";
+import { createUser, getUserByEmail } from "@/lib/user-db";
 
 export const runtime = 'nodejs';
 

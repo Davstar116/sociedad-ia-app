@@ -1,6 +1,6 @@
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
-import { getCandidateStatus } from "@/lib/notion-api"; // Importamos la función nueva
+import { getCandidateStatus } from "@/app/lib/notion-api"; // Importamos la función nueva
 import NetworkBackground from "../components/ui/NetworkBackground";
 
 export default async function DashboardPage() {

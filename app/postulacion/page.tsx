@@ -193,7 +193,7 @@ export default function PostulacionPage() {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <input required type="email" placeholder="Email" className="input-style bg-black/30 border border-white/10 rounded p-3 focus:border-[#00baff] outline-none"
+                  <input required type="email" placeholder="Correo electrónico" className="input-style bg-black/30 border border-white/10 rounded p-3 focus:border-[#00baff] outline-none"
                     value={formData.email} onChange={e => handleChange("email", e.target.value)} />
                   <input required type="tel" placeholder="Celular" className="input-style bg-black/30 border border-white/10 rounded p-3 focus:border-[#00baff] outline-none"
                     value={formData.telefono} onChange={e => handleChange("telefono", e.target.value)} />

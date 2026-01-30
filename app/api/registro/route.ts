@@ -1,7 +1,16 @@
 import { NextResponse } from "next/server";
-import { Client } from "@notionhq/client";
-// import { Resend } from 'resend'; <--- Lo comentamos porque usaremos SMTP luego
+// Eliminamos el cliente de Notion que causa el crash
+// import { Client } from "@notionhq/client"; 
 import { createUser, getUserByEmail } from "../../lib/user-db";
+
+// Configuración manual de Headers para Notion
+const NOTION_TOKEN = process.env.NOTION_TOKEN;
+const CANDIDATOS_DB_ID = process.env.NOTION_DATABASE_ID;
+const notionHeaders = {
+  "Authorization": `Bearer ${NOTION_TOKEN}`,
+  "Notion-Version": "2022-06-28",
+  "Content-Type": "application/json",
+};
 
 function generatePassword() {
   const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
@@ -12,9 +21,6 @@ function generatePassword() {
   return pass;
 }
 
-const notion = new Client({ auth: process.env.NOTION_TOKEN });
-const CANDIDATOS_DB_ID = process.env.NOTION_DATABASE_ID;
-
 export async function POST(request: Request) {
   try {
     const data = await request.json();
@@ -22,6 +28,7 @@ export async function POST(request: Request) {
     // ---------------------------------------------------------
     // 1. GESTIÓN DE USUARIO (Notion Usuarios)
     // ---------------------------------------------------------
+    // Nota: createUser y getUserByEmail ya usan fetch por dentro, así que son seguros.
     const existingUser = await getUserByEmail(data.email);
     let passwordParaCorreo = "";
     
@@ -75,9 +82,10 @@ export async function POST(request: Request) {
     }
 
     // ---------------------------------------------------------
-    // 3. GUARDAR EN NOTION (Base de Datos Reclutamiento)
+    // 3. GUARDAR EN NOTION (Usando FETCH nativo)
     // ---------------------------------------------------------
-    await notion.pages.create({
+    
+    const notionBody = {
       parent: { database_id: CANDIDATOS_DB_ID! },
       properties: {
         "Nombre completo": { title: [{ text: { content: data.nombre } }] },
@@ -99,20 +107,27 @@ export async function POST(request: Request) {
         { heading_2: { rich_text: [{ text: { content: "📝 Respuestas del Formulario" } }] } },
         ...respuestasBlocks
       ]
+    };
+
+    const notionResponse = await fetch("https://api.notion.com/v1/pages", {
+      method: "POST",
+      headers: notionHeaders,
+      body: JSON.stringify(notionBody),
     });
 
+    if (!notionResponse.ok) {
+      const errorText = await notionResponse.text();
+      throw new Error(`Error Notion API: ${errorText}`);
+    }
+
     // ---------------------------------------------------------
-    // 4. SIMULACIÓN DE CORREO (PENDIENTE DE CREDENCIALES)
+    // 4. SIMULACIÓN DE CORREO (Logs en servidor)
     // ---------------------------------------------------------
-    
-    // Aquí es donde pondremos 'nodemailer' cuando tengas la cuenta de la sociedad.
-    // Por ahora, solo imprimimos en consola para que NO falle.
     
     console.log("📧 [SIMULACIÓN] Correo enviado a:", data.email);
     console.log("📧 [SIMULACIÓN] Contenido:", `Hola ${data.nombre}, tu pass es: ${passwordParaCorreo}`);
 
-    // Retornamos éxito SIEMPRE, porque Notion sí se guardó.
-    return NextResponse.json({ success: true, message: "Registro guardado correctamente (Correo pendiente)" });
+    return NextResponse.json({ success: true, message: "Registro guardado correctamente" });
 
   } catch (error: any) {
     console.error("🔥 Error CRÍTICO en API Register:", error);

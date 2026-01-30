@@ -88,7 +88,7 @@ export async function POST(request: Request) {
     const notionBody = {
       parent: { database_id: CANDIDATOS_DB_ID! },
       properties: {
-        "Nombre completo": { title: [{ text: { content: data.nombre } }] },
+        "Nombre Completo": { title: [{ text: { content: data.nombre } }] },
         "Correo electrónico": { email: data.email },
         "Estatus del postulante": { status: { name: "Recibido" } },
         "Celular": { phone_number: data.celular },

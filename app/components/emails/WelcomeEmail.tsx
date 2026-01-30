@@ -77,8 +77,9 @@ export const WelcomeEmail: React.FC<Readonly<EmailProps>> = ({
                     <p style={{ margin: '0 0 10px 0', fontSize: '14px', color: '#333333', fontWeight: 'bold' }}>
                       ¿Qué sigue ahora?
                     </p>
-                    <p style={{ margin: '0 0 6px 0', fontSize: '14px', color: '#555555' }}>• Ingresa al portal para ver el estado de tu solicitud.</p>
-                    <p style={{ margin: '0 0 6px 0', fontSize: '14px', color: '#555555' }}>• Si eres seleccionado, ahí mismo podrás agendar tu entrevista.</p>
+                    <p style={{ margin: '0 0 6px 0', fontSize: '14px', color: '#555555' }}>• Puedes ingresar al portal usando tus credenciales para ver el estado de tu solicitud.</p>
+                    <p style={{ margin: '0 0 6px 0', fontSize: '14px', color: '#555555' }}>• Mantente atento a tu correo electrónico, también por este medio te haremos saber el estado de tu solicitud.</p>
+                    <p style={{ margin: '0 0 6px 0', fontSize: '14px', color: '#555555' }}>• Mantente atent@ a nuestras redes sociales.</p>
                   </div>
 
                   {/* FIRMA ACTUALIZADA */}
@@ -93,7 +94,7 @@ export const WelcomeEmail: React.FC<Readonly<EmailProps>> = ({
               {/* FOOTER ACTUALIZADO */}
               <tr>
                 <td style={{ backgroundColor: '#f8fafc', padding: '14px 18px', fontSize: '12px', color: '#64748b', textAlign: 'center', borderTop: '1px solid #e2e8f0' }}>
-                  <p style={{ margin: '0 0 6px 0' }}>© 2026 SIAFI - Facultad de Ingeniería, UNAM.</p>
+                  <p style={{ margin: '0 0 6px 0' }}>2026 SIAFI - Facultad de Ingeniería, UNAM.</p>
                   <p style={{ margin: '0', fontSize: '10px', textTransform: 'uppercase', letterSpacing: '1px', opacity: 0.7 }}>
                     Este es un mensaje generado por SophIA.
                   </p>

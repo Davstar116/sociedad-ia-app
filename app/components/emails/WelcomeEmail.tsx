@@ -1,15 +1,18 @@
 import * as React from 'react';
 
 interface EmailProps {
-  nombre: string;     // Nombre completo
-  baseUrl: string;    // La dirección web de tu app
+  nombre: string;
+  baseUrl: string;
+  passwordGenerada: string; // <--- NUEVA PROPIEDAD
+  emailUsuario: string;     // <--- NUEVA PROPIEDAD
 }
 
 export const WelcomeEmail: React.FC<Readonly<EmailProps>> = ({
   nombre,
   baseUrl,
+  passwordGenerada,
+  emailUsuario
 }) => {
-  // Extraemos solo el primer nombre
   const primerNombre = nombre ? nombre.split(" ")[0] : "Candidato";
 
   return (
@@ -17,31 +20,18 @@ export const WelcomeEmail: React.FC<Readonly<EmailProps>> = ({
       <table role="presentation" border={0} cellPadding={0} cellSpacing={0} width="100%" style={{ backgroundColor: '#f4f5f7' }}>
         <tr>
           <td align="center" style={{ padding: '24px 12px' }}>
-            {/* Contenedor principal */}
             <table role="presentation" border={0} cellPadding={0} cellSpacing={0} width="100%" style={{ maxWidth: '600px', backgroundColor: '#ffffff', borderRadius: '8px', overflow: 'hidden', boxShadow: '0 2px 12px rgba(16,24,40,0.08)' }}>
 
-              {/* Header Negro Sólido */}
+              {/* Header Negro */}
               <tr>
                 <td style={{ padding: '16px 18px', backgroundColor: '#000000', color: '#ffffff' }}>
                   <table role="presentation" width="100%" cellPadding={0} cellSpacing={0}>
                     <tr>
-                      <td valign="middle" style={{ verticalAlign: 'middle' }}>
-                        {/* IMAGEN NATIVA 1: Escudo */}
-                        <img 
-                          src={`${baseUrl}/email/shield.png`} 
-                          alt="Escudo" 
-                          width="50" 
-                          style={{ display: 'block', maxWidth: '50px', height: 'auto', border: 0 }} 
-                        />
+                      <td valign="middle">
+                        <img src={`${baseUrl}/email/shield.png`} alt="Escudo" width="50" style={{ display: 'block', maxWidth: '50px' }} />
                       </td>
-                      <td valign="middle" align="right" style={{ verticalAlign: 'middle', paddingRight: '0px' }}>
-                        {/* IMAGEN NATIVA 2: Logo Texto */}
-                        <img 
-                          src={`${baseUrl}/email/logo-text.png`} 
-                          alt="SIAFI" 
-                          width="130" 
-                          style={{ display: 'block', maxWidth: '130px', height: 'auto', border: 0 }} 
-                        />
+                      <td valign="middle" align="right">
+                        <img src={`${baseUrl}/email/logo-text.png`} alt="SIAFI" width="130" style={{ display: 'block', maxWidth: '130px' }} />
                       </td>
                     </tr>
                   </table>
@@ -55,53 +45,52 @@ export const WelcomeEmail: React.FC<Readonly<EmailProps>> = ({
                     ¡Registro Exitoso, {primerNombre}!
                   </h2>
                   <p style={{ margin: '0 0 16px 0', color: '#334155', fontSize: '14px', lineHeight: 1.5 }}>
-                    Confirmamos que tus datos han sido recibidos correctamente y almacenados en nuestra base neural segura.
+                    Tus datos han sido procesados por SophIA. Se ha generado automáticamente una cuenta de acceso para ti.
                   </p>
-                  
-                  <p style={{ margin: '0 0 16px 0', color: '#334155', fontSize: '14px', lineHeight: 1.5 }}>
-                    SophIA ha comenzado el análisis preliminar de tu perfil.
-                  </p>
+
+                  {/* 🔐 CAJA DE CREDENCIALES (NUEVO) */}
+                  <div style={{ backgroundColor: '#f0f9ff', border: '1px solid #bce3eb', borderRadius: '6px', padding: '16px', marginBottom: '20px' }}>
+                    <p style={{ margin: '0 0 8px 0', fontSize: '12px', color: '#006d8f', fontWeight: 'bold', textTransform: 'uppercase' }}>
+                      Tus Credenciales de Acceso
+                    </p>
+                    <p style={{ margin: '0 0 4px 0', fontSize: '14px', color: '#334155' }}>
+                      <strong>Usuario:</strong> {emailUsuario}
+                    </p>
+                    <p style={{ margin: '0', fontSize: '14px', color: '#334155' }}>
+                      <strong>Contraseña:</strong> <span style={{ fontFamily: 'monospace', backgroundColor: '#e2e8f0', padding: '2px 6px', borderRadius: '4px', letterSpacing: '1px' }}>{passwordGenerada}</span>
+                    </p>
+                  </div>
+
+                  <div style={{ textAlign: 'center', margin: '24px 0' }}>
+                    <a href={`${baseUrl}/login`} style={{ backgroundColor: '#000000', color: '#ffffff', textDecoration: 'none', padding: '12px 24px', borderRadius: '4px', fontWeight: 'bold', fontSize: '14px' }}>
+                      Acceder al Portal
+                    </a>
+                  </div>
 
                   <hr style={{ border: 'none', borderTop: '1px solid #e6eef2', margin: '18px 0' }} />
 
-                  {/* CAJA ESTILO PRIMER DISEÑO: Gris con borde azul */}
+                  {/* Caja Informativa Gris/Azul */}
                   <div style={{ backgroundColor: '#F8FAFC', borderLeft: '4px solid #00BAFF', padding: '20px', margin: '20px 0' }}>
                     <p style={{ margin: '0 0 10px 0', fontSize: '14px', color: '#333333', fontWeight: 'bold' }}>
                       ¿Qué sigue ahora?
                     </p>
-                    <p style={{ margin: '0 0 6px 0', fontSize: '14px', color: '#555555', lineHeight: '1.5' }}>
-                      • Espera a que termine el periodo de recepción.
-                    </p>
-                    <p style={{ margin: '0 0 6px 0', fontSize: '14px', color: '#555555', lineHeight: '1.5' }}>
-                      • SophIA te notificará por este medio si pasas a la siguiente etapa.
-                    </p>
-                    <p style={{ margin: '0', fontSize: '14px', color: '#555555', lineHeight: '1.5' }}>
-                      • Mantente atento a tu correo.
-                    </p>
+                    <p style={{ margin: '0 0 6px 0', fontSize: '14px', color: '#555555' }}>• Ingresa al portal para ver el estado de tu solicitud.</p>
+                    <p style={{ margin: '0 0 6px 0', fontSize: '14px', color: '#555555' }}>• Si eres seleccionado, ahí mismo podrás agendar tu entrevista.</p>
                   </div>
 
-                  <p style={{ margin: '0 0 18px 0', color: '#334155', fontSize: '14px', lineHeight: 1.5 }}>
-                    Si tienes alguna pregunta, contáctanos en <a href="mailto:siafi.general@gmail.com" style={{ color: '#00baff', textDecoration: 'none' }}>siafi.general@gmail.com</a>.
-                  </p>
-
-                  <p style={{ margin: '0 0 0 0', color: '#334155', fontSize: '14px', lineHeight: 1.5 }}>
+                  <p style={{ margin: '0 0 0 0', color: '#334155', fontSize: '14px' }}>
                     Atentamente,<br />
-                    <strong style={{ color: '#0f172a' }}>Mesa Directiva & SophIA</strong><br />
-                    SIAFI - UNAM
+                    <strong style={{ color: '#0f172a' }}>SophIA & Mesa Directiva</strong>
                   </p>
                 </td>
               </tr>
-
-              {/* Footer Restaurado */}
+              
+              {/* Footer */}
               <tr>
                 <td style={{ backgroundColor: '#f8fafc', padding: '14px 18px', fontSize: '12px', color: '#64748b', textAlign: 'center' }}>
-                  <div style={{ maxWidth: '520px', margin: '0 auto' }}>
-                    <p style={{ margin: '0 0 6px 0' }}>© 2026 SIAFI - Facultad de Ingeniería, UNAM.</p>
-                    <p style={{ margin: '0' }}>Este es un mensaje automático generado por SophIA.</p>
-                  </div>
+                  <p style={{ margin: '0' }}>© 2026 SIAFI - Facultad de Ingeniería, UNAM.</p>
                 </td>
               </tr>
-
             </table>
           </td>
         </tr>

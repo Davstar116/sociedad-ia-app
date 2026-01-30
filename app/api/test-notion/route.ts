@@ -2,7 +2,7 @@
 import { NextResponse } from "next/server";
 // Nota el cambio aquí: usamos @/lib/notion
 // El símbolo @ suele apuntar a la raíz del proyecto cuando no usas src
-import { verificarConexion } from "@/lib/notion"; 
+import { verificarConexion } from "@/app/lib/notion"; 
 
 export async function GET() {
   const conectado = await verificarConexion();

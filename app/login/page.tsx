@@ -4,7 +4,7 @@ import { signIn } from "next-auth/react";
 import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import NetworkBackground from "@/app/components/ui/NetworkBackground"; // Importamos el fondo
+import NetworkBackground from "@/app/components/ui/NetworkBackground";
 
 function LoginContent() {
   const router = useRouter();
@@ -124,12 +124,23 @@ function LoginContent() {
         </button>
       </form>
 
-      <div className="mt-8 text-center text-sm text-gray-500">
+      <div className="mt-6 text-center text-sm text-gray-500">
         ¿No tienes cuenta?{" "}
         <Link href="/register" className="text-[#00baff] hover:underline font-medium">
           Crear cuenta
         </Link>
       </div>
+
+      {/* FOOTER AGREGADO */}
+      <div className="mt-8 pt-6 border-t border-gray-800 text-center opacity-60 hover:opacity-100 transition-opacity">
+        <p className="text-[10px] text-gray-400 font-mono tracking-wider uppercase mb-1">
+          SophIA by <span className="text-[#00baff] font-bold">SIAFI</span>
+        </p>
+        <p className="text-[10px] text-gray-500 font-mono">
+          Facultad de Ingeniería, UNAM
+        </p>
+      </div>
+
     </div>
   );
 }

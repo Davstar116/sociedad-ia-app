@@ -141,7 +141,7 @@ export default function PostulacionPage() {
              <div className="absolute inset-0 flex items-center justify-center"><span className="text-2xl">🧠</span></div>
            </div>
            <h2 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-[#00baff] to-[#0051ff] tracking-widest">PROCESANDO PERFIL...</h2>
-           <p className="text-gray-500 text-sm mt-2">Generando cuenta de acceso neural</p>
+           <p className="text-gray-500 text-sm mt-2">Generando cuenta de acceso</p>
         </div>
       </div>
     );
@@ -205,7 +205,7 @@ export default function PostulacionPage() {
                       value={formData.carrera} onChange={e => handleChange("carrera", e.target.value)} />
                   </div>
                   <div className="col-span-1">
-                    <input required type="number" placeholder="Sem." min="1" max="12" className="w-full bg-black/30 border border-white/10 rounded p-3 focus:border-[#00baff] outline-none text-center"
+                    <input required type="number" placeholder="Semestre" min="1" max="12" className="w-full bg-black/30 border border-white/10 rounded p-3 focus:border-[#00baff] outline-none text-center"
                       value={formData.semestre} onChange={e => handleChange("semestre", e.target.value)} />
                   </div>
                 </div>

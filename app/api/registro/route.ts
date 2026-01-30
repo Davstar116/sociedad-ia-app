@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { Client } from "@notionhq/client";
-import { Resend } from 'resend';
-import { WelcomeEmail } from '@/app/components/emails/WelcomeEmail';
+// import { Resend } from 'resend'; <--- Lo comentamos porque usaremos SMTP luego
 import { createUser, getUserByEmail } from "../../lib/user-db";
 
 function generatePassword() {
@@ -14,14 +13,15 @@ function generatePassword() {
 }
 
 const notion = new Client({ auth: process.env.NOTION_TOKEN });
-const resend = new Resend(process.env.RESEND_API_KEY);
 const CANDIDATOS_DB_ID = process.env.NOTION_DATABASE_ID;
 
 export async function POST(request: Request) {
   try {
     const data = await request.json();
 
-    // 1. GESTIÓN DE USUARIO
+    // ---------------------------------------------------------
+    // 1. GESTIÓN DE USUARIO (Notion Usuarios)
+    // ---------------------------------------------------------
     const existingUser = await getUserByEmail(data.email);
     let passwordParaCorreo = "";
     
@@ -29,19 +29,21 @@ export async function POST(request: Request) {
       const newPassword = generatePassword();
       await createUser({
         email: data.email,
-        name: data.nombre, // Usamos el nombre completo directo
+        name: data.nombre,
         password: newPassword,
         role: "Postulante",
         provider: "credentials"
       });
       passwordParaCorreo = newPassword;
-      console.log(`✅ Usuario creado: ${data.email}`);
+      console.log(`✅ Usuario creado: ${data.email} | Pass: ${newPassword}`);
     } else {
       console.log(`⚠️ Usuario ya existía: ${data.email}`);
       passwordParaCorreo = "(Usa tu contraseña actual)";
     }
 
-    // 2. PREPARAR CONTENIDO DETALLADO
+    // ---------------------------------------------------------
+    // 2. PREPARAR CONTENIDO DETALLADO (Bloques de Notion)
+    // ---------------------------------------------------------
     const skillsBlocks = [];
     if (data.skills) {
         for (const category in data.skills) {
@@ -60,7 +62,9 @@ export async function POST(request: Request) {
             orgullo: "Mayor Logro/Orgullo",
             inspiracion: "Dinámica de Trabajo",
             motivo: "Motivo para unirse",
-            expectativas: "Expectativas"
+            expectativas: "Expectativas",
+            fuente: "Fuente",
+            areasInteres: "Intereses Extra"
         };
         for (const key in data.respuestas) {
             if (questionsMap[key]) {
@@ -70,28 +74,19 @@ export async function POST(request: Request) {
         }
     }
 
-    // 3. GUARDAR EN NOTION (ESQUEMA CORREGIDO)
+    // ---------------------------------------------------------
+    // 3. GUARDAR EN NOTION (Base de Datos Reclutamiento)
+    // ---------------------------------------------------------
     await notion.pages.create({
       parent: { database_id: CANDIDATOS_DB_ID! },
       properties: {
-        // --- COINCIDENCIA EXACTA CON TU ESQUEMA ---
         "Nombre completo": { title: [{ text: { content: data.nombre } }] },
         "Correo electrónico": { email: data.email },
         "Estatus del postulante": { status: { name: "Recibido" } },
         "Celular": { phone_number: data.celular },
-        
-        // Núcleo es Multi-Select, mapeamos el array de strings a objetos {name: "x"}
-        "Núcleo": { 
-            multi_select: data.nucleos.map((n: string) => ({ name: n })) 
-        },
-        
-        // Carrera es Texto
+        "Núcleo": { multi_select: data.nucleos.map((n: string) => ({ name: n })) },
         "Carrera": { rich_text: [{ text: { content: data.carrera } }] },
-        
-        // Semestre es Número
         "Semestre": { number: parseInt(data.semestre) },
-        
-        // CV es URL
         "CV": { url: data.cvLink || null },
       },
       children: [
@@ -106,25 +101,21 @@ export async function POST(request: Request) {
       ]
     });
 
-    // 4. ENVIAR CORREO
-    const { error } = await resend.emails.send({
-      from: 'SIAFI <onboarding@resend.dev>',
-      to: [data.email],
-      subject: '¡Registro Exitoso y Credenciales SIAFI!',
-      react: WelcomeEmail({ 
-        nombre: data.nombre,
-        baseUrl: process.env.NEXT_PUBLIC_BASE_URL || 'https://sociedad-ia-app.vercel.app',
-        passwordGenerada: passwordParaCorreo,
-        emailUsuario: data.email
-      }),
-    });
+    // ---------------------------------------------------------
+    // 4. SIMULACIÓN DE CORREO (PENDIENTE DE CREDENCIALES)
+    // ---------------------------------------------------------
+    
+    // Aquí es donde pondremos 'nodemailer' cuando tengas la cuenta de la sociedad.
+    // Por ahora, solo imprimimos en consola para que NO falle.
+    
+    console.log("📧 [SIMULACIÓN] Correo enviado a:", data.email);
+    console.log("📧 [SIMULACIÓN] Contenido:", `Hola ${data.nombre}, tu pass es: ${passwordParaCorreo}`);
 
-    if (error) console.error("Error enviando correo:", error);
-
-    return NextResponse.json({ success: true, message: "Proceso completo" });
+    // Retornamos éxito SIEMPRE, porque Notion sí se guardó.
+    return NextResponse.json({ success: true, message: "Registro guardado correctamente (Correo pendiente)" });
 
   } catch (error: any) {
-    console.error("Error Master API Register:", error);
+    console.error("🔥 Error CRÍTICO en API Register:", error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }

@@ -1,133 +1,102 @@
-"use client";
-import { useSession, signOut } from "next-auth/react";
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { getServerSession } from "next-auth";
+import { redirect } from "next/navigation";
+import { getCandidateStatus } from "@/lib/notion-api"; // Importamos la función nueva
+import NetworkBackground from "../components/ui/NetworkBackground";
 
-// Definimos qué forma tiene un "Slot" (Horario)
-interface Slot {
-  id: string;
-  titulo: string;
-  fecha: string;
-  link: string;
-}
+export default async function DashboardPage() {
+  const session = await getServerSession();
 
-export default function Dashboard() {
-  const { data: session, status } = useSession();
-  const router = useRouter();
-  
-  // Estados para guardar los datos
-  const [slots, setSlots] = useState<Slot[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    if (status === "unauthenticated") {
-      router.push("/");
-    }
-
-    // Función para pedir los horarios a tu API
-    const fetchSlots = async () => {
-      try {
-        const res = await fetch("/api/slots");
-        const data = await res.json();
-        if (data.success) {
-          setSlots(data.slots);
-        }
-      } catch (error) {
-        console.error("Error cargando horarios:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    if (status === "authenticated") {
-      fetchSlots();
-    }
-  }, [status, router]);
-
-  // Función para formatear la fecha fea (2026-01-31) a algo bonito
-  const formatearFecha = (fechaString: string) => {
-    if (!fechaString) return "Fecha pendiente";
-    const fecha = new Date(fechaString);
-    // Ajustamos la zona horaria si es necesario, o usamos UTC
-    return new Intl.DateTimeFormat("es-MX", {
-      weekday: "long",
-      day: "numeric",
-      month: "long",
-      hour: "numeric",
-      minute: "numeric",
-      hour12: true,
-    }).format(fecha);
-  };
-
-  if (status === "loading" || loading) {
-    return (
-      <div className="min-h-screen bg-black text-white flex items-center justify-center">
-        <div className="animate-pulse text-blue-400">Cargando disponibilidad...</div>
-      </div>
-    );
+  if (!session || !session.user?.email) {
+    redirect("/login");
   }
 
-  return (
-    <div className="min-h-screen bg-black text-white p-6">
-      {/* Header del Dashboard */}
-      <div className="flex justify-between items-center mb-8 border-b border-gray-800 pb-4">
-        <div>
-          <h1 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-600">
-            Hola, {session?.user?.name?.split(" ")[0]}
-          </h1>
-          <p className="text-gray-400 text-sm">Panel de Postulante</p>
+  // 1. OBTENER EL ESTADO REAL DESDE NOTION
+  const status = await getCandidateStatus(session.user.email);
+
+  // --- COMPONENTES DE VISTA SEGÚN ESTADO ---
+
+  // VISTA 1: EN ESPERA (Registrado)
+  const WaitingView = () => (
+    <div className="max-w-2xl w-full bg-black/60 border border-[#0051ff]/30 p-8 rounded-2xl text-center backdrop-blur-xl">
+      <div className="flex justify-center mb-6">
+        <div className="relative w-24 h-24">
+          <div className="absolute inset-0 border-4 border-[#00baff] rounded-full animate-spin border-t-transparent"></div>
+          <div className="absolute inset-0 flex items-center justify-center text-4xl">⏳</div>
         </div>
-        <button 
-          onClick={() => signOut()} 
-          className="text-xs text-red-400 hover:text-red-300 border border-red-900 px-3 py-1 rounded"
-        >
-          Cerrar Sesión
-        </button>
+      </div>
+      <h2 className="text-2xl font-bold text-white mb-2">Perfil en Evaluación</h2>
+      <p className="text-gray-400">
+        Hola <span className="text-[#00baff]">{session.user?.name}</span>. SophIA y la Mesa Directiva están analizando tu perfil.
+      </p>
+      <div className="mt-6 p-4 bg-blue-900/20 border border-blue-500/30 rounded-lg text-sm text-blue-200">
+        Te notificaremos por correo cuando tu estatus cambie.
+      </div>
+    </div>
+  );
+
+  // VISTA 2: NO APROBADO (No Seleccionado)
+  const RejectedView = () => (
+    <div className="max-w-2xl w-full bg-black/60 border border-gray-700 p-8 rounded-2xl text-center backdrop-blur-xl">
+      <div className="text-5xl mb-4">👋</div>
+      <h2 className="text-2xl font-bold text-white mb-4">Gracias por tu interés</h2>
+      <p className="text-gray-400 mb-6">
+        Apreciamos mucho el tiempo que tomaste para postularte. En esta ocasión, 
+        el proceso de selección ha sido muy competitivo y no podremos continuar con tu proceso.
+      </p>
+      <p className="text-gray-500 text-sm">
+        Te invitamos a seguir participando en nuestros eventos abiertos y a intentarlo nuevamente el próximo semestre.
+      </p>
+    </div>
+  );
+
+  // VISTA 3: APROBADO PARA ENTREVISTA
+  const InterviewView = () => (
+    <div className="max-w-4xl w-full">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-white">
+          ¡Felicidades, <span className="text-[#00baff]">{session.user?.name}</span>!
+        </h1>
+        <p className="text-gray-400 mt-2">Has pasado a la siguiente fase. Es hora de conocerte.</p>
       </div>
 
-      {/* Sección de Entrevistas */}
-      <div className="max-w-4xl mx-auto">
-        <h2 className="text-xl font-semibold mb-6 flex items-center gap-2">
-          📅 Agenda tu Entrevista
-        </h2>
+      {/* AQUÍ VA EL CALENDARIO (Lo integraremos después) */}
+      <div className="bg-black/60 border border-[#00baff]/50 p-8 rounded-2xl backdrop-blur-xl shadow-[0_0_30px_rgba(0,186,255,0.1)]">
+        <div className="flex items-center gap-4 mb-6 border-b border-gray-800 pb-4">
+          <div className="bg-[#00baff] text-black font-bold px-3 py-1 rounded text-sm">PASO 2</div>
+          <h2 className="text-xl font-bold text-white">Agenda tu Entrevista</h2>
+        </div>
+        
+        <div className="text-center py-12 border border-dashed border-gray-700 rounded-xl bg-white/5">
+          <p className="text-gray-400">📅 Aquí cargaremos el componente de Calendario</p>
+          <button className="mt-4 px-6 py-2 bg-[#0051ff] rounded-lg hover:bg-[#0041cc] transition">
+            Ver Horarios Disponibles
+          </button>
+        </div>
+      </div>
+    </div>
+  );
 
-        {slots.length === 0 ? (
-          <div className="text-center py-10 bg-gray-900 rounded-lg border border-gray-800">
-            <p className="text-gray-400">No hay horarios disponibles por el momento.</p>
-            <p className="text-xs text-gray-500 mt-2">Intenta más tarde.</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {slots.map((slot) => (
-              <div 
-                key={slot.id} 
-                className="bg-gray-900 border border-gray-800 p-5 rounded-xl hover:border-blue-500 transition-all cursor-pointer group"
-                onClick={() => alert(`Pronto podrás reservar: ${slot.titulo}`)} // Paso temporal
-              >
-                <div className="flex justify-between items-start mb-2">
-                  <span className="bg-blue-900/30 text-blue-400 text-xs px-2 py-1 rounded font-mono">
-                    DISPONIBLE
-                  </span>
-                  <span className="text-gray-500 text-xs">
-                    Virtual (Meet)
-                  </span>
-                </div>
-                
-                <h3 className="text-lg font-bold text-white mb-1 group-hover:text-blue-400">
-                  {slot.titulo}
-                </h3>
-                
-                <p className="text-gray-400 text-sm mb-4">
-                  {formatearFecha(slot.fecha)}
-                </p>
-
-                <button className="w-full bg-white text-black font-bold py-2 rounded hover:bg-blue-400 hover:text-white transition-colors">
-                  Reservar Lugar
-                </button>
-              </div>
-            ))}
-          </div>
+  // --- RENDER PRINCIPAL ---
+  return (
+    <div className="min-h-screen bg-black text-white p-6 flex flex-col items-center justify-center relative overflow-hidden">
+      <NetworkBackground />
+      
+      <div className="z-10 w-full flex justify-center">
+        {/* LÓGICA DE SWITCH DE ESTADOS */}
+        {status === "Registrado" && <WaitingView />}
+        {status === "Recibido" && <WaitingView />} {/* Por si acaso quedó con el nombre anterior */}
+        {status === "No Seleccionado" && <RejectedView />}
+        {status === "Aprobado para Entrevista" && <InterviewView />}
+        
+        {/* Estado por defecto o error */}
+        {!["Registrado", "Recibido", "No Seleccionado", "Aprobado para Entrevista"].includes(status) && (
+          <div className="text-gray-500">Estado desconocido: {status}</div>
         )}
+      </div>
+
+      {/* Botón de Logout temporal */}
+      <div className="absolute top-4 right-4 z-20">
+         <a href="/api/auth/signout" className="text-xs text-gray-500 hover:text-white">Cerrar Sesión</a>
       </div>
     </div>
   );

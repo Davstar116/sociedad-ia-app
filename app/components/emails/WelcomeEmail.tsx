@@ -48,7 +48,7 @@ export const WelcomeEmail: React.FC<Readonly<EmailProps>> = ({
                     ¡Registro Exitoso, {primerNombre}!
                   </h2>
                   <p style={{ margin: '0 0 16px 0', color: '#334155', fontSize: '14px', lineHeight: 1.5 }}>
-                    Tus datos han sido procesados por SophIA. Se ha generado automáticamente una cuenta de acceso para ti.
+                    Confirmamos que tus datos han sido recibidos correctamente. SophIA ha generado automáticamente una cuenta de acceso para ti y comenzará el analisis preliminar de tu perfil.
                   </p>
 
                   {/* 🔐 CAJA DE CREDENCIALES */}
@@ -78,7 +78,7 @@ export const WelcomeEmail: React.FC<Readonly<EmailProps>> = ({
                       ¿Qué sigue ahora?
                     </p>
                     <p style={{ margin: '0 0 6px 0', fontSize: '14px', color: '#555555' }}>• Puedes ingresar al portal usando tus credenciales para ver el estado de tu solicitud.</p>
-                    <p style={{ margin: '0 0 6px 0', fontSize: '14px', color: '#555555' }}>• Mantente atento a tu correo electrónico, también por este medio te haremos saber el estado de tu solicitud.</p>
+                    <p style={{ margin: '0 0 6px 0', fontSize: '14px', color: '#555555' }}>• Mantente atent@ a tu correo electrónico, también por este medio te haremos saber el estado de tu solicitud.</p>
                     <p style={{ margin: '0 0 6px 0', fontSize: '14px', color: '#555555' }}>• Te recomendamos seguir nuestras redes sociales.</p>
                   </div>
 

@@ -5,7 +5,7 @@ import NetworkBackground from "@/app/components/ui/NetworkBackground";
 import Image from "next/image";
 import Link from "next/link";
 
-// Componente StarRating (Sin cambios)
+// Componente StarRating
 const StarRating = ({ label, value, onChange }: { label: string, value: number, onChange: (v: number) => void }) => {
   return (
     <div className="flex justify-between items-center mb-2 bg-white/5 p-2 rounded hover:bg-white/10 transition-colors">
@@ -35,8 +35,8 @@ export default function PostulacionPage() {
 
   const [formData, setFormData] = useState({
     nombre: "", 
-    apellidos: "", // NECESARIO PARA CUENTA
-    numeroCuenta: "", // NECESARIO PARA REGISTRO
+    apellidos: "", 
+    // ELIMINADO: numeroCuenta
     email: "", 
     telefono: "", 
     carrera: "", 
@@ -75,7 +75,7 @@ export default function PostulacionPage() {
     try {
       let finalCvLink = formData.cvLink;
 
-      // 1. SUBIDA CV (Si tienes configurada la API de upload)
+      // 1. SUBIDA CV
       if (file) {
         setMensaje("Subiendo documento...");
         const uniqueName = `${formData.nombre}_${formData.apellidos}_CV.pdf`.replace(/\s+/g, '_');
@@ -99,9 +99,8 @@ export default function PostulacionPage() {
         celular: formData.telefono,
         carrera: formData.carrera,
         semestre: formData.semestre,
-        numeroCuenta: formData.numeroCuenta,
+        // ELIMINADO: numeroCuenta
         areaInteres: formData.nucleos.join(", "),
-        // ENVIAMOS TODO EL OBJETO COMPLETO PARA QUE LA API LO GUARDE EN EL BODY
         respuestas: formData.respuestas,
         skills: formData.skills,
         cvLink: finalCvLink
@@ -132,7 +131,7 @@ export default function PostulacionPage() {
     }
   };
 
-  // --- RENDERIZADO (IGUAL QUE ANTES PERO CON CAMPOS NUEVOS) ---
+  // --- RENDERIZADO ---
 
   if (status === 'processing') {
     return (
@@ -190,7 +189,6 @@ export default function PostulacionPage() {
               <div className="space-y-4 animate-in fade-in slide-in-from-right-8">
                 <h2 className="text-xl font-bold text-white mb-6 border-l-4 border-[#00baff] pl-3">Identificación</h2>
                 
-                {/* CAMPOS REQUERIDOS PARA CUENTA */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <input required placeholder="Nombre(s)" className="input-style bg-black/30 border border-white/10 rounded p-3 focus:border-[#00baff] outline-none"
                     value={formData.nombre} onChange={e => handleChange("nombre", e.target.value)} />
@@ -216,12 +214,8 @@ export default function PostulacionPage() {
                   </div>
                 </div>
 
-                <div>
-                     <input required placeholder="Número de Cuenta (9 dígitos)" maxLength={9} className="w-full bg-black/30 border border-white/10 rounded p-3 focus:border-[#00baff] outline-none"
-                      value={formData.numeroCuenta} onChange={e => handleChange("numeroCuenta", e.target.value)} />
-                </div>
+                {/* ELIMINADO: INPUT DE NÚMERO DE CUENTA */}
 
-                {/* Nucleos y CV se mantienen igual */}
                 <div className="mt-6">
                   <label className="block text-sm text-[#00baff] mb-2 font-medium tracking-wide">Selecciona el o los núcleos:</label>
                   <div className="grid grid-cols-2 gap-3">
@@ -243,7 +237,7 @@ export default function PostulacionPage() {
               </div>
             )}
 
-            {/* PASO 2: RESPUESTAS (Sin cambios) */}
+            {/* PASO 2: RESPUESTAS */}
             {step === 2 && (
               <div className="space-y-4 animate-in fade-in slide-in-from-right-8">
                 <h2 className="text-xl font-bold text-white mb-6 border-l-4 border-[#0051ff] pl-3">Perfil SIAFI</h2>
@@ -257,7 +251,6 @@ export default function PostulacionPage() {
                         expectativas: "¿Qué expectativas tienes?",
                         areasInteres: "Tus Áreas de Interés"
                     };
-                    // Renderizado dinámico de inputs/textareas
                     const isShort = key === 'fuente' || key === 'areasInteres';
                     return isShort ? (
                         <input key={key} type="text" placeholder={placeholders[key]} className="w-full bg-black/30 border border-white/10 rounded p-3 focus:border-[#00baff] outline-none text-sm"
@@ -270,7 +263,7 @@ export default function PostulacionPage() {
               </div>
             )}
 
-            {/* PASO 3: SKILLS (Sin cambios) */}
+            {/* PASO 3: SKILLS */}
             {step === 3 && (
               <div className="space-y-6 animate-in fade-in slide-in-from-right-8 h-96 overflow-y-auto pr-2 custom-scrollbar">
                 <h2 className="text-xl font-bold text-white mb-2 border-l-4 border-purple-500 pl-3">Evaluación Técnica</h2>

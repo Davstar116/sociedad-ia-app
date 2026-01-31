@@ -37,10 +37,10 @@ export default async function DashboardPage() {
       <div className="text-5xl mb-4">👋</div>
       <h2 className="text-2xl font-bold text-white mb-4">Gracias por tu interés</h2>
       <p className="text-gray-400 mb-6">
-        Apreciamos mucho el tiempo que tomaste para postularte. En esta ocasión no podremos continuar con tu proceso.
+        Apreciamos el tiempo que invertiste en postularte. En esta ocasión, el proceso de selección ha sido muy competitivo y no podremos continuar con tu proceso.
       </p>
       <p className="text-gray-500 text-sm border-t border-gray-800 pt-4">
-        Te invitamos a seguir participando en nuestros eventos abiertos.
+        Te invitamos a seguir participando en nuestros eventos abiertos y a intentarlo nuevamente el próximo semestre.
       </p>
     </div>
   );
@@ -51,12 +51,12 @@ export default async function DashboardPage() {
         <h1 className="text-3xl font-bold text-white">
           ¡Felicidades, <span className="text-[#00baff]">{session.user?.name}</span>!
         </h1>
-        <p className="text-gray-400 mt-2">Has pasado a la siguiente fase.</p>
+        <p className="text-gray-400 mt-2">Has pasado a la siguiente fase. Es hora de conocerte.</p>
       </div>
 
       <div className="bg-black/60 border border-[#00baff]/50 p-8 rounded-2xl backdrop-blur-xl shadow-[0_0_30px_rgba(0,186,255,0.1)]">
         <div className="flex items-center gap-4 mb-6 border-b border-gray-800 pb-4">
-          <div className="bg-[#00baff] text-black font-bold px-3 py-1 rounded text-sm">PASO 2</div>
+          <div className="bg-[#00baff] text-black font-bold px-3 py-1 rounded text-sm">FASE 2</div>
           <h2 className="text-xl font-bold text-white">Agenda tu Entrevista</h2>
         </div>
         <div className="text-center py-12 border border-dashed border-gray-700 rounded-xl bg-white/5">
@@ -97,12 +97,12 @@ export default async function DashboardPage() {
       </div>
       
       <h1 className="text-4xl md:text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#0051ff] via-[#00baff] to-white mb-6 tracking-tight drop-shadow-[0_0_15px_rgba(0,186,255,0.5)]">
-        ¡BIENVENIDO AL EQUIPO!
+        ¡BIENVENID@ AL EQUIPO!
       </h1>
       
       <p className="text-xl text-gray-300 mb-8 max-w-2xl mx-auto leading-relaxed">
         Felicidades <span className="text-white font-bold">{session.user?.name}</span>. <br/>
-        Has superado todas las pruebas. Oficialmente eres parte de la Sociedad de Inteligencia Artificial.
+        Has superado todas las pruebas. Oficialmente eres parte de la SIAFI.
       </p>
 
       {/* BOTONES RESTAURADOS */}
@@ -118,7 +118,7 @@ export default async function DashboardPage() {
       </div>
 
       <p className="mt-4 text-sm text-gray-500 font-mono">
-        ESTATUS: <span className="text-[#00baff]">MIEMBRO ACTIVO</span>
+        ESTATUS: <span className="text-[#00baff]">MIEMBRO EN CAPACITACIÓN</span>
       </p>
     </div>
   );

@@ -23,12 +23,12 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "SIAFI App",
+  title: "SophIA",
   description: "Plataforma de Gestión e Inteligencia Artificial",
   manifest: "/manifest.json",
   icons: {
-    icon: "/icon-192.png",
-    apple: "/icon-192.png",
+    icon: "/icon.png",
+    apple: "/icon.png",
   },
   appleWebApp: {
     capable: true,

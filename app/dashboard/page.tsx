@@ -87,20 +87,37 @@ export default async function DashboardPage() {
     </div>
   );
 
+  // VISTA ACEPTADO (RESTAURADA CON BOTONES) ✅
   const AcceptedView = () => (
     <div className="max-w-3xl w-full text-center animate-in zoom-in duration-700">
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-[#0051ff] rounded-full blur-[120px] opacity-20 -z-10"></div>
+      
       <div className="mb-6 inline-block">
         <span className="text-6xl animate-bounce inline-block">🚀</span>
       </div>
+      
       <h1 className="text-4xl md:text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#0051ff] via-[#00baff] to-white mb-6 tracking-tight drop-shadow-[0_0_15px_rgba(0,186,255,0.5)]">
         ¡BIENVENIDO AL EQUIPO!
       </h1>
+      
       <p className="text-xl text-gray-300 mb-8 max-w-2xl mx-auto leading-relaxed">
         Felicidades <span className="text-white font-bold">{session.user?.name}</span>. <br/>
         Has superado todas las pruebas. Oficialmente eres parte de la Sociedad de Inteligencia Artificial.
       </p>
-      <p className="mt-12 text-sm text-gray-500 font-mono">
+
+      {/* BOTONES RESTAURADOS */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-xl mx-auto mb-8">
+        <div className="bg-[#0051ff]/20 border border-[#0051ff] p-4 rounded-xl hover:bg-[#0051ff]/30 transition cursor-pointer group">
+          <h3 className="text-[#00baff] font-bold mb-1 group-hover:text-white">📱 Unirse al WhatsApp</h3>
+          <p className="text-xs text-gray-400">Grupo oficial de miembros</p>
+        </div>
+        <div className="bg-gray-800/50 border border-gray-700 p-4 rounded-xl hover:bg-gray-700 transition cursor-pointer">
+          <h3 className="text-white font-bold mb-1">📂 Onboarding</h3>
+          <p className="text-xs text-gray-400">Ver documentos iniciales</p>
+        </div>
+      </div>
+
+      <p className="mt-4 text-sm text-gray-500 font-mono">
         ESTATUS: <span className="text-[#00baff]">MIEMBRO ACTIVO</span>
       </p>
     </div>
@@ -108,23 +125,24 @@ export default async function DashboardPage() {
 
   // --- RENDER PRINCIPAL ---
   return (
-    <div className="min-h-screen bg-black text-white p-6 flex flex-col items-center justify-center relative overflow-hidden">
+    // CAMBIO IMPORTANTE AQUÍ: 'bg-transparent' para dejar ver el canvas de fondo
+    <div className="min-h-screen bg-transparent text-white p-6 flex flex-col items-center justify-center relative overflow-hidden">
+      
       <NetworkBackground />
       
-      {/* HEADER LOGO: Sólido, centrado y brillante */}
+      {/* HEADER LOGO */}
       <div className="absolute top-6 left-1/2 -translate-x-1/2 z-50">
            <img 
              src="/logo.png" 
              width={140} 
              height={140} 
              alt="Logo SIAFI" 
-             className="drop-shadow-[0_0_20px_rgba(0,186,255,0.6)]" // Glow azul intenso
-             style={{ opacity: 1 }} // Aseguramos opacidad total
+             className="drop-shadow-[0_0_20px_rgba(0,186,255,0.6)]"
+             style={{ opacity: 1 }} 
            />
       </div>
 
       <div className="z-10 w-full flex flex-col items-center justify-center mt-12">
-        {/* LÓGICA DE SWITCH DE ESTADOS */}
         {(status === "Registrado" || status === "Recibido") && <WaitingView />}
         {status === "No Seleccionado" && <RejectedView />}
         {status === "Aprobado para Entrevista" && <InterviewView />}

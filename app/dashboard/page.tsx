@@ -2,6 +2,7 @@ import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import { getCandidateStatus } from "../lib/notion-api"; 
 import NetworkBackground from "../components/ui/NetworkBackground";
+import UserMenu from "../components/dashboard/UserMenu"; // <-- IMPORTANTE: Importamos el componente nuevo
 
 export default async function DashboardPage() {
   const session = await getServerSession();
@@ -12,8 +13,7 @@ export default async function DashboardPage() {
 
   const status = await getCandidateStatus(session.user.email);
 
-  // --- VISTAS ---
-  
+  // --- VISTAS (Se mantienen exactamente igual que antes) ---
   const WaitingView = () => (
     <div className="max-w-2xl w-full bg-black/60 border border-[#0051ff]/30 p-8 rounded-2xl text-center backdrop-blur-xl animate-in fade-in zoom-in duration-500">
       <div className="flex justify-center mb-6">
@@ -104,7 +104,6 @@ export default async function DashboardPage() {
         Has superado todas las pruebas. Oficialmente eres parte de SIAFI.
       </p>
 
-      {/* BOTONES RESTAURADOS */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-xl mx-auto mb-8">
         <div className="bg-[#0051ff]/20 border border-[#0051ff] p-4 rounded-xl hover:bg-[#0051ff]/30 transition cursor-pointer group">
           <h3 className="text-[#00baff] font-bold mb-1 group-hover:text-white">📱 Unirse al WhatsApp</h3>
@@ -154,29 +153,9 @@ export default async function DashboardPage() {
         )}
       </div>
 
-      {/* --- MENU DE ENGRANAJE (SETTINGS) --- */}
-      <div className="absolute top-6 right-6 z-50">
-         <details className="group relative">
-            <summary className="list-none cursor-pointer p-2 rounded-full hover:bg-white/10 transition-colors text-gray-400 hover:text-white focus:outline-none">
-              {/* Ícono de Engranaje SVG */}
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="animate-in spin-in-90 duration-300">
-                <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.09a2 2 0 0 1-1-1.74v-.47a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.39a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path>
-                <circle cx="12" cy="12" r="3"></circle>
-              </svg>
-            </summary>
-            
-            {/* Menú Desplegable */}
-            <div className="absolute right-0 mt-2 w-48 bg-black/90 border border-gray-800 rounded-xl shadow-xl backdrop-blur-md overflow-hidden origin-top-right animate-in fade-in slide-in-from-top-2 duration-200">
-               <a 
-                 href="/api/auth/signout" 
-                 className="flex items-center gap-2 px-4 py-3 text-sm text-red-400 hover:bg-white/5 hover:text-red-300 transition-colors"
-               >
-                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
-                 Cerrar Sesión
-               </a>
-            </div>
-         </details>
-      </div>
+      {/* --- AQUÍ INSERTAMOS EL NUEVO MENÚ INTERACTIVO --- */}
+      {/* Ya no usamos <details> aquí directamente, sino el componente UserMenu */}
+      <UserMenu />
 
     </div>
   );

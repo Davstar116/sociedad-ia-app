@@ -23,18 +23,14 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "SophIA",
-  description: "Plataforma de Gestión e Inteligencia Artificial",
-  manifest: "/manifest.json",
+  title: "SophIA | Sistema Inteligente",
+  description: "Plataforma de gestión SIAFI",
+  manifest: "/manifest.json", // Vincula el manifiesto que acabamos de crear
   icons: {
     icon: "/icon.png",
-    apple: "/icon.png",
+    apple: "/apple-icon.png", // Importante para iPhone
   },
-  appleWebApp: {
-    capable: true,
-    statusBarStyle: "black-translucent",
-    title: "SIAFI App",
-  },
+  themeColor: "#000000",
 };
 
 export default function RootLayout({

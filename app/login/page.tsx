@@ -4,7 +4,8 @@ import { signIn } from "next-auth/react";
 import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import NetworkBackground from "@/app/components/ui/NetworkBackground";
+// Asegúrate que la ruta sea correcta según tu estructura, usualmente es relative path o alias @
+import NetworkBackground from "@/app/components/ui/NetworkBackground"; 
 
 function LoginContent() {
   const router = useRouter();
@@ -131,11 +132,10 @@ function LoginContent() {
         </Link>
       </div>
 
-      {/* --- SECCIÓN NUEVA: ACCESO A RECLUTAMIENTO --- */}
+      {/* --- SECCIÓN RECLUTAMIENTO --- */}
       <div className="mt-8 pt-6 border-t border-gray-800">
         <p className="text-center text-sm text-gray-400 mb-3">¿Eres postulante?</p>
         
-        {/* ENLACE CORREGIDO AQUI ABAJO 👇 */}
         <Link href="/postulacion" className="block group">
           <div className="relative overflow-hidden rounded-lg bg-gray-900 border border-[#0051ff]/30 p-4 hover:border-[#00baff] transition-all cursor-pointer text-center group-hover:shadow-[0_0_15px_rgba(0,186,255,0.2)]">
             
@@ -168,7 +168,8 @@ function LoginContent() {
 
 export default function LoginPage() {
   return (
-    <div className="relative min-h-screen bg-black text-white flex flex-col items-center justify-center p-4 overflow-hidden">
+    // CAMBIO IMPORTANTE: bg-transparent para ver el NetworkBackground
+    <div className="relative min-h-screen bg-transparent text-white flex flex-col items-center justify-center p-4 overflow-hidden">
       <NetworkBackground />
       <Suspense fallback={<div className="text-[#00baff] animate-pulse">Cargando interfaz...</div>}>
         <LoginContent />

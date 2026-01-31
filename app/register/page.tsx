@@ -1,8 +1,10 @@
 "use client";
+
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import NetworkBackground from "@/app/components/ui/NetworkBackground";
+// Usamos el import relativo para asegurar que lo encuentre igual que en Login
+import NetworkBackground from "../components/ui/NetworkBackground"; 
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -37,16 +39,21 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="relative min-h-screen bg-black text-white flex flex-col items-center justify-center p-4 overflow-hidden">
+    // CAMBIO CLAVE: bg-transparent para dejar ver la animación
+    <div className="relative min-h-screen bg-transparent text-white flex flex-col items-center justify-center p-4 overflow-hidden">
+      
       <NetworkBackground />
       
-      <div className="relative z-10 w-full max-w-md bg-black/60 backdrop-blur-xl border border-[#0051ff]/30 rounded-2xl p-8 shadow-[0_0_40px_rgba(0,81,255,0.1)]">
+      <div className="relative z-10 w-full max-w-md bg-black/60 backdrop-blur-xl border border-[#0051ff]/30 rounded-2xl p-8 shadow-[0_0_40px_rgba(0,81,255,0.1)] animate-in fade-in zoom-in duration-500">
         
         <div className="text-center mb-8">
+          {/* Opcional: Logo pequeño aquí si gustas */}
+          {/* <img src="/logo.png" alt="SIAFI" className="w-12 h-12 mx-auto mb-4 drop-shadow-[0_0_10px_rgba(0,186,255,0.5)]" /> */}
+          
           <h1 className="text-3xl font-bold text-white">
             Únete a <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#0051ff] to-[#00baff]">SophIA</span>
           </h1>
-          <p className="text-gray-400 text-sm mt-2">Crea tu cuenta</p>
+          <p className="text-gray-400 text-sm mt-2">Crea tu cuenta de miembro</p>
         </div>
 
         {error && (

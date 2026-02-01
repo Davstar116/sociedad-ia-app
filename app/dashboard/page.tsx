@@ -12,14 +12,14 @@ export default async function DashboardPage() {
     redirect("/login");
   }
 
-  // 1. OBTENEMOS DATOS
+  // Obtenemos los datos con la API corregida
   const userData = await getCandidateStatus(session.user.email);
   
   const status = userData?.status || "Registrado";
   const role = userData?.role || "Postulante";
   const isInterviewer = userData?.isInterviewer || false;
 
-  // 2. DEFINIMOS STAFF
+  // Lista de Roles permitidos como Staff
   const STAFF_ROLES = ["Miembro", "Administrador Maestro", "Mesa Directiva"];
   const isStaff = STAFF_ROLES.includes(role);
 
@@ -33,68 +33,178 @@ export default async function DashboardPage() {
         </div>
       </div>
       <h2 className="text-2xl font-bold text-white mb-2">Perfil en Evaluación</h2>
-      <p className="text-gray-400">Hola <span className="text-[#00baff]">{session.user?.name}</span>...</p>
+      <p className="text-gray-400">
+        Hola <span className="text-[#00baff]">{session.user?.name}</span>. SophIA y la Mesa Directiva están analizando tu perfil.
+      </p>
+      <div className="mt-6 p-4 bg-blue-900/20 border border-blue-500/30 rounded-lg text-sm text-blue-200">
+        Te notificaremos por correo cuando tu estatus cambie.
+      </div>
     </div>
   );
-  // (Por brevedad omito las otras vistas, asumo que las tienes, NO LAS BORRES)
-  const RejectedView = () => <div className="text-white">Rechazado</div>;
-  const InterviewView = () => <div className="text-white">Entrevista</div>;
-  const PostInterviewRejectedView = () => <div className="text-white">Post Entrevista Rechazado</div>;
-  const AcceptedView = () => <div className="text-white">Aceptado</div>;
 
-  // --- VISTA ENTREVISTADOR ---
+  const RejectedView = () => (
+    <div className="max-w-2xl w-full bg-black/60 border border-gray-700 p-8 rounded-2xl text-center backdrop-blur-xl animate-in fade-in slide-in-from-bottom-4 duration-700">
+      <div className="text-5xl mb-4">👋</div>
+      <h2 className="text-2xl font-bold text-white mb-4">Gracias por tu interés</h2>
+      <p className="text-gray-400 mb-6">
+        Apreciamos el tiempo que invertiste en postularte. En esta ocasión, el proceso de selección ha sido muy competitivo y no podremos continuar con tu proceso.
+      </p>
+      <p className="text-gray-500 text-sm border-t border-gray-800 pt-4">
+        Te invitamos a seguir participando en nuestros eventos abiertos y a intentarlo nuevamente el próximo semestre.
+      </p>
+    </div>
+  );
+
+  const InterviewView = () => (
+    <div className="max-w-4xl w-full animate-in fade-in duration-700">
+      <div className="mb-8 text-center md:text-left">
+        <h1 className="text-3xl font-bold text-white">
+          ¡Felicidades, <span className="text-[#00baff]">{session.user?.name}</span>!
+        </h1>
+        <p className="text-gray-400 mt-2">Has pasado a la siguiente fase. Es hora de conocerte.</p>
+      </div>
+
+      <div className="bg-black/60 border border-[#00baff]/50 p-8 rounded-2xl backdrop-blur-xl shadow-[0_0_30px_rgba(0,186,255,0.1)]">
+        <div className="flex items-center gap-4 mb-6 border-b border-gray-800 pb-4">
+          <div className="bg-[#00baff] text-black font-bold px-3 py-1 rounded text-sm">FASE 2</div>
+          <h2 className="text-xl font-bold text-white">Agenda tu Entrevista</h2>
+        </div>
+        <div className="text-center py-12 border border-dashed border-gray-700 rounded-xl bg-white/5">
+          <p className="text-gray-400">📅 Aquí cargaremos el componente de Calendario</p>
+          <button className="mt-4 px-6 py-2 bg-[#0051ff] rounded-lg hover:bg-[#0041cc] transition text-white font-bold">
+            Ver Horarios Disponibles
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+
+  const PostInterviewRejectedView = () => (
+    <div className="max-w-2xl w-full bg-black/60 border border-gray-700 p-8 rounded-2xl text-center backdrop-blur-xl animate-in zoom-in duration-500">
+      <div className="text-5xl mb-4 grayscale opacity-80">🤝</div>
+      <h2 className="text-2xl font-bold text-white mb-4">Un placer conocerte</h2>
+      <p className="text-gray-300 mb-4 leading-relaxed">
+        Hola <span className="text-[#00baff] font-bold">{session.user?.name}</span>, queremos agradecerte por el tiempo y la energía que nos dedicaste en la entrevista.
+      </p>
+      <p className="text-gray-400 mb-6 text-sm">
+        Fue una decisión difícil, pero en este momento no tenemos una vacante que se ajuste a tu perfil.
+      </p>
+      <div className="bg-white/5 p-4 rounded-lg border border-white/10">
+        <p className="text-gray-400 text-sm">
+          Mantendremos tu contacto para futuras oportunidades en SIAFI.
+        </p>
+      </div>
+    </div>
+  );
+
+  const AcceptedView = () => (
+    <div className="max-w-3xl w-full text-center animate-in zoom-in duration-700">
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-[#0051ff] rounded-full blur-[120px] opacity-20 -z-10"></div>
+      <div className="mb-6 inline-block">
+        <span className="text-6xl animate-bounce inline-block">🚀</span>
+      </div>
+      <h1 className="text-4xl md:text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#0051ff] via-[#00baff] to-white mb-6 tracking-tight drop-shadow-[0_0_15px_rgba(0,186,255,0.5)]">
+        ¡BIENVENID@ AL EQUIPO!
+      </h1>
+      <p className="text-xl text-gray-300 mb-8 max-w-2xl mx-auto leading-relaxed">
+        Felicidades <span className="text-white font-bold">{session.user?.name}</span>. <br/>
+        Has superado todas las pruebas. Oficialmente eres parte de SIAFI.
+      </p>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-xl mx-auto mb-8">
+        <div className="bg-[#0051ff]/20 border border-[#0051ff] p-4 rounded-xl hover:bg-[#0051ff]/30 transition cursor-pointer group">
+          <h3 className="text-[#00baff] font-bold mb-1 group-hover:text-white">📱 Unirse al WhatsApp</h3>
+          <p className="text-xs text-gray-400">Grupo oficial de miembros</p>
+        </div>
+        <div className="bg-gray-800/50 border border-gray-700 p-4 rounded-xl hover:bg-gray-700 transition cursor-pointer">
+          <h3 className="text-white font-bold mb-1">📂 Onboarding</h3>
+          <p className="text-xs text-gray-400">Ver documentos iniciales</p>
+        </div>
+      </div>
+      <p className="mt-4 text-sm text-gray-500 font-mono">
+        ESTATUS: <span className="text-[#00baff]">MIEMBRO EN CAPACITACIÓN</span>
+      </p>
+    </div>
+  );
+
+  // --- VISTA DE ENTREVISTADOR (GRID) ---
   const InterviewerDashboard = () => (
     <div className="w-full max-w-6xl animate-in fade-in zoom-in duration-500">
         <div className="mb-8 flex flex-col md:flex-row justify-between items-end gap-4">
             <div>
-                <h1 className="text-3xl font-bold text-white">Panel de Entrevistas</h1>
+                <h1 className="text-3xl font-bold text-white">
+                    Panel de Entrevistas <span className="text-[#00baff]">SIAFI</span>
+                </h1>
+                <p className="text-gray-400">Configura tus horarios disponibles para la semana.</p>
             </div>
             <div className="bg-green-500/10 border border-green-500/30 px-4 py-2 rounded-full flex items-center gap-2">
-                <span className="text-green-400 text-xs font-bold uppercase">Modo Activo</span>
+                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                <span className="text-green-400 text-xs font-bold uppercase tracking-wider">Modo Entrevistador Activo</span>
             </div>
         </div>
+        
         <AvailabilityGrid />
     </div>
   );
 
-  // LOGICA DE VISUALIZACIÓN
+  // LOGICA PRINCIPAL
   let CurrentView = null;
+
   if (isStaff) {
-      if (isInterviewer) CurrentView = <InterviewerDashboard />;
-      else CurrentView = null;
+      // Es Staff (Miembro o Admin)
+      if (isInterviewer) {
+          CurrentView = <InterviewerDashboard />;
+      } else {
+          CurrentView = null;
+      }
   } else {
+      // Es Postulante (o default)
       switch (status) {
-          case "Registrado": case "Recibido": CurrentView = <WaitingView />; break;
-          case "No Seleccionado": CurrentView = <RejectedView />; break;
-          case "Aprobado para Entrevista": CurrentView = <InterviewView />; break;
-          case "Rechazado": CurrentView = <PostInterviewRejectedView />; break;
-          case "Aceptado": CurrentView = <AcceptedView />; break;
-          default: CurrentView = <div className="text-white">Estado: {status}</div>;
+          case "Registrado":
+          case "Recibido":
+              CurrentView = <WaitingView />;
+              break;
+          case "No Seleccionado":
+              CurrentView = <RejectedView />;
+              break;
+          case "Aprobado para Entrevista":
+              CurrentView = <InterviewView />;
+              break;
+          case "Rechazado":
+              CurrentView = <PostInterviewRejectedView />;
+              break;
+          case "Aceptado":
+              CurrentView = <AcceptedView />;
+              break;
+          default:
+              CurrentView = (
+                  <div className="text-gray-500 bg-black/50 p-4 rounded border border-red-900/50">
+                      Estado desconocido: <span className="text-red-400 font-mono">{status}</span>
+                  </div>
+              );
       }
   }
 
+  // --- RENDER PRINCIPAL ---
   return (
     <div className="min-h-screen bg-transparent text-white p-6 flex flex-col items-center justify-center relative overflow-hidden">
+      
       <NetworkBackground />
-
-      {/* 🔴 DEBUG BOX: ESTO ES LO QUE NECESITO QUE VEAS 🔴 */}
-      <div className="absolute top-20 left-4 z-[100] bg-red-900/90 border border-red-500 p-4 rounded text-xs font-mono max-w-sm">
-          <p className="font-bold text-red-200 border-b border-red-500/50 mb-2">DIAGNÓSTICO SOPHIA:</p>
-          <p>📧 Email Sesión: <span className="text-white">{session.user?.email}</span></p>
-          <p>👤 Rol Detectado: <span className="text-yellow-300">{role}</span></p>
-          <p>🎤 Es Entrevistador?: <span className="text-yellow-300">{isInterviewer ? "SÍ" : "NO"}</span></p>
-          <p>🛡️ Es Staff (Array)?: <span className="text-white">{isStaff ? "SÍ" : "NO"}</span></p>
-          <p>📝 Estatus Candidato: <span className="text-gray-400">{status}</span></p>
-      </div>
-      {/* -------------------------------------------------- */}
       
       <div className="absolute top-6 left-1/2 -translate-x-1/2 z-50">
-           <img src="/logo.png" width={140} height={140} alt="Logo" style={{ opacity: 1 }} />
+           <img 
+             src="/logo.png" 
+             width={140} 
+             height={140} 
+             alt="Logo SIAFI" 
+             className="drop-shadow-[0_0_20px_rgba(0,186,255,0.6)]"
+             style={{ opacity: 1 }} 
+           />
       </div>
 
       <div className="z-10 w-full flex flex-col items-center justify-center mt-12 mb-10">
         {CurrentView}
       </div>
+
       <UserMenu />
     </div>
   );

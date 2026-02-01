@@ -1,6 +1,6 @@
 const NOTION_TOKEN = process.env.NOTION_TOKEN;
-const NOTION_DATABASE_ID = process.env.NOTION_DATABASE_ID; // Base actual de Candidatos
-const NOTION_USERS_DB_ID = process.env.NOTION_USERS_DB_ID; // ¡NUEVA! Agrega esto a tu .env.local
+const NOTION_DATABASE_ID = process.env.NOTION_DATABASE_ID; // Base Candidatos
+const NOTION_USERS_DB_ID = process.env.NOTION_USERS_DB_ID; // Base Usuarios
 
 export async function getCandidateStatus(email: string) {
   try {
@@ -11,8 +11,7 @@ export async function getCandidateStatus(email: string) {
     };
 
     // 1. BUSCAR EN BASE DE DATOS DE USUARIOS (SIAFI Usuarios)
-    // Para obtener ROL y CHECKBOX DE ENTREVISTADOR
-    let role = "Postulante"; // Default
+    let role = "Postulante"; 
     let isInterviewer = false;
 
     if (NOTION_USERS_DB_ID) {
@@ -21,7 +20,7 @@ export async function getCandidateStatus(email: string) {
         headers,
         body: JSON.stringify({
           filter: {
-            property: "Correo electrónico", // Ajusta si tu propiedad se llama "Email"
+            property: "Email", // ✅ CORREGIDO: Ahora busca en la columna "Email"
             email: { equals: email }
           }
         }),
@@ -32,16 +31,14 @@ export async function getCandidateStatus(email: string) {
         const userData = await userRes.json();
         if (userData.results.length > 0) {
           const props = userData.results[0].properties;
-          // Asumimos que la propiedad se llama "Rol" y es un Select
           role = props["Rol"]?.select?.name || "Postulante"; 
-          // Asumimos que la propiedad se llama "Entrevistador" y es Checkbox
           isInterviewer = props["Entrevistador"]?.checkbox || false;
         }
       }
     }
 
     // 2. BUSCAR EN BASE DE DATOS DE CANDIDATOS (Candidatos_2026)
-    // Para obtener el ESTATUS (Solo si es necesario o siempre para tener el dato)
+    // (Esta parte sigue buscando "Correo electrónico" si así se llama en la base de Candidatos)
     let statusName = "Registrado";
 
     const candidateRes = await fetch(`https://api.notion.com/v1/databases/${NOTION_DATABASE_ID}/query`, {
@@ -49,7 +46,7 @@ export async function getCandidateStatus(email: string) {
       headers,
       body: JSON.stringify({
         filter: {
-          property: "Correo electrónico",
+          property: "Correo electrónico", // En Candidatos lo dejamos igual (si funciona)
           email: { equals: email }
         }
       }),
@@ -64,7 +61,6 @@ export async function getCandidateStatus(email: string) {
       }
     }
 
-    // Retornamos todo el objeto combinado
     return {
       status: statusName,
       role: role,

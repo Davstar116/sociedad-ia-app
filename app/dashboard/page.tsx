@@ -129,18 +129,19 @@ export default async function DashboardPage() {
 
   // --- VISTA DE ENTREVISTADOR (GRID) ---
   const InterviewerDashboard = () => (
-    <div className="w-full max-w-6xl animate-in fade-in zoom-in duration-500">
-        <div className="mb-8 flex flex-col md:flex-row justify-between items-end gap-4">
+    // Agregamos mt-32 para bajar el contenido y despegarlo del logo
+    <div className="w-full max-w-6xl animate-in fade-in zoom-in duration-500 mt-32">
+        
+        <div className="mb-6 flex flex-col md:flex-row justify-between items-end gap-4">
             <div>
-                <h1 className="text-3xl font-bold text-white">
-                    Panel de Entrevistas <span className="text-[#00baff]">SIAFI</span>
+                {/* Título en AZUL (#00baff) y sin la palabra SIAFI */}
+                <h1 className="text-3xl font-bold text-[#00baff] drop-shadow-[0_0_10px_rgba(0,186,255,0.3)]">
+                    Panel de Entrevistas
                 </h1>
-                <p className="text-gray-400">Configura tus horarios disponibles para la semana.</p>
+                <p className="text-gray-400 mt-1">Configura tus horarios disponibles para las próximas semanas.</p>
             </div>
-            <div className="bg-green-500/10 border border-green-500/30 px-4 py-2 rounded-full flex items-center gap-2">
-                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                <span className="text-green-400 text-xs font-bold uppercase tracking-wider">Modo Entrevistador Activo</span>
-            </div>
+            
+            {/* ELIMINADO EL BOTÓN "MODO ENTREVISTADOR ACTIVO" COMO PEDISTE */}
         </div>
         
         <AvailabilityGrid />

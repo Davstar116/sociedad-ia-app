@@ -12,15 +12,16 @@ export default async function DashboardPage() {
     redirect("/login");
   }
 
-  // Obtenemos los datos con la API corregida
+  // Obtenemos los datos desde Notion
   const userData = await getCandidateStatus(session.user.email);
   
   const status = userData?.status || "Registrado";
   const role = userData?.role || "Postulante";
   const isInterviewer = userData?.isInterviewer || false;
 
-  // Lista de Roles permitidos como Staff
-  const STAFF_ROLES = ["Miembro", "Administrador Maestro", "Mesa Directiva"];
+  // ✅ CORRECCIÓN AQUÍ: Agregamos "Admin Maestro" tal cual viene de Notion
+  const STAFF_ROLES = ["Miembro", "Administrador Maestro", "Admin Maestro", "Mesa Directiva"];
+  
   const isStaff = STAFF_ROLES.includes(role);
 
   // --- VISTAS DE CANDIDATO ---
@@ -150,14 +151,12 @@ export default async function DashboardPage() {
   let CurrentView = null;
 
   if (isStaff) {
-      // Es Staff (Miembro o Admin)
       if (isInterviewer) {
           CurrentView = <InterviewerDashboard />;
       } else {
           CurrentView = null;
       }
   } else {
-      // Es Postulante (o default)
       switch (status) {
           case "Registrado":
           case "Recibido":

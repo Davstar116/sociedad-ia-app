@@ -14,23 +14,23 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+export const metadata: Metadata = {
+  title: "SophIA | Sistema Inteligente",
+  description: "Plataforma de gestión SIAFI",
+  manifest: "/manifest.json",
+  icons: {
+    icon: "/icon.png",
+    apple: "/apple-icon.png",
+  },
+  // ❌ AQUÍ YA NO VA themeColor
+};
+
+// ✅ AHORA VA AQUÍ EN UNA EXPORTACIÓN SEPARADA
 export const viewport: Viewport = {
   themeColor: "#000000",
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
-  userScalable: false, 
-};
-
-export const metadata: Metadata = {
-  title: "SophIA | Sistema Inteligente",
-  description: "Plataforma de gestión SIAFI",
-  manifest: "/manifest.json", // Vincula el manifiesto que acabamos de crear
-  icons: {
-    icon: "/icon.png",
-    apple: "/apple-icon.png", // Importante para iPhone
-  },
-  themeColor: "#000000",
 };
 
 export default function RootLayout({

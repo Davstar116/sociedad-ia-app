@@ -141,7 +141,10 @@ export default async function DashboardPage() {
             </div>
         </div>
         
-        <AvailabilityGrid />
+        <AvailabilityGrid 
+            userEmail={session.user?.email || ""} 
+            userName={session.user?.name || "Entrevistador"} 
+        />
     </div>
   );
 

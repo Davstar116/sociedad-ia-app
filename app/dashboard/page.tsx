@@ -2,7 +2,8 @@ import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import { getCandidateStatus } from "../lib/notion-api"; 
 import NetworkBackground from "../components/ui/NetworkBackground";
-import UserMenu from "../components/dashboard/UserMenu"; // <-- IMPORTANTE: Importamos el componente nuevo
+import UserMenu from "../components/dashboard/UserMenu";
+import AvailabilityGrid from "../components/dashboard/AvailabilityGrid"; // Grid Nativo
 
 export default async function DashboardPage() {
   const session = await getServerSession();
@@ -11,9 +12,16 @@ export default async function DashboardPage() {
     redirect("/login");
   }
 
-  const status = await getCandidateStatus(session.user.email);
+  // Obtenemos datos completos: status, role, isInterviewer
+  const userData = await getCandidateStatus(session.user.email);
+  
+  // Valores por defecto seguros
+  const status = userData?.status || "Registrado";
+  const role = userData?.role || "Postulante";
+  const isInterviewer = userData?.isInterviewer || false;
 
-  // --- VISTAS (Se mantienen exactamente igual que antes) ---
+  // --- VISTAS DE CANDIDATO (Mantenemos tus componentes intactos) ---
+  
   const WaitingView = () => (
     <div className="max-w-2xl w-full bg-black/60 border border-[#0051ff]/30 p-8 rounded-2xl text-center backdrop-blur-xl animate-in fade-in zoom-in duration-500">
       <div className="flex justify-center mb-6">
@@ -90,20 +98,16 @@ export default async function DashboardPage() {
   const AcceptedView = () => (
     <div className="max-w-3xl w-full text-center animate-in zoom-in duration-700">
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-[#0051ff] rounded-full blur-[120px] opacity-20 -z-10"></div>
-      
       <div className="mb-6 inline-block">
         <span className="text-6xl animate-bounce inline-block">🚀</span>
       </div>
-      
       <h1 className="text-4xl md:text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#0051ff] via-[#00baff] to-white mb-6 tracking-tight drop-shadow-[0_0_15px_rgba(0,186,255,0.5)]">
         ¡BIENVENID@ AL EQUIPO!
       </h1>
-      
       <p className="text-xl text-gray-300 mb-8 max-w-2xl mx-auto leading-relaxed">
         Felicidades <span className="text-white font-bold">{session.user?.name}</span>. <br/>
         Has superado todas las pruebas. Oficialmente eres parte de SIAFI.
       </p>
-
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-xl mx-auto mb-8">
         <div className="bg-[#0051ff]/20 border border-[#0051ff] p-4 rounded-xl hover:bg-[#0051ff]/30 transition cursor-pointer group">
           <h3 className="text-[#00baff] font-bold mb-1 group-hover:text-white">📱 Unirse al WhatsApp</h3>
@@ -114,12 +118,72 @@ export default async function DashboardPage() {
           <p className="text-xs text-gray-400">Ver documentos iniciales</p>
         </div>
       </div>
-
       <p className="mt-4 text-sm text-gray-500 font-mono">
         ESTATUS: <span className="text-[#00baff]">MIEMBRO EN CAPACITACIÓN</span>
       </p>
     </div>
   );
+
+  // --- VISTA DE ENTREVISTADOR (GRID) ---
+  const InterviewerDashboard = () => (
+    <div className="w-full max-w-6xl animate-in fade-in zoom-in duration-500">
+        <div className="mb-8 flex flex-col md:flex-row justify-between items-end gap-4">
+            <div>
+                <h1 className="text-3xl font-bold text-white">
+                    Panel de Entrevistas <span className="text-[#00baff]">SIAFI</span>
+                </h1>
+                <p className="text-gray-400">Configura tus horarios disponibles para la semana.</p>
+            </div>
+            <div className="bg-green-500/10 border border-green-500/30 px-4 py-2 rounded-full flex items-center gap-2">
+                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                <span className="text-green-400 text-xs font-bold uppercase tracking-wider">Modo Entrevistador Activo</span>
+            </div>
+        </div>
+        
+        {/* Aquí cargamos el Grid Nativo */}
+        <AvailabilityGrid />
+    </div>
+  );
+
+  // --- LÓGICA DE CONTROL DE VISTAS ---
+  let CurrentView = null;
+
+  if (role === "Miembro") {
+      if (isInterviewer) {
+          // CASO: Miembro y Entrevistador -> Muestra Grid
+          CurrentView = <InterviewerDashboard />;
+      } else {
+          // CASO: Miembro pero NO Entrevistador -> No muestra NADA (null)
+          // Se mostrará solo el fondo y el menú
+          CurrentView = null; 
+      }
+  } else {
+      // CASO: Postulante (Default) -> Muestra estados
+      switch (status) {
+          case "Registrado":
+          case "Recibido":
+              CurrentView = <WaitingView />;
+              break;
+          case "No Seleccionado":
+              CurrentView = <RejectedView />;
+              break;
+          case "Aprobado para Entrevista":
+              CurrentView = <InterviewView />;
+              break;
+          case "Rechazado":
+              CurrentView = <PostInterviewRejectedView />;
+              break;
+          case "Aceptado":
+              CurrentView = <AcceptedView />;
+              break;
+          default:
+              CurrentView = (
+                  <div className="text-gray-500 bg-black/50 p-4 rounded border border-red-900/50">
+                      Estado desconocido: <span className="text-red-400 font-mono">{status}</span>
+                  </div>
+              );
+      }
+  }
 
   // --- RENDER PRINCIPAL ---
   return (
@@ -139,22 +203,11 @@ export default async function DashboardPage() {
            />
       </div>
 
-      <div className="z-10 w-full flex flex-col items-center justify-center mt-12">
-        {(status === "Registrado" || status === "Recibido") && <WaitingView />}
-        {status === "No Seleccionado" && <RejectedView />}
-        {status === "Aprobado para Entrevista" && <InterviewView />}
-        {status === "Rechazado" && <PostInterviewRejectedView />}
-        {status === "Aceptado" && <AcceptedView />}
-        
-        {!["Registrado", "Recibido", "No Seleccionado", "Aprobado para Entrevista", "Rechazado", "Aceptado"].includes(status) && (
-          <div className="text-gray-500 bg-black/50 p-4 rounded border border-red-900/50">
-             Estado desconocido: <span className="text-red-400 font-mono">{status}</span>
-          </div>
-        )}
+      {/* CONTENEDOR CENTRAL */}
+      <div className="z-10 w-full flex flex-col items-center justify-center mt-12 mb-10">
+        {CurrentView}
       </div>
 
-      {/* --- AQUÍ INSERTAMOS EL NUEVO MENÚ INTERACTIVO --- */}
-      {/* Ya no usamos <details> aquí directamente, sino el componente UserMenu */}
       <UserMenu />
 
     </div>

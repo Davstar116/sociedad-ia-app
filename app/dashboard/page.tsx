@@ -129,12 +129,11 @@ export default async function DashboardPage() {
 
   // --- VISTA DE ENTREVISTADOR (GRID) ---
   const InterviewerDashboard = () => (
-    // CAMBIO 1: Ajusté 'mt-32' a 'mt-20' (Un punto medio ideal)
-    <div className="w-full max-w-6xl animate-in fade-in zoom-in duration-500 mt-20">
+    // CAMBIO FINAL: Ajustamos a 'mt-12' para subirlo solo un poco más
+    <div className="w-full max-w-6xl animate-in fade-in zoom-in duration-500 mt-12">
         
         <div className="mb-6 flex flex-col md:flex-row justify-between items-end gap-4">
             <div>
-                {/* CAMBIO 2: Nuevo Título "Horario de Entrevistas" */}
                 <h1 className="text-3xl font-bold text-[#00baff] drop-shadow-[0_0_10px_rgba(0,186,255,0.3)]">
                     Horario de Entrevistas
                 </h1>

@@ -1,6 +1,6 @@
 const NOTION_TOKEN = process.env.NOTION_TOKEN;
-const CANDIDATOS_DB_ID = process.env.NOTION_DATABASE_ID; // Base actual de Candidatos
-const USERS_DB_ID = process.env.NOTION_USERS_DB_ID; // ¡NUEVA! Agrega esto a tu .env.local
+const NOTION_DATABASE_ID = process.env.NOTION_DATABASE_ID; // Base actual de Candidatos
+const NOTION_USERS_DB_ID = process.env.NOTION_USERS_DB_ID; // ¡NUEVA! Agrega esto a tu .env.local
 
 export async function getCandidateStatus(email: string) {
   try {
@@ -15,8 +15,8 @@ export async function getCandidateStatus(email: string) {
     let role = "Postulante"; // Default
     let isInterviewer = false;
 
-    if (USERS_DB_ID) {
-      const userRes = await fetch(`https://api.notion.com/v1/databases/${USERS_DB_ID}/query`, {
+    if (NOTION_USERS_DB_ID) {
+      const userRes = await fetch(`https://api.notion.com/v1/databases/${NOTION_USERS_DB_ID}/query`, {
         method: 'POST',
         headers,
         body: JSON.stringify({
@@ -44,7 +44,7 @@ export async function getCandidateStatus(email: string) {
     // Para obtener el ESTATUS (Solo si es necesario o siempre para tener el dato)
     let statusName = "Registrado";
 
-    const candidateRes = await fetch(`https://api.notion.com/v1/databases/${CANDIDATOS_DB_ID}/query`, {
+    const candidateRes = await fetch(`https://api.notion.com/v1/databases/${NOTION_DATABASE_ID}/query`, {
       method: 'POST',
       headers,
       body: JSON.stringify({

@@ -9,46 +9,67 @@ const headers = {
   "Content-Type": "application/json",
 };
 
-// --- GET: OBTENER HORARIOS GUARDADOS ---
+// --- GET: OBTENER HORARIOS ---
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const email = searchParams.get("email");
 
-  if (!email || !DB_ID) return NextResponse.json({ error: "Missing data" }, { status: 400 });
+  console.log("🔍 [API GET] Buscando horarios para:", email);
+
+  if (!email || !DB_ID) {
+      console.error("❌ [API GET] Falta Email o DB_ID");
+      return NextResponse.json({ error: "Missing data" }, { status: 400 });
+  }
 
   try {
-    // Buscamos si ya existe registro de este email
     const response = await fetch(`https://api.notion.com/v1/databases/${DB_ID}/query`, {
       method: 'POST',
       headers,
       body: JSON.stringify({
         filter: { property: "Email", email: { equals: email } }
-      })
+      }),
+      next: { revalidate: 0 } // Sin caché
     });
 
+    if (!response.ok) {
+        const err = await response.text();
+        console.error("❌ [API GET ERROR NOTION]:", response.status, err);
+        return NextResponse.json({ error: "Notion Error" }, { status: 500 });
+    }
+
     const data = await response.json();
+    console.log("✅ [API GET] Resultados encontrados:", data.results.length);
     
     if (data.results.length > 0) {
       const props = data.results[0].properties;
+      // Verificamos que exista la propiedad
+      if (!props["HorariosJSON"]) {
+          console.error("❌ [API ERROR] No existe la columna 'HorariosJSON' en Notion");
+      }
+
       const rawJSON = props["HorariosJSON"]?.rich_text?.[0]?.plain_text || "[]";
+      console.log("📦 [API GET] JSON recuperado:", rawJSON.substring(0, 50) + "...");
       
       return NextResponse.json({
         exists: true,
-        slots: JSON.parse(rawJSON) // Devolvemos el array limpio al frontend
+        slots: JSON.parse(rawJSON)
       });
     }
 
     return NextResponse.json({ exists: false, slots: [] });
 
   } catch (error) {
-    return NextResponse.json({ error: "Notion Error" }, { status: 500 });
+    console.error("❌ [API GET CRASH]:", error);
+    return NextResponse.json({ error: "Server Error" }, { status: 500 });
   }
 }
 
-// --- POST: GUARDAR O ACTUALIZAR (UPSERT) ---
+// --- POST: GUARDAR HORARIOS ---
 export async function POST(request: Request) {
   const body = await request.json();
   const { email, name, totalHours, slots } = body;
+
+  console.log(`💾 [API POST] Intentando guardar para ${email} (${totalHours}h)`);
 
   if (!DB_ID) return NextResponse.json({ error: "DB Config Missing" }, { status: 500 });
 
@@ -62,28 +83,43 @@ export async function POST(request: Request) {
       })
     });
     
+    if (!queryRes.ok) {
+        console.error("❌ [API POST QUERY ERROR]:", await queryRes.text());
+        return NextResponse.json({ error: "Query Failed" }, { status: 500 });
+    }
+
     const queryData = await queryRes.json();
     const existingPage = queryData.results[0];
-    const slotsString = JSON.stringify(slots); // Convertimos el array a texto para Notion
+    const slotsString = JSON.stringify(slots);
+
+    // Verificación de seguridad: longitud del string
+    if (slotsString.length > 2000) {
+        console.warn("⚠️ [API POST] El JSON es muy largo, Notion podría cortarlo si supera el límite de bloque, pero en RichText suele aguantar.");
+    }
 
     if (existingPage) {
-      // --- CASO A: ACTUALIZAR (UPDATE) ---
-      await fetch(`https://api.notion.com/v1/pages/${existingPage.id}`, {
+      console.log("🔄 [API POST] Actualizando página existente:", existingPage.id);
+      const updateRes = await fetch(`https://api.notion.com/v1/pages/${existingPage.id}`, {
         method: 'PATCH',
         headers,
         body: JSON.stringify({
           properties: {
             "Horas Totales": { number: totalHours },
             "HorariosJSON": { rich_text: [{ text: { content: slotsString } }] }
-            // No actualizamos Nombre ni Email por seguridad/redundancia
           }
         })
       });
-      return NextResponse.json({ message: "Horarios Actualizados", type: "updated" });
+
+      if (!updateRes.ok) {
+          console.error("❌ [API UPDATE ERROR]:", await updateRes.text());
+          return NextResponse.json({ error: "Update Failed" }, { status: 500 });
+      }
+
+      return NextResponse.json({ message: "Actualizado", type: "updated" });
 
     } else {
-      // --- CASO B: CREAR (CREATE) ---
-      await fetch(`https://api.notion.com/v1/pages`, {
+      console.log("✨ [API POST] Creando nueva página...");
+      const createRes = await fetch(`https://api.notion.com/v1/pages`, {
         method: 'POST',
         headers,
         body: JSON.stringify({
@@ -96,11 +132,17 @@ export async function POST(request: Request) {
           }
         })
       });
-      return NextResponse.json({ message: "Horarios Guardados", type: "created" });
+
+      if (!createRes.ok) {
+          console.error("❌ [API CREATE ERROR]:", await createRes.text());
+          return NextResponse.json({ error: "Create Failed" }, { status: 500 });
+      }
+
+      return NextResponse.json({ message: "Creado", type: "created" });
     }
 
   } catch (error) {
-    console.error(error);
+    console.error("❌ [API POST CRASH]:", error);
     return NextResponse.json({ error: "Server Error" }, { status: 500 });
   }
 }

@@ -136,7 +136,7 @@ export default function AvailabilityGrid({ userEmail, userName }: Props) {
       <div className="flex justify-between items-end mb-6">
         <div>
           <h2 className="text-xl font-bold text-white">Disponibilidad</h2>
-          <p className="text-gray-400 text-xs mt-1">Selecciona tus horarios libres (Verde = Disponible)</p>
+          <p className="text-gray-400 text-xs mt-1">Selecciona tus horarios libres.</p>
         </div>
         <div className="text-right">
            <span className={`font-mono text-xl font-bold ${totalHours > 0 ? 'text-green-500' : 'text-gray-500'}`}>

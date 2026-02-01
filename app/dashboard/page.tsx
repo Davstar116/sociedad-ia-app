@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { getCandidateStatus } from "../lib/notion-api"; 
 import NetworkBackground from "../components/ui/NetworkBackground";
 import UserMenu from "../components/dashboard/UserMenu";
-import AvailabilityGrid from "../components/dashboard/AvailabilityGrid"; // Grid Nativo
+import AvailabilityGrid from "../components/dashboard/AvailabilityGrid";
 
 export default async function DashboardPage() {
   const session = await getServerSession();
@@ -12,16 +12,17 @@ export default async function DashboardPage() {
     redirect("/login");
   }
 
-  // Obtenemos datos completos: status, role, isInterviewer
+  // Obtenemos los datos desde Notion (Status, Rol y Check de Entrevistador)
   const userData = await getCandidateStatus(session.user.email);
   
-  // Valores por defecto seguros
   const status = userData?.status || "Registrado";
   const role = userData?.role || "Postulante";
   const isInterviewer = userData?.isInterviewer || false;
 
-  // --- VISTAS DE CANDIDATO (Mantenemos tus componentes intactos) ---
-  
+  // DEFINIMOS LOS ROLES DE STAFF
+  const STAFF_ROLES = ["Miembro", "Administrador Maestro"];
+
+  // --- VISTAS DE CANDIDATO ---
   const WaitingView = () => (
     <div className="max-w-2xl w-full bg-black/60 border border-[#0051ff]/30 p-8 rounded-2xl text-center backdrop-blur-xl animate-in fade-in zoom-in duration-500">
       <div className="flex justify-center mb-6">
@@ -140,25 +141,28 @@ export default async function DashboardPage() {
             </div>
         </div>
         
-        {/* Aquí cargamos el Grid Nativo */}
         <AvailabilityGrid />
     </div>
   );
 
-  // --- LÓGICA DE CONTROL DE VISTAS ---
+  // =========================================================
+  // LOGICA PRINCIPAL DE VISUALIZACIÓN (REGLA ESTRICTA)
+  // =========================================================
+  
   let CurrentView = null;
+  const isStaff = STAFF_ROLES.includes(role);
 
-  if (role === "Miembro") {
+  if (isStaff) {
+      // Es Miembro o Admin Maestro
       if (isInterviewer) {
-          // CASO: Miembro y Entrevistador -> Muestra Grid
+          // TIENE permiso de entrevistador -> Ve el GRID
           CurrentView = <InterviewerDashboard />;
       } else {
-          // CASO: Miembro pero NO Entrevistador -> No muestra NADA (null)
-          // Se mostrará solo el fondo y el menú
-          CurrentView = null; 
+          // NO tiene permiso -> No ve NADA (null)
+          CurrentView = null;
       }
   } else {
-      // CASO: Postulante (Default) -> Muestra estados
+      // Es Postulante (o cualquier otro rol no Staff) -> Ve sus ESTADOS
       switch (status) {
           case "Registrado":
           case "Recibido":
@@ -203,7 +207,6 @@ export default async function DashboardPage() {
            />
       </div>
 
-      {/* CONTENEDOR CENTRAL */}
       <div className="z-10 w-full flex flex-col items-center justify-center mt-12 mb-10">
         {CurrentView}
       </div>

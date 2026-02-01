@@ -4,6 +4,7 @@ import { getCandidateStatus } from "../lib/notion-api";
 import NetworkBackground from "../components/ui/NetworkBackground";
 import UserMenu from "../components/dashboard/UserMenu";
 import AvailabilityGrid from "../components/dashboard/AvailabilityGrid";
+import GenerateScheduleButton from "../components/dashboard/GenerateScheduleButton"; // <--- NUEVO IMPORT
 
 export default async function DashboardPage() {
   const session = await getServerSession();
@@ -19,7 +20,7 @@ export default async function DashboardPage() {
   const role = userData?.role || "Postulante";
   const isInterviewer = userData?.isInterviewer || false;
 
-  // ✅ CORRECCIÓN AQUÍ: Agregamos "Admin Maestro" tal cual viene de Notion
+  // ✅ Lista de roles de Staff
   const STAFF_ROLES = ["Miembro", "Administrador Maestro", "Admin Maestro", "Mesa Directiva"];
   
   const isStaff = STAFF_ROLES.includes(role);
@@ -129,7 +130,6 @@ export default async function DashboardPage() {
 
   // --- VISTA DE ENTREVISTADOR (GRID) ---
   const InterviewerDashboard = () => (
-    // CAMBIO FINAL: Ajustamos a 'mt-12' para subirlo solo un poco más
     <div className="w-full max-w-6xl animate-in fade-in zoom-in duration-500 mt-12">
         
         <div className="mb-6 flex flex-col md:flex-row justify-between items-end gap-4">
@@ -140,6 +140,22 @@ export default async function DashboardPage() {
                 <p className="text-gray-400 mt-1">Configura tus horarios disponibles para las próximas semanas.</p>
             </div>
         </div>
+
+        {/* --- ZONA EXCLUSIVA ADMIN MAESTRO --- */}
+        {(role === "Administrador Maestro" || role === "Admin Maestro") && (
+            <div className="mb-8 bg-yellow-900/10 border border-yellow-600/20 p-4 rounded-xl backdrop-blur-sm">
+                <div className="flex items-start gap-3">
+                    <div className="text-2xl">⚡</div>
+                    <div className="flex-1">
+                        <h3 className="text-yellow-500 font-bold text-sm mb-1 uppercase tracking-wider">Zona de Administración</h3>
+                        <p className="text-gray-400 text-xs mb-3">
+                           Una vez que todos los socios hayan llenado su disponibilidad, genera los horarios para los candidatos.
+                        </p>
+                        <GenerateScheduleButton />
+                    </div>
+                </div>
+            </div>
+        )}
         
         <AvailabilityGrid 
             userEmail={session.user?.email || ""} 

@@ -12,15 +12,15 @@ export default async function DashboardPage() {
     redirect("/login");
   }
 
-  // Obtenemos los datos desde Notion (Status, Rol y Check de Entrevistador)
+  // 1. OBTENEMOS DATOS (Ahora sí vendrán correctos desde tu API arreglada)
   const userData = await getCandidateStatus(session.user.email);
   
   const status = userData?.status || "Registrado";
   const role = userData?.role || "Postulante";
   const isInterviewer = userData?.isInterviewer || false;
 
-  // DEFINIMOS LOS ROLES DE STAFF
-  const STAFF_ROLES = ["Miembro", "Administrador Maestro"];
+  // 2. DEFINIMOS QUIÉN ES STAFF (¡Aquí incluimos tu rol!)
+  const STAFF_ROLES = ["Miembro", "Administrador Maestro", "Mesa Directiva"];
 
   // --- VISTAS DE CANDIDATO ---
   const WaitingView = () => (
@@ -146,23 +146,23 @@ export default async function DashboardPage() {
   );
 
   // =========================================================
-  // LOGICA PRINCIPAL DE VISUALIZACIÓN (REGLA ESTRICTA)
+  // LOGICA PRINCIPAL DE VISUALIZACIÓN
   // =========================================================
   
   let CurrentView = null;
   const isStaff = STAFF_ROLES.includes(role);
 
   if (isStaff) {
-      // Es Miembro o Admin Maestro
+      // Caso 1: Es STAFF (Miembro o Admin Maestro)
       if (isInterviewer) {
-          // TIENE permiso de entrevistador -> Ve el GRID
+          // Si tiene permiso de entrevistador -> GRID
           CurrentView = <InterviewerDashboard />;
       } else {
-          // NO tiene permiso -> No ve NADA (null)
+          // Si NO tiene permiso -> Pantalla limpia
           CurrentView = null;
       }
   } else {
-      // Es Postulante (o cualquier otro rol no Staff) -> Ve sus ESTADOS
+      // Caso 2: Es POSTULANTE (o rol desconocido) -> Vistas de estados
       switch (status) {
           case "Registrado":
           case "Recibido":

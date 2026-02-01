@@ -10,112 +10,110 @@ const headers = {
   "Content-Type": "application/json",
 };
 
-// Configuración de Fechas Base (Lunes de cada semana)
-const WEEK_START_DATES = {
-  0: "2026-02-09", // Lunes Semana 1
-  1: "2026-02-16"  // Lunes Semana 2
-};
-
 export async function POST(request: Request) {
+  console.log("🚀 [MOTOR] Iniciando secuencia de generación...");
+
   try {
-    // 1. VALIDACIÓN DE SEGURIDAD
-    // Aquí podrías validar que quien llama sea Admin, por ahora confiamos en el UI oculto
-    
     if (!AVAILABILITY_DB_ID || !INTERVIEWS_DB_ID) {
-      return NextResponse.json({ error: "Faltan IDs de Base de Datos" }, { status: 500 });
+      console.error("❌ [MOTOR] Faltan IDs de variables de entorno.");
+      return NextResponse.json({ error: "Configuración incompleta" }, { status: 500 });
     }
 
-    // 2. DESCARGAR TODAS LAS DISPONIBILIDADES
+    // 1. DESCARGAR DISPONIBILIDAD
+    console.log("📥 [MOTOR] Descargando disponibilidad de Notion...");
     const availResponse = await fetch(`https://api.notion.com/v1/databases/${AVAILABILITY_DB_ID}/query`, {
       method: 'POST',
       headers,
-      body: JSON.stringify({ page_size: 100 }) // Asumimos < 100 entrevistadores
+      body: JSON.stringify({ page_size: 100 })
     });
 
+    if (!availResponse.ok) {
+        console.error("❌ [MOTOR ERROR LEER DISPONIBILIDAD]:", await availResponse.text());
+        return NextResponse.json({ error: "Error leyendo disponibilidad" }, { status: 500 });
+    }
+
     const availData = await availResponse.json();
+    console.log(`✅ [MOTOR] Encontrados ${availData.results.length} usuarios con datos.`);
+
     const interviewers = availData.results.map((page: any) => {
       const props = page.properties;
       const rawJSON = props["HorariosJSON"]?.rich_text?.[0]?.plain_text || "[]";
+      const name = props["Nombre"]?.title?.[0]?.plain_text || "Anónimo";
+      
+      // LOGUEAR UN EJEMPLO PARA VER SI EL JSON ES VÁLIDO
+      // console.log(`👤 [MOTOR] Procesando a ${name}. Slots: ${rawJSON.substring(0, 30)}...`);
+      
       return {
         id: page.id,
-        name: props["Nombre"]?.title?.[0]?.plain_text || "Anónimo",
-        slots: new Set(JSON.parse(rawJSON)) // Usamos Set para búsqueda rápida
+        name: name,
+        slots: new Set(JSON.parse(rawJSON))
       };
     });
 
-    // 3. ALGORITMO DE MATCHMAKING
-    const generatedBlocks = [];
+    if (interviewers.length < 2) {
+        console.warn("⚠️ [MOTOR] Menos de 2 entrevistadores encontrados. Imposible hacer match.");
+        return NextResponse.json({ error: "Se necesitan al menos 2 entrevistadores para generar bloques." }, { status: 400 });
+    }
 
-    // Iteramos por Semanas (0 y 1)
+    // 2. ALGORITMO MATCHMAKING
+    const generatedBlocks = [];
+    let matchesLog = 0; // Para no saturar la consola, contamos matches
+
+    // Iteramos Semanas 0 y 1
     for (let weekId = 0; weekId <= 1; weekId++) {
-      // Iteramos por Días (Lunes=0 a Domingo=6, ajustado a tu grid de dias 9-15/16-22)
-      // Tu Grid usa dias del mes (9, 10, 11...), necesitamos mapear eso.
-      // Simplificación: Iteramos por los números de día del Grid.
       const startDay = weekId === 0 ? 9 : 16;
       const endDay = weekId === 0 ? 15 : 22;
 
       for (let dayNum = startDay; dayNum <= endDay; dayNum++) {
-        // Iteramos por Horas (8 a 21)
         for (let hour = 8; hour <= 21; hour++) {
-          // Iteramos por Minutos de Inicio de Bloque (00, 15, 30, 45)
-          // OJO: Solo revisamos inicios que permitan 45 mins.
-          // Si empieza 21:30, termina 22:15 (Fuera de rango si el límite es 22:00)
-          // Ajusta según tu regla de cierre.
           const minutes = ["00", "15", "30", "45"];
           
           for (const minute of minutes) {
-             // Definimos los 3 bloques de 15 min requeridos
-             // Bloque 1: Inicio
-             // Bloque 2: +15 min
-             // Bloque 3: +30 min
-             
-             // Generamos las Keys de los 3 slots necesarios
              const timeSlots = getRequiredSlots(weekId, dayNum, hour, parseInt(minute));
-             
-             if (!timeSlots) continue; // Si se sale del horario permitido (ej. empieza 21:45)
+             if (!timeSlots) continue;
 
-             // 4. BUSCAR ENTREVISTADORES DISPONIBLES PARA ESTE BLOQUE COMPLETO
+             // BUSCAR QUIENES TIENEN ESTOS 3 SLOTS
              const availableDevs = interviewers.filter((dev: any) => {
-                return timeSlots.every(slotKey => dev.slots.has(slotKey));
+                const hasAll = timeSlots.every(slotKey => dev.slots.has(slotKey));
+                return hasAll;
              });
 
-             // 5. CREAR PAREJAS
-             // Si hay 2 devs -> 1 bloque
-             // Si hay 4 devs -> 2 bloques
-             // Si hay 3 devs -> 1 bloque (sobra 1)
-             
-             let devsPool = [...availableDevs];
-             
-             while (devsPool.length >= 2) {
-                const partnerA = devsPool.shift(); // Sacamos al primero
-                const partnerB = devsPool.shift(); // Sacamos al segundo (pareja)
-                
-                // Construimos la Fecha ISO para Notion (YYYY-MM-DDTHH:MM:00.000-06:00)
-                // Calculamos fecha real basada en weekId y dayNum
-                // Nota: Esto requiere una función auxiliar de fecha precisa.
-                const isoDate = constructIsoDate(dayNum, hour, minute);
-
-                generatedBlocks.push({
-                   title: `Entrevista ${dayNum}/${hour}:${minute} (${partnerA.name} & ${partnerB.name})`,
-                   date: isoDate,
-                   interviewers: `${partnerA.name}, ${partnerB.name}`
-                });
+             // SI HAY 2 O MÁS, HACEMOS PAREJAS
+             if (availableDevs.length >= 2) {
+                 let devsPool = [...availableDevs];
+                 while (devsPool.length >= 2) {
+                    const partnerA = devsPool.shift();
+                    const partnerB = devsPool.shift();
+                    
+                    const isoDate = constructIsoDate(dayNum, hour, minute);
+                    
+                    generatedBlocks.push({
+                       title: `Entrevista ${dayNum} Feb - ${hour}:${minute}`,
+                       date: isoDate,
+                       interviewers: `${partnerA.name}, ${partnerB.name}`
+                    });
+                    matchesLog++;
+                 }
              }
           }
         }
       }
     }
 
-    console.log(`✅ [MOTOR] Generados ${generatedBlocks.length} bloques posibles.`);
+    console.log(`✅ [MOTOR] Algoritmo terminado. Bloques generados en memoria: ${generatedBlocks.length}`);
 
-    // 6. GUARDAR EN NOTION (Lote por lote para no saturar)
-    // Esto puede tardar, en producción se usaría un Queue, aquí lo hacemos directo.
-    let createdCount = 0;
+    if (generatedBlocks.length === 0) {
+        console.warn("⚠️ [MOTOR] No se encontraron coincidencias de horarios entre los usuarios.");
+        return NextResponse.json({ success: false, message: "0 coincidencias encontradas. Asegúrate de que los horarios se solapen." });
+    }
+
+    // 3. GUARDAR EN NOTION
+    console.log("💾 [MOTOR] Escribiendo en Base de Datos de Entrevistas...");
+    let successCount = 0;
+    let errorCount = 0;
 
     for (const block of generatedBlocks) {
-      // Opcional: Verificar si ya existe para no duplicar (Saltamos por rendimiento ahora)
-      
-      await fetch(`https://api.notion.com/v1/pages`, {
+      const response = await fetch(`https://api.notion.com/v1/pages`, {
         method: 'POST',
         headers,
         body: JSON.stringify({
@@ -128,56 +126,52 @@ export async function POST(request: Request) {
           }
         })
       });
-      createdCount++;
+
+      if (response.ok) {
+          successCount++;
+      } else {
+          errorCount++;
+          console.error("❌ [MOTOR WRITE ERROR]:", await response.text());
+      }
+    }
+
+    console.log(`🏁 [MOTOR] Finalizado. Éxitos: ${successCount}, Errores: ${errorCount}`);
+    
+    if (errorCount > 0 && successCount === 0) {
+        return NextResponse.json({ error: "Fallo total al escribir en Notion (Revisar permisos del robot)" }, { status: 500 });
     }
 
     return NextResponse.json({ 
       success: true, 
-      message: `Se generaron ${createdCount} bloques de entrevista exitosamente.` 
+      message: `Generados ${successCount} bloques. (Errores: ${errorCount})` 
     });
 
   } catch (error) {
-    console.error("❌ [MOTOR ERROR]:", error);
+    console.error("❌ [MOTOR CRASH]:", error);
     return NextResponse.json({ error: "Error interno del motor" }, { status: 500 });
   }
 }
 
-// --- HELPER FUNCTIONS ---
-
+// --- HELPERS ---
 function getRequiredSlots(weekId: number, dayNum: number, startHour: number, startMin: number) {
-  // Retorna un array con las 3 keys necesarias (ej: ["0-9-9:00", "0-9-9:15", "0-9-9:30"])
-  // Maneja el cambio de hora (ej: 9:45 -> 10:00 -> 10:15)
-  
   const slots = [];
   let h = startHour;
   let m = startMin;
 
   for (let i = 0; i < 3; i++) {
-    // Si se pasa de las 22:00, inválido (ajusta según tu hora fin deseada)
     if (h >= 22) return null; 
-
-    // Formato de minuto "00"
     const mStr = m === 0 ? "00" : m.toString();
-    slots.push(`${weekId}-${dayNum}-${h}:${mStr}`);
-
-    // Sumar 15 mins
+    slots.push(`${weekId}-${dayNum}-${h}:${mStr}`); // KEY FORMAT: 0-9-8:00
     m += 15;
-    if (m === 60) {
-      m = 0;
-      h += 1;
-    }
+    if (m === 60) { m = 0; h += 1; }
   }
   return slots;
 }
 
 function constructIsoDate(dayNum: number, hour: number, minute: string) {
-  // Construye fecha ISO 8601 para Mexico City (UTC-6)
-  // Año fijo 2026, Mes Febrero.
-  // OJO: dayNum es el día del mes (9, 10... 22)
-  
   const d = dayNum.toString().padStart(2, '0');
   const h = hour.toString().padStart(2, '0');
-  
-  // Formato: 2026-02-09T09:00:00-06:00
+  // Ajuste UTC-6 (CDMX) manual para Notion
+  // Notion requiere ISO 8601. Si ponemos offset -06:00, Notion lo respeta.
   return `2026-02-${d}T${h}:${minute}:00-06:00`; 
 }

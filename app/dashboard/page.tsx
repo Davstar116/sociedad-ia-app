@@ -1,10 +1,13 @@
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
-import { getCandidateStatus } from "../lib/notion-api"; 
+import { getCandidateStatus, checkSystemState, getInterviewerAgenda } from "../lib/notion-api"; 
 import NetworkBackground from "../components/ui/NetworkBackground";
 import UserMenu from "../components/dashboard/UserMenu";
 import AvailabilityGrid from "../components/dashboard/AvailabilityGrid";
-import GenerateScheduleButton from "../components/dashboard/GenerateScheduleButton"; // <--- NUEVO IMPORT
+import GenerateScheduleButton from "../components/dashboard/GenerateScheduleButton";
+import InterviewerAgenda from "../components/dashboard/InterviewerAgenda"; // ✅ NUEVO
+import ResetScheduleButton from "../components/dashboard/ResetScheduleButton"; // ✅ NUEVO
+import CandidateScheduler from "../components/dashboard/CandidateScheduler"; // ✅ NUEVO
 
 export default async function DashboardPage() {
   const session = await getServerSession();
@@ -13,17 +16,20 @@ export default async function DashboardPage() {
     redirect("/login");
   }
 
-  // Obtenemos los datos desde Notion
+  // 1. OBTENER DATOS DEL USUARIO
   const userData = await getCandidateStatus(session.user.email);
   
   const status = userData?.status || "Registrado";
   const role = userData?.role || "Postulante";
   const isInterviewer = userData?.isInterviewer || false;
 
-  // ✅ Lista de roles de Staff
+  // 2. VERIFICAR EL ESTADO DEL SISTEMA (¿Fase Disponibilidad o Fase Entrevistas?)
+  const { hasBlocks } = await checkSystemState();
+
+  // Roles de Staff
   const STAFF_ROLES = ["Miembro", "Administrador Maestro", "Admin Maestro", "Mesa Directiva"];
-  
   const isStaff = STAFF_ROLES.includes(role);
+  const isAdmin = role === "Administrador Maestro" || role === "Admin Maestro";
 
   // --- VISTAS DE CANDIDATO ---
   const WaitingView = () => (
@@ -57,28 +63,9 @@ export default async function DashboardPage() {
     </div>
   );
 
+  // ✅ CAMBIO IMPORTANTE: Ahora carga el Scheduler en lugar de la vista estática
   const InterviewView = () => (
-    <div className="max-w-4xl w-full animate-in fade-in duration-700">
-      <div className="mb-8 text-center md:text-left">
-        <h1 className="text-3xl font-bold text-white">
-          ¡Felicidades, <span className="text-[#00baff]">{session.user?.name}</span>!
-        </h1>
-        <p className="text-gray-400 mt-2">Has pasado a la siguiente fase. Es hora de conocerte.</p>
-      </div>
-
-      <div className="bg-black/60 border border-[#00baff]/50 p-8 rounded-2xl backdrop-blur-xl shadow-[0_0_30px_rgba(0,186,255,0.1)]">
-        <div className="flex items-center gap-4 mb-6 border-b border-gray-800 pb-4">
-          <div className="bg-[#00baff] text-black font-bold px-3 py-1 rounded text-sm">FASE 2</div>
-          <h2 className="text-xl font-bold text-white">Agenda tu Entrevista</h2>
-        </div>
-        <div className="text-center py-12 border border-dashed border-gray-700 rounded-xl bg-white/5">
-          <p className="text-gray-400">📅 Aquí cargaremos el componente de Calendario</p>
-          <button className="mt-4 px-6 py-2 bg-[#0051ff] rounded-lg hover:bg-[#0041cc] transition text-white font-bold">
-            Ver Horarios Disponibles
-          </button>
-        </div>
-      </div>
-    </div>
+    <CandidateScheduler />
   );
 
   const PostInterviewRejectedView = () => (
@@ -128,76 +115,31 @@ export default async function DashboardPage() {
     </div>
   );
 
-  // --- VISTA DE ENTREVISTADOR (GRID) ---
-  const InterviewerDashboard = () => (
-    <div className="w-full max-w-6xl animate-in fade-in zoom-in duration-500 mt-12">
-        
-        <div className="mb-6 flex flex-col md:flex-row justify-between items-end gap-4">
-            <div>
-                <h1 className="text-3xl font-bold text-[#00baff] drop-shadow-[0_0_10px_rgba(0,186,255,0.3)]">
-                    Horario de Entrevistas
-                </h1>
-                <p className="text-gray-400 mt-1">Configura tus horarios disponibles para las próximas semanas.</p>
-            </div>
-        </div>
-
-        {/* --- ZONA EXCLUSIVA ADMIN MAESTRO --- */}
-        {(role === "Administrador Maestro" || role === "Admin Maestro") && (
-            <div className="mb-8 bg-yellow-900/10 border border-yellow-600/20 p-4 rounded-xl backdrop-blur-sm">
-                <div className="flex items-start gap-3">
-                    <div className="text-2xl">⚡</div>
-                    <div className="flex-1">
-                        <h3 className="text-yellow-500 font-bold text-sm mb-1 uppercase tracking-wider">Zona de Administración</h3>
-                        <p className="text-gray-400 text-xs mb-3">
-                           Una vez que todos los socios hayan llenado su disponibilidad, genera los horarios para los candidatos.
-                        </p>
-                        <GenerateScheduleButton />
-                    </div>
-                </div>
-            </div>
-        )}
-        
-        <AvailabilityGrid 
-            userEmail={session.user?.email || ""} 
-            userName={session.user?.name || "Entrevistador"} 
-        />
-    </div>
-  );
-
-  // LOGICA PRINCIPAL
-  let CurrentView = null;
-
-  if (isStaff) {
-      if (isInterviewer) {
-          CurrentView = <InterviewerDashboard />;
-      } else {
-          CurrentView = null;
-      }
-  } else {
-      switch (status) {
-          case "Registrado":
-          case "Recibido":
-              CurrentView = <WaitingView />;
-              break;
-          case "No Seleccionado":
-              CurrentView = <RejectedView />;
-              break;
-          case "Aprobado para Entrevista":
-              CurrentView = <InterviewView />;
-              break;
-          case "Rechazado":
-              CurrentView = <PostInterviewRejectedView />;
-              break;
-          case "Aceptado":
-              CurrentView = <AcceptedView />;
-              break;
-          default:
-              CurrentView = (
-                  <div className="text-gray-500 bg-black/50 p-4 rounded border border-red-900/50">
-                      Estado desconocido: <span className="text-red-400 font-mono">{status}</span>
-                  </div>
-              );
-      }
+  // LOGICA PRINCIPAL DE VISTAS (CANDIDATOS)
+  let CandidateCurrentView = null;
+  switch (status) {
+      case "Registrado":
+      case "Recibido":
+          CandidateCurrentView = <WaitingView />;
+          break;
+      case "No Seleccionado":
+          CandidateCurrentView = <RejectedView />;
+          break;
+      case "Aprobado para Entrevista":
+          CandidateCurrentView = <InterviewView />;
+          break;
+      case "Rechazado":
+          CandidateCurrentView = <PostInterviewRejectedView />;
+          break;
+      case "Aceptado":
+          CandidateCurrentView = <AcceptedView />;
+          break;
+      default:
+          CandidateCurrentView = (
+              <div className="text-gray-500 bg-black/50 p-4 rounded border border-red-900/50">
+                  Estado desconocido: <span className="text-red-400 font-mono">{status}</span>
+              </div>
+          );
   }
 
   // --- RENDER PRINCIPAL ---
@@ -218,10 +160,86 @@ export default async function DashboardPage() {
       </div>
 
       <div className="z-10 w-full flex flex-col items-center justify-center mt-12 mb-10">
-        {CurrentView}
+        
+        {/* LOGICA DE SELECCIÓN DE VISTA GLOBAL */}
+        {isStaff && isInterviewer ? (
+            // ✅ VISTA DEL ENTREVISTADOR (Dinámica: Grid o Agenda)
+            <InterviewerSection 
+                isAdmin={isAdmin} 
+                hasBlocks={hasBlocks} 
+                userEmail={session.user?.email} 
+                userName={session.user?.name} 
+            />
+        ) : (
+            // ✅ VISTA DEL CANDIDATO (Normal)
+            CandidateCurrentView
+        )}
+
       </div>
 
       <UserMenu />
     </div>
   );
+}
+
+// ✅ COMPONENTE ASÍNCRONO AUXILIAR PARA EL ENTREVISTADOR
+// Esto nos permite hacer fetch de la agenda sin romper el flujo principal
+async function InterviewerSection({ isAdmin, hasBlocks, userEmail, userName }: any) {
+    // Si hay bloques generados, buscamos la agenda personal del entrevistador
+    const agenda = hasBlocks ? await getInterviewerAgenda(userEmail || "", userName || "") : [];
+
+    return (
+      <div className="w-full max-w-6xl animate-in fade-in zoom-in duration-500 mt-12">
+          
+          <div className="mb-6 flex flex-col md:flex-row justify-between items-end gap-4">
+              <div>
+                  <h1 className="text-3xl font-bold text-[#00baff] drop-shadow-[0_0_10px_rgba(0,186,255,0.3)]">
+                      {hasBlocks ? "Tu Agenda de Entrevistas" : "Horario de Disponibilidad"}
+                  </h1>
+                  <p className="text-gray-400 mt-1">
+                      {hasBlocks 
+                        ? "Estas son las entrevistas que el sistema te ha asignado automáticamente." 
+                        : "Configura tus horarios disponibles para las próximas semanas."}
+                  </p>
+              </div>
+          </div>
+
+          {/* --- ZONA EXCLUSIVA ADMIN MAESTRO --- */}
+          {isAdmin && (
+              <div className="mb-8 bg-yellow-900/10 border border-yellow-600/20 p-4 rounded-xl backdrop-blur-sm">
+                  <div className="flex items-start gap-3">
+                      <div className="text-2xl">⚡</div>
+                      <div className="flex-1">
+                          <h3 className="text-yellow-500 font-bold text-sm mb-1 uppercase tracking-wider">Zona de Administración</h3>
+                          
+                          {/* Botón cambia según el estado del sistema */}
+                          {hasBlocks ? (
+                             <>
+                               <p className="text-gray-400 text-xs mb-3">
+                                  El sistema está en <strong>Modo Entrevistas</strong>. Los postulantes están eligiendo horarios.
+                                  <br/>Para corregir disponibilidad, debes reiniciar el sistema.
+                               </p>
+                               <ResetScheduleButton />
+                             </>
+                          ) : (
+                             <>
+                               <p className="text-gray-400 text-xs mb-3">
+                                  Una vez que todos los socios hayan llenado su disponibilidad, genera los horarios.
+                               </p>
+                               <GenerateScheduleButton />
+                             </>
+                          )}
+                      </div>
+                  </div>
+              </div>
+          )}
+          
+          {/* SWITCH DE CONTENIDO: AGENDA vs GRID */}
+          {hasBlocks ? (
+             <InterviewerAgenda agenda={agenda} />
+          ) : (
+             <AvailabilityGrid userEmail={userEmail || ""} userName={userName || "Entrevistador"} />
+          )}
+      </div>
+    );
 }

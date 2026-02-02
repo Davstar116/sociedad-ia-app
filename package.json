@@ -14,6 +14,7 @@
     "@react-email/render": "^2.0.4",
     "@vercel/blob": "^2.0.1",
     "bcryptjs": "^3.0.3",
+    "date-fns": "^4.1.0",
     "next": "16.1.5",
     "next-auth": "^4.24.13",
     "nodemailer": "^7.0.13",

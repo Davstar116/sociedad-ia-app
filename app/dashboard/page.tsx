@@ -205,31 +205,32 @@ async function InterviewerSection({ isAdmin, hasBlocks, userEmail, userName }: a
           {/* --- ZONA EXCLUSIVA ADMIN MAESTRO --- */}
           {isAdmin && (
               <div className="mb-8 bg-teal-950/30 border border-teal-500/30 p-5 rounded-xl backdrop-blur-md relative overflow-hidden group">
-                  {/* Decoración de fondo */}
+                  {/* Decoración de fondo suave */}
                   <div className="absolute top-0 right-0 w-32 h-32 bg-teal-500/10 blur-[50px] rounded-full pointer-events-none"></div>
                   
                   <div className="flex items-start gap-4 relative z-10">
-                      <div className="text-3xl bg-teal-900/50 p-2 rounded-lg border border-teal-500/20">
-                        🎛️
+                      {/* CAMBIO 1: Nuevo Emoji (Cerebro) */}
+                      <div className="text-3xl bg-teal-900/50 p-2 rounded-lg border border-teal-500/20 h-fit">
+                        🧠
                       </div>
                       <div className="flex-1">
-                          <h3 className="text-teal-400 font-bold text-sm mb-1 uppercase tracking-[0.2em]">
+                          <h3 className="text-teal-400 font-bold text-sm mb-2 uppercase tracking-[0.2em]">
                               Control de Logística
                           </h3>
                           
-                          {/* Botón cambia según el estado del sistema */}
+                          {/* CAMBIO 2: Textos originales más cortos */}
                           {hasBlocks ? (
                              <>
                                <p className="text-gray-400 text-xs mb-3 leading-relaxed">
-                                  El sistema está operando en <strong>Modo Entrevistas</strong>. Los algoritmos de asignación están activos y los postulantes seleccionando horarios.
-                                  <br/>Para re-calibrar la disponibilidad, es necesario reiniciar el ciclo.
+                                  El sistema está en <strong>Modo Entrevistas</strong> y los postulantes eligiendo horarios.
+                                  <br/>Para corregir la disponibilidad, debes reiniciar el sistema.
                                </p>
                                <ResetScheduleButton />
                              </>
                           ) : (
                              <>
                                <p className="text-gray-400 text-xs mb-3 leading-relaxed">
-                                  El sistema está recopilando datos de disponibilidad. Una vez que todos los socios hayan sincronizado sus agendas, ejecuta el algoritmo de emparejamiento.
+                                  Una vez que todos los socios hayan llenado su disponibilidad, genera los horarios para los candidatos.
                                </p>
                                <GenerateScheduleButton />
                              </>

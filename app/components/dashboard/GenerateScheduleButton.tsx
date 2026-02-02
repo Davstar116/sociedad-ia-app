@@ -1,15 +1,22 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { createPortal } from "react-dom"; // <--- IMPORTANTE: Importamos el Portal
 import { useRouter } from "next/navigation";
 
 export default function GenerateScheduleButton() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const [mounted, setMounted] = useState(false); // Para evitar errores de hidratación
 
   // Estados para controlar los modales
   const [showConfirm, setShowConfirm] = useState(false);
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error', message: string } | null>(null);
+
+  // Aseguramos que el código del portal solo corra en el cliente
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // 1. PRIMER PASO: Mostrar modal de confirmación
   const handleInitialClick = () => {
@@ -18,28 +25,25 @@ export default function GenerateScheduleButton() {
 
   // 2. SEGUNDO PASO: Ejecutar la lógica si el usuario confirma
   const proceedWithGeneration = async () => {
-    setShowConfirm(false); // Cerramos confirmación
-    setLoading(true);      // Iniciamos carga
+    setShowConfirm(false); 
+    setLoading(true);
 
     try {
       const res = await fetch("/api/admin/generate-slots", { method: "POST" });
       const data = await res.json();
       
       if (res.ok) {
-        // ÉXITO
         setFeedback({ 
             type: 'success', 
             message: `Algoritmo finalizado. ${data.message}` 
         });
       } else {
-        // ERROR DE API
         setFeedback({ 
             type: 'error', 
             message: data.error || "Ocurrió un error inesperado en el motor." 
         });
       }
     } catch (error) {
-      // ERROR DE RED
       setFeedback({ 
           type: 'error', 
           message: "Error de conexión con el servidor. Intenta de nuevo." 
@@ -52,15 +56,15 @@ export default function GenerateScheduleButton() {
   // 3. TERCER PASO: Cerrar modal final y recargar si fue éxito
   const handleCloseFeedback = () => {
     if (feedback?.type === 'success') {
-        window.location.reload(); // Recargamos para ver los cambios
+        window.location.reload(); 
     } else {
-        setFeedback(null); // Solo cerramos si fue error para intentar de nuevo
+        setFeedback(null); 
     }
   };
 
   return (
     <>
-      {/* --- BOTÓN PRINCIPAL --- */}
+      {/* --- BOTÓN PRINCIPAL (SE QUEDA AQUÍ) --- */}
       <button
         onClick={handleInitialClick}
         disabled={loading}
@@ -81,9 +85,9 @@ export default function GenerateScheduleButton() {
         )}
       </button>
 
-      {/* --- MODAL 1: CONFIRMACIÓN DE SEGURIDAD --- */}
-      {showConfirm && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
+      {/* --- MODALES TELETRANSPORTADOS AL BODY --- */}
+      {mounted && showConfirm && createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
             <div className="bg-[#0a0a0a] border border-teal-500/30 rounded-xl max-w-md w-full p-6 shadow-[0_0_40px_rgba(45,212,191,0.1)] animate-in zoom-in-95 duration-200 relative overflow-hidden">
                 {/* Decoración de fondo */}
                 <div className="absolute top-0 right-0 w-32 h-32 bg-teal-500/5 blur-[40px] rounded-full pointer-events-none"></div>
@@ -115,18 +119,17 @@ export default function GenerateScheduleButton() {
                     </div>
                 </div>
             </div>
-        </div>
+        </div>,
+        document.body // <--- Aquí ocurre la magia: lo mandamos al body
       )}
 
-      {/* --- MODAL 2: RESULTADO (FEEDBACK) --- */}
-      {feedback && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md animate-in fade-in duration-300">
+      {mounted && feedback && createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md animate-in fade-in duration-300">
             <div className={`
                 max-w-md w-full bg-[#050505] border-2 rounded-xl p-8 shadow-[0_0_50px_rgba(0,0,0,0.8)]
                 animate-in zoom-in-95 duration-300 relative overflow-hidden text-center
                 ${feedback.type === 'success' ? 'border-teal-500/50 shadow-teal-900/20' : 'border-red-500/50 shadow-red-900/20'}
             `}>
-                {/* Glow Effect */}
                 <div className={`absolute top-0 left-1/2 -translate-x-1/2 w-full h-2 bg-${feedback.type === 'success' ? 'teal' : 'red'}-500 blur-[20px]`}></div>
 
                 <div className={`
@@ -156,7 +159,8 @@ export default function GenerateScheduleButton() {
                     {feedback.type === 'success' ? 'Entendido, Recargar' : 'Cerrar y Reintentar'}
                 </button>
             </div>
-        </div>
+        </div>,
+        document.body // <--- También mandamos este al body
       )}
     </>
   );

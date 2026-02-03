@@ -11,7 +11,6 @@ export default function ResetScheduleButton() {
 
   // Estados del Modal
   const [showConfirm, setShowConfirm] = useState(false);
-  const [confirmInput, setConfirmInput] = useState(""); // Lo que escribe el usuario
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error', message: string } | null>(null);
 
   useEffect(() => {
@@ -20,14 +19,11 @@ export default function ResetScheduleButton() {
 
   // 1. ABRIR MODAL DE CONFIRMACIÓN
   const handleInitialClick = () => {
-    setConfirmInput(""); // Limpiamos el input
     setShowConfirm(true);
   };
 
-  // 2. EJECUTAR RESET (Solo si escribió CONFIRMAR)
+  // 2. EJECUTAR RESET DIRECTAMENTE
   const executeReset = async () => {
-    if (confirmInput !== "CONFIRMAR") return;
-
     setShowConfirm(false);
     setLoading(true);
 
@@ -58,7 +54,7 @@ export default function ResetScheduleButton() {
   // 3. CERRAR Y RECARGAR
   const handleCloseFeedback = () => {
     if (feedback?.type === 'success') {
-        window.location.reload(); // Recarga forzosa para cambiar la vista
+        window.location.reload(); // Recarga forzosa
     } else {
         setFeedback(null);
     }
@@ -94,21 +90,11 @@ export default function ResetScheduleButton() {
                 </div>
 
                 <h3 className="text-2xl font-bold text-white mb-2">ZONA DE PELIGRO</h3>
-                <p className="text-gray-400 text-sm mb-6 leading-relaxed">
+                <p className="text-gray-400 text-sm mb-8 leading-relaxed">
                     Estás a punto de <strong>ELIMINAR TODOS</strong> los bloques de entrevista generados. Esta acción es irreversible.
                     <br/><br/>
-                    Para confirmar, escribe <span className="text-red-500 font-mono font-bold">CONFIRMAR</span> abajo:
+                    ¿Estás seguro de que deseas continuar?
                 </p>
-
-                {/* INPUT DE SEGURIDAD */}
-                <input 
-                    type="text" 
-                    value={confirmInput}
-                    onChange={(e) => setConfirmInput(e.target.value)}
-                    placeholder="Escribe CONFIRMAR"
-                    className="w-full bg-black border border-red-900/50 rounded-lg p-3 text-center text-white font-mono mb-6 focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-all placeholder:text-gray-700"
-                    autoFocus
-                />
 
                 <div className="flex gap-3 w-full">
                     <button 
@@ -119,15 +105,9 @@ export default function ResetScheduleButton() {
                     </button>
                     <button 
                         onClick={executeReset}
-                        disabled={confirmInput !== "CONFIRMAR"}
-                        className={`
-                            flex-1 py-3 rounded-lg font-bold text-sm transition-all
-                            ${confirmInput === "CONFIRMAR" 
-                                ? 'bg-red-600 hover:bg-red-500 text-white shadow-[0_0_15px_rgba(220,38,38,0.4)]' 
-                                : 'bg-gray-800 text-gray-500 cursor-not-allowed'}
-                        `}
+                        className="flex-1 py-3 rounded-lg font-bold text-sm transition-all bg-red-600 hover:bg-red-500 text-white shadow-[0_0_15px_rgba(220,38,38,0.4)]"
                     >
-                        ELIMINAR TODO
+                        SÍ, ELIMINAR TODO
                     </button>
                 </div>
             </div>

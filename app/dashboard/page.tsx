@@ -5,9 +5,9 @@ import NetworkBackground from "../components/ui/NetworkBackground";
 import UserMenu from "../components/dashboard/UserMenu";
 import AvailabilityGrid from "../components/dashboard/AvailabilityGrid";
 import GenerateScheduleButton from "../components/dashboard/GenerateScheduleButton";
-import InterviewerAgenda from "../components/dashboard/InterviewerAgenda"; // ✅ NUEVO
-import ResetScheduleButton from "../components/dashboard/ResetScheduleButton"; // ✅ NUEVO
-import CandidateScheduler from "../components/dashboard/CandidateScheduler"; // ✅ NUEVO
+import InterviewerAgenda from "../components/dashboard/InterviewerAgenda";
+import ResetScheduleButton from "../components/dashboard/ResetScheduleButton";
+import CandidateScheduler from "../components/dashboard/CandidateScheduler"; 
 
 export default async function DashboardPage() {
   const session = await getServerSession();
@@ -63,9 +63,10 @@ export default async function DashboardPage() {
     </div>
   );
 
-  // ✅ CAMBIO IMPORTANTE: Ahora carga el Scheduler en lugar de la vista estática
+  // ✅ CAMBIO IMPORTANTE: Pasamos el nombre del usuario al Scheduler
+  // El Scheduler se encarga internamente de mostrar primero la felicitación y luego el calendario.
   const InterviewView = () => (
-    <CandidateScheduler />
+    <CandidateScheduler userName={session.user?.name || "Candidato"} />
   );
 
   const PostInterviewRejectedView = () => (
@@ -209,7 +210,7 @@ async function InterviewerSection({ isAdmin, hasBlocks, userEmail, userName }: a
                   <div className="absolute top-0 right-0 w-32 h-32 bg-teal-500/10 blur-[50px] rounded-full pointer-events-none"></div>
                   
                   <div className="flex items-start gap-4 relative z-10">
-                      {/* CAMBIO 1: Nuevo Emoji (Cerebro) */}
+                      {/* Emoji Cerebro */}
                       <div className="text-3xl bg-teal-900/50 p-2 rounded-lg border border-teal-500/20 h-fit">
                         🧠
                       </div>
@@ -218,7 +219,7 @@ async function InterviewerSection({ isAdmin, hasBlocks, userEmail, userName }: a
                               Control de Logística
                           </h3>
                           
-                          {/* CAMBIO 2: Textos originales más cortos */}
+                          {/* Textos de control */}
                           {hasBlocks ? (
                              <>
                                <p className="text-gray-400 text-xs mb-3 leading-relaxed">
@@ -230,7 +231,7 @@ async function InterviewerSection({ isAdmin, hasBlocks, userEmail, userName }: a
                           ) : (
                              <>
                                <p className="text-gray-400 text-xs mb-3 leading-relaxed">
-                                  Una vez que todos los entrevistadores hayan llenado su disponibilidad, genera los horarios para los candidatos.
+                                  Una vez que todos los socios hayan llenado su disponibilidad, genera los horarios para los candidatos.
                                </p>
                                <GenerateScheduleButton />
                              </>

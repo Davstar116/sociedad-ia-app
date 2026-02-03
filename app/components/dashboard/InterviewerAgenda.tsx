@@ -24,7 +24,7 @@ export default function InterviewerAgenda({ agenda }: Props) {
             <div>
               <h2 className="text-xl font-bold text-white">Próximas Sesiones</h2>
               <p className="text-gray-400 text-xs mt-1">
-                  Aquí verás únicamente las entrevistas confirmadas por los postulantes.
+                  Aquí verás tus entrevistas programadas.
               </p>
             </div>
             <div className="text-right">
@@ -41,8 +41,7 @@ export default function InterviewerAgenda({ agenda }: Props) {
                     <div className="text-5xl mb-4 grayscale">⏳</div>
                     <h3 className="text-xl font-bold text-white">Esperando Candidatos...</h3>
                     <p className="text-gray-400 text-sm mt-2 max-w-md">
-                        Aún no tienes entrevistas agendadas. <br/>
-                        Los espacios vacíos están ocultos hasta que un postulante los reserve.
+                        Aún no tienes entrevistas agendadas. <br/>.
                     </p>
                 </div>
             ) : (

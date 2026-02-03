@@ -12,49 +12,53 @@ interface Props {
 export default function InterviewerAgenda({ agenda }: Props) {
   const [selectedInterview, setSelectedInterview] = useState<any>(null);
 
-  // Filtramos solo las que tienen candidato o están confirmadas (Opcional, según tu gusto)
-  // Por ahora mostramos todas, pero marcamos visualmente las vacías.
+  // 🔍 FILTRO: Solo mostramos las entrevistas que YA tienen un candidato (expediente cargado)
+  const bookedAgenda = agenda.filter(slot => slot.candidate !== null);
 
   return (
     <>
-      {/* --- CONTENEDOR PRINCIPAL (Igual que AvailabilityGrid) --- */}
+      {/* --- CONTENEDOR PRINCIPAL --- */}
       <div className="w-full bg-black/40 border border-[#0051ff]/30 p-6 rounded-2xl backdrop-blur-md flex flex-col h-[80vh]">
         
         <div className="flex justify-between items-end mb-6">
             <div>
               <h2 className="text-xl font-bold text-white">Próximas Sesiones</h2>
-              <p className="text-gray-400 text-xs mt-1">Selecciona una tarjeta para ver el expediente del candidato.</p>
+              <p className="text-gray-400 text-xs mt-1">
+                  Aquí verás únicamente las entrevistas confirmadas por los postulantes.
+              </p>
             </div>
             <div className="text-right">
-               <span className="text-[#00baff] font-mono text-xl font-bold">{agenda.filter(a => a.candidate).length}</span>
-               <span className="text-gray-500 text-xs ml-2">ASIGNADOS</span>
+               <span className="text-[#00baff] font-mono text-xl font-bold">{bookedAgenda.length}</span>
+               <span className="text-gray-500 text-xs ml-2">CONFIRMADAS</span>
             </div>
         </div>
 
         {/* --- GRID DE TARJETAS (Scrollable) --- */}
         <div className="flex-grow overflow-y-auto pr-2 custom-scrollbar">
-            {agenda.length === 0 ? (
-                <div className="text-center py-20 opacity-50">
-                    <div className="text-4xl mb-4">💤</div>
-                    <p>No tienes entrevistas asignadas aún.</p>
+            {bookedAgenda.length === 0 ? (
+                // ESTADO VACÍO (Cuando nadie ha reservado aún)
+                <div className="flex flex-col items-center justify-center h-full text-center opacity-60">
+                    <div className="text-5xl mb-4 grayscale">⏳</div>
+                    <h3 className="text-xl font-bold text-white">Esperando Candidatos...</h3>
+                    <p className="text-gray-400 text-sm mt-2 max-w-md">
+                        Aún no tienes entrevistas agendadas. <br/>
+                        Los espacios vacíos están ocultos hasta que un postulante los reserve.
+                    </p>
                 </div>
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {agenda.map((slot) => {
-                        const hasCandidate = slot.candidate; // ¿Hay expediente?
+                    {bookedAgenda.map((slot) => {
                         const dateObj = parseISO(slot.date);
                         
                         return (
                             <button
                                 key={slot.id}
-                                onClick={() => hasCandidate && setSelectedInterview(slot)}
-                                disabled={!hasCandidate}
+                                onClick={() => setSelectedInterview(slot)}
                                 className={`
                                     relative p-5 rounded-xl border text-left transition-all duration-300 group
                                     flex flex-col justify-between h-[180px]
-                                    ${hasCandidate 
-                                        ? 'bg-[#0a0a0a]/60 border-white/10 hover:border-[#00baff]/50 hover:bg-[#00baff]/5 hover:-translate-y-1 hover:shadow-lg hover:shadow-[#00baff]/10' 
-                                        : 'bg-white/5 border-transparent opacity-50 cursor-default grayscale'}
+                                    bg-[#0a0a0a]/60 border-white/10 hover:border-[#00baff]/50 hover:bg-[#00baff]/5 
+                                    hover:-translate-y-1 hover:shadow-lg hover:shadow-[#00baff]/10
                                 `}
                             >
                                 {/* HEADER TARJETA: FECHA */}
@@ -67,38 +71,30 @@ export default function InterviewerAgenda({ agenda }: Props) {
                                             {format(dateObj, "EEEE d", { locale: es })}
                                         </p>
                                     </div>
-                                    {hasCandidate && (
-                                        <div className="bg-[#00baff]/10 text-[#00baff] text-[10px] px-2 py-1 rounded border border-[#00baff]/20">
-                                            EXPEDIENTE 📂
-                                        </div>
-                                    )}
+                                    <div className="bg-[#00baff]/10 text-[#00baff] text-[10px] px-2 py-1 rounded border border-[#00baff]/20">
+                                        EXPEDIENTE 📂
+                                    </div>
                                 </div>
 
                                 {/* BODY TARJETA: DATOS CANDIDATO */}
                                 <div>
-                                    {hasCandidate ? (
-                                        <>
-                                            <h3 className="text-white font-bold text-lg truncate mb-1 group-hover:text-[#00baff] transition-colors">
-                                                {slot.candidate.name}
-                                            </h3>
-                                            <div className="flex flex-wrap gap-1">
-                                                {slot.candidate.nucelos.slice(0, 2).map((n: string) => (
-                                                    <span key={n} className="text-[10px] bg-white/10 text-gray-300 px-2 py-0.5 rounded">
-                                                        {n}
-                                                    </span>
-                                                ))}
-                                                {slot.candidate.nucelos.length > 2 && (
-                                                    <span className="text-[10px] text-gray-500 px-1">+{slot.candidate.nucelos.length - 2}</span>
-                                                )}
-                                            </div>
-                                        </>
-                                    ) : (
-                                        <p className="text-gray-600 italic text-sm">Espacio disponible sin reservar</p>
-                                    )}
+                                    <h3 className="text-white font-bold text-lg truncate mb-1 group-hover:text-[#00baff] transition-colors">
+                                        {slot.candidate.name}
+                                    </h3>
+                                    <div className="flex flex-wrap gap-1">
+                                        {slot.candidate.nucelos.slice(0, 2).map((n: string) => (
+                                            <span key={n} className="text-[10px] bg-white/10 text-gray-300 px-2 py-0.5 rounded">
+                                                {n}
+                                            </span>
+                                        ))}
+                                        {slot.candidate.nucelos.length > 2 && (
+                                            <span className="text-[10px] text-gray-500 px-1">+{slot.candidate.nucelos.length - 2}</span>
+                                        )}
+                                    </div>
                                 </div>
                                 
                                 {/* DECORACIÓN AL FINAL */}
-                                {hasCandidate && <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[#00baff]/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>}
+                                <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[#00baff]/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
                             </button>
                         );
                     })}
@@ -179,7 +175,7 @@ export default function InterviewerAgenda({ agenda }: Props) {
                             </div>
                         </div>
 
-                        {/* COLUMNA DERECHA: NOTAS Y ANÁLISIS (Ocupa 2 espacios) */}
+                        {/* COLUMNA DERECHA: NOTAS Y ANÁLISIS */}
                         <div className="md:col-span-2 space-y-6">
                             
                             {/* ANÁLISIS DE SOPHIA */}
@@ -206,7 +202,7 @@ export default function InterviewerAgenda({ agenda }: Props) {
                     </div>
                 </div>
 
-                {/* FOOTER MODAL: ACCIONES ENTREVISTA */}
+                {/* FOOTER MODAL */}
                 <div className="p-4 border-t border-gray-800 bg-[#0a0a0a] flex justify-end gap-3">
                     <button className="px-6 py-2 rounded-lg bg-green-600 hover:bg-green-500 text-black font-bold text-sm shadow-[0_0_15px_rgba(34,197,94,0.2)]">
                         INICIAR EVALUACIÓN

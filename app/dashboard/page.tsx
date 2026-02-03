@@ -230,7 +230,7 @@ async function InterviewerSection({ isAdmin, hasBlocks, userEmail, userName }: a
                           ) : (
                              <>
                                <p className="text-gray-400 text-xs mb-3 leading-relaxed">
-                                  Una vez que todos los socios hayan llenado su disponibilidad, genera los horarios para los candidatos.
+                                  Una vez que todos los entrevistadores hayan llenado su disponibilidad, genera los horarios para los candidatos.
                                </p>
                                <GenerateScheduleButton />
                              </>

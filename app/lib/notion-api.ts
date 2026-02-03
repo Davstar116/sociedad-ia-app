@@ -1,7 +1,7 @@
 const NOTION_TOKEN = process.env.NOTION_TOKEN;
 const NOTION_DATABASE_ID = process.env.NOTION_DATABASE_ID; // Candidatos
 const NOTION_USERS_DB_ID = process.env.NOTION_USERS_DB_ID; // Usuarios
-const NOTION_INTERVIEWS_DB_ID = process.env.NOTION_INTERVIEWS_DB_ID; // ✅ NUEVA: Entrevistas
+const NOTION_INTERVIEWS_DB_ID = process.env.NOTION_INTERVIEWS_DB_ID; // ✅ Entrevistas
 
 // Headers comunes para reutilizar
 const headers = {
@@ -10,7 +10,7 @@ const headers = {
   "Content-Type": "application/json",
 };
 
-// --- FUNCIÓN ORIGINAL (SIN CAMBIOS) ---
+// --- FUNCIÓN 1: OBTENER ESTATUS GENERAL (SIN CAMBIOS) ---
 export async function getCandidateStatus(email: string) {
   try {
     // 1. BUSCAR EN USUARIOS
@@ -75,9 +75,7 @@ export async function getCandidateStatus(email: string) {
   }
 }
 
-// --- ✅ NUEVAS FUNCIONES AGREGADAS ---
-
-// 1. VERIFICAR SI HAY BLOQUES GENERADOS (Para saber en qué fase estamos)
+// --- FUNCIÓN 2: VERIFICAR ESTADO DEL SISTEMA (SIN CAMBIOS) ---
 export async function checkSystemState() {
   if (!NOTION_INTERVIEWS_DB_ID) return { hasBlocks: false };
   
@@ -100,39 +98,82 @@ export async function checkSystemState() {
   }
 }
 
-// 2. OBTENER ENTREVISTAS ASIGNADAS (Para el Entrevistador)
+// --- FUNCIÓN 3: OBTENER AGENDA ENTREVISTADOR + DETALLES CANDIDATO (✅ ACTUALIZADA) ---
 export async function getInterviewerAgenda(email: string, name: string) {
   if (!NOTION_INTERVIEWS_DB_ID) return [];
 
   try {
-    // Buscamos donde el nombre del entrevistador esté en la columna "Entrevistadores"
+    // A. Buscamos las entrevistas donde aparece el nombre del entrevistador
     const response = await fetch(`https://api.notion.com/v1/databases/${NOTION_INTERVIEWS_DB_ID}/query`, {
       method: 'POST',
       headers,
       body: JSON.stringify({
         filter: {
           property: "Entrevistadores",
-          rich_text: { contains: name } // Busca coincidencia de texto en los nombres
+          rich_text: { contains: name }
         },
         sorts: [{ property: "Fecha Inicio", direction: "ascending" }]
       }),
-      next: { revalidate: 0 } // Sin caché para ver actualizaciones en tiempo real
+      next: { revalidate: 0 }
     });
 
     if (!response.ok) return [];
+    const interviewsData = await response.json();
 
-    const data = await response.json();
-    
-    return data.results.map((page: any) => {
-      const props = page.properties;
-      return {
-        id: page.id,
-        title: props["ID Sesion"]?.title?.[0]?.plain_text || "Entrevista",
-        date: props["Fecha Inicio"]?.date?.start || "",
-        candidate: props["Candidato Email"]?.email || "Pendiente",
-        status: props["Estatus"]?.select?.name || "Disponible"
-      };
-    });
+    // B. Por cada entrevista encontrada, buscamos los datos REALES del candidato en la otra DB
+    // Usamos Promise.all para hacer las búsquedas en paralelo
+    const fullAgenda = await Promise.all(interviewsData.results.map(async (page: any) => {
+        const props = page.properties;
+        const candidateEmail = props["Candidato Email"]?.email;
+        let candidateDetails = null;
+
+        // Si hay un email de candidato, vamos a buscar su expediente completo
+        if (candidateEmail && NOTION_DATABASE_ID) {
+            try {
+                const candRes = await fetch(`https://api.notion.com/v1/databases/${NOTION_DATABASE_ID}/query`, {
+                    method: 'POST',
+                    headers,
+                    body: JSON.stringify({
+                        filter: { property: "Correo electrónico", email: { equals: candidateEmail } }
+                    }),
+                    next: { revalidate: 0 }
+                });
+                
+                const candData = await candRes.json();
+                
+                if (candData.results.length > 0) {
+                    const cProps = candData.results[0].properties;
+                    
+                    // Extraemos los datos del expediente (Ajusta nombres de propiedades según tu Notion)
+                    candidateDetails = {
+                        name: cProps["Nombre"]?.title?.[0]?.plain_text || "Sin Nombre",
+                        // Mapeamos los núcleos (multi-select)
+                        nucelos: cProps["Nucleo"]?.multi_select?.map((n: any) => n.name) || [],
+                        // Buscamos CV (puede ser archivo subido o link externo)
+                        cvUrl: cProps["CV"]?.files?.[0]?.file?.url || cProps["CV"]?.files?.[0]?.external?.url || null,
+                        // Score y Notas
+                        sophiaScore: cProps["SophIA Score"]?.number || 0,
+                        sophiaNotes: cProps["SophIA Notas"]?.rich_text?.[0]?.plain_text || "Sin notas de IA disponibles.",
+                        humanNotes: cProps["Notas Revisión"]?.rich_text?.[0]?.plain_text || "Sin notas de revisión previas."
+                    };
+                }
+            } catch (err) {
+                console.error(`Error fetching details for ${candidateEmail}`, err);
+            }
+        }
+
+        // Devolvemos el objeto combinado
+        return {
+            id: page.id,
+            title: props["ID Sesion"]?.title?.[0]?.plain_text || "Entrevista",
+            date: props["Fecha Inicio"]?.date?.start || "",
+            status: props["Estatus"]?.select?.name || "Disponible",
+            candidateEmail: candidateEmail || null,
+            candidate: candidateDetails // Aquí va el expediente completo o null
+        };
+    }));
+
+    return fullAgenda;
 
   } catch (error) {
     console.error("Error fetching agenda:", error);

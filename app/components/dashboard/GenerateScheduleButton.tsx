@@ -98,7 +98,7 @@ export default function GenerateScheduleButton() {
                     </div>
                     <h3 className="text-xl font-bold text-white mb-2">¿Iniciar Generación?</h3>
                     <p className="text-gray-400 text-sm mb-6 leading-relaxed">
-                        Esta acción procesará la disponibilidad de <strong>todos los socios</strong> y creará los bloques definitivos en la base de datos.
+                        Esta acción procesará la disponibilidad de <strong>todos los entrevistadores</strong> y creará los bloques definitivos en la base de datos.
                         <br/><br/>
                         <span className="text-teal-400/80 text-xs">Asegúrate de que todos hayan llenado sus horarios antes de continuar.</span>
                     </p>

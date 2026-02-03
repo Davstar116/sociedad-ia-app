@@ -89,11 +89,11 @@ export default function ResetScheduleButton() {
                     💣
                 </div>
 
-                <h3 className="text-2xl font-bold text-white mb-2">ZONA DE PELIGRO</h3>
+                <h3 className="text-2xl font-bold text-white mb-2">¡CUIDADO!</h3>
                 <p className="text-gray-400 text-sm mb-8 leading-relaxed">
-                    Estás a punto de <strong>ELIMINAR TODOS</strong> los bloques de entrevista generados. Esta acción es irreversible.
+                    Estás a punto de <strong>ELIMINAR TODOS</strong> los bloques de entrevista generados.
                     <br/><br/>
-                    ¿Estás seguro de que deseas continuar?
+                    ¿Estás segur@ de que deseas continuar?
                 </p>
 
                 <div className="flex gap-3 w-full">

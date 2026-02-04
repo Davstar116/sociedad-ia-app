@@ -98,7 +98,40 @@ export async function checkSystemState() {
   }
 }
 
-// --- FUNCIÓN 3: OBTENER AGENDA ENTREVISTADOR + DETALLES CANDIDATO (✅ ACTUALIZADA) ---
+// --- FUNCIÓN 3: OBTENER BLOQUES DISPONIBLES (✅ NUEVA - Para el Candidato) ---
+export async function getAvailableSlots() {
+  if (!NOTION_INTERVIEWS_DB_ID) return [];
+
+  try {
+    const response = await fetch(`https://api.notion.com/v1/databases/${NOTION_INTERVIEWS_DB_ID}/query`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({
+        filter: {
+          property: "Estatus",
+          select: { equals: "Disponible" } // Solo traemos los libres
+        },
+        sorts: [{ property: "Fecha Inicio", direction: "ascending" }]
+      }),
+      next: { revalidate: 0 } // Sin caché, datos frescos siempre
+    });
+
+    if (!response.ok) return [];
+    const data = await response.json();
+
+    return data.results.map((page: any) => ({
+      id: page.id,
+      start: page.properties["Fecha Inicio"]?.date?.start || "",
+      status: page.properties["Estatus"]?.select?.name || "Disponible"
+    }));
+
+  } catch (error) {
+    console.error("Error fetching available slots:", error);
+    return [];
+  }
+}
+
+// --- FUNCIÓN 4: OBTENER AGENDA ENTREVISTADOR + DETALLES CANDIDATO (SIN CAMBIOS) ---
 export async function getInterviewerAgenda(email: string, name: string) {
   if (!NOTION_INTERVIEWS_DB_ID) return [];
 

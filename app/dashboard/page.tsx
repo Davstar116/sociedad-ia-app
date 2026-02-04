@@ -1,6 +1,7 @@
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
-import { getCandidateStatus, checkSystemState, getInterviewerAgenda } from "../lib/notion-api"; 
+// ✅ IMPORTANTE: Agregamos getAvailableSlots aquí abajo 👇
+import { getCandidateStatus, checkSystemState, getInterviewerAgenda, getAvailableSlots } from "../lib/notion-api"; 
 import NetworkBackground from "../components/ui/NetworkBackground";
 import UserMenu from "../components/dashboard/UserMenu";
 import AvailabilityGrid from "../components/dashboard/AvailabilityGrid";
@@ -23,7 +24,7 @@ export default async function DashboardPage() {
   const role = userData?.role || "Postulante";
   const isInterviewer = userData?.isInterviewer || false;
 
-  // 2. VERIFICAR EL ESTADO DEL SISTEMA (¿Fase Disponibilidad o Fase Entrevistas?)
+  // 2. VERIFICAR EL ESTADO DEL SISTEMA
   const { hasBlocks } = await checkSystemState();
 
   // Roles de Staff
@@ -63,11 +64,19 @@ export default async function DashboardPage() {
     </div>
   );
 
-  // ✅ CAMBIO IMPORTANTE: Pasamos el nombre del usuario al Scheduler
-  // El Scheduler se encarga internamente de mostrar primero la felicitación y luego el calendario.
-  const InterviewView = () => (
-    <CandidateScheduler userName={session.user?.name || "Candidato"} />
-  );
+  // ✅ CAMBIO IMPORTANTE: Fetch de bloques disponibles y pasarlo al componente
+  // Ahora esta función es asíncrona porque va a buscar datos a Notion
+  const InterviewView = async () => {
+    // Obtenemos los bloques reales de Notion con estatus "Disponible"
+    const availableSlots = await getAvailableSlots();
+    
+    return (
+        <CandidateScheduler 
+            userName={session.user?.name || "Candidato"} 
+            availableSlots={availableSlots} 
+        />
+    );
+  };
 
   const PostInterviewRejectedView = () => (
     <div className="max-w-2xl w-full bg-black/60 border border-gray-700 p-8 rounded-2xl text-center backdrop-blur-xl animate-in zoom-in duration-500">
@@ -127,7 +136,8 @@ export default async function DashboardPage() {
           CandidateCurrentView = <RejectedView />;
           break;
       case "Aprobado para Entrevista":
-          CandidateCurrentView = <InterviewView />;
+          // ✅ AQUI HACEMOS EL AWAIT porque InterviewView ahora es async
+          CandidateCurrentView = await InterviewView();
           break;
       case "Rechazado":
           CandidateCurrentView = <PostInterviewRejectedView />;
@@ -164,7 +174,6 @@ export default async function DashboardPage() {
         
         {/* LOGICA DE SELECCIÓN DE VISTA GLOBAL */}
         {isStaff && isInterviewer ? (
-            // ✅ VISTA DEL ENTREVISTADOR (Dinámica: Grid o Agenda)
             <InterviewerSection 
                 isAdmin={isAdmin} 
                 hasBlocks={hasBlocks} 
@@ -172,7 +181,6 @@ export default async function DashboardPage() {
                 userName={session.user?.name} 
             />
         ) : (
-            // ✅ VISTA DEL CANDIDATO (Normal)
             CandidateCurrentView
         )}
 
@@ -183,7 +191,7 @@ export default async function DashboardPage() {
   );
 }
 
-// ✅ COMPONENTE ASÍNCRONO AUXILIAR PARA EL ENTREVISTADOR
+// ... (El componente InterviewerSection se queda igual que antes) ...
 async function InterviewerSection({ isAdmin, hasBlocks, userEmail, userName }: any) {
     const agenda = hasBlocks ? await getInterviewerAgenda(userEmail || "", userName || "") : [];
 
@@ -203,14 +211,11 @@ async function InterviewerSection({ isAdmin, hasBlocks, userEmail, userName }: a
               </div>
           </div>
 
-          {/* --- ZONA EXCLUSIVA ADMIN MAESTRO --- */}
           {isAdmin && (
               <div className="mb-8 bg-teal-950/30 border border-teal-500/30 p-5 rounded-xl backdrop-blur-md relative overflow-hidden group">
-                  {/* Decoración de fondo suave */}
                   <div className="absolute top-0 right-0 w-32 h-32 bg-teal-500/10 blur-[50px] rounded-full pointer-events-none"></div>
                   
                   <div className="flex items-start gap-4 relative z-10">
-                      {/* Emoji Cerebro */}
                       <div className="text-3xl bg-teal-900/50 p-2 rounded-lg border border-teal-500/20 h-fit">
                         🧠
                       </div>
@@ -219,7 +224,6 @@ async function InterviewerSection({ isAdmin, hasBlocks, userEmail, userName }: a
                               Control de Logística
                           </h3>
                           
-                          {/* Textos de control */}
                           {hasBlocks ? (
                              <>
                                <p className="text-gray-400 text-xs mb-3 leading-relaxed">
@@ -241,7 +245,6 @@ async function InterviewerSection({ isAdmin, hasBlocks, userEmail, userName }: a
               </div>
           )}
           
-          {/* SWITCH DE CONTENIDO: AGENDA vs GRID */}
           {hasBlocks ? (
              <InterviewerAgenda agenda={agenda} />
           ) : (

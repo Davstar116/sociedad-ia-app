@@ -47,7 +47,6 @@ export default function CandidateScheduler({ userName }: { userName: string }) {
                 
                 <div className="text-center py-12 border border-dashed border-gray-700 rounded-xl bg-white/5">
                 <p className="text-gray-400 mb-6">
-                    Hemos abierto espacios exclusivos para que hables con la Mesa Directiva.
                     <br/>Selecciona el horario que mejor se acomode a ti.
                 </p>
                 <button 
@@ -69,7 +68,7 @@ export default function CandidateScheduler({ userName }: { userName: string }) {
       <div className="flex justify-between items-center mb-6">
          <div>
             <h2 className="text-2xl font-bold text-white">Selecciona tu Horario</h2>
-            <p className="text-xs text-gray-400">Recuerda llegar 5 minutos antes a tu sesión.</p>
+            <p className="text-xs text-gray-400">Recuerda llegar a tiempo a tu sesión.</p>
          </div>
          <button 
             onClick={() => setShowCalendar(false)} 

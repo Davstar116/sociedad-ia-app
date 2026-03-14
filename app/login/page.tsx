@@ -1,156 +1,179 @@
-import { getServerSession } from "next-auth";
-import { redirect } from "next/navigation";
-import { authOptions } from "../api/auth/[...nextauth]/route"; 
+"use client";
+
 import { signIn } from "next-auth/react";
-import { useState } from "react";
-import Image from "next/image";
+import { useState, useEffect, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
 
-export default async function LoginPage() {
-  const session = await getServerSession(authOptions);
-
-  // 1. LÓGICA DE SESIÓN: Si ya está logueado, redirigir al dashboard
-  if (session) {
-    redirect("/dashboard");
-  }
-
-  // Estados para el formulario de credenciales
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
+function LoginContent() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const [form, setForm] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [successMsg, setSuccessMsg] = useState("");
+
+  useEffect(() => {
+    if (searchParams.get("registered") === "true") {
+      setSuccessMsg("¡Cuenta creada! Por favor inicia sesión.");
+    }
+    if (searchParams.get("error") === "CredentialsSignin") {
+      setError("Credenciales incorrectas. Verifica tu correo y contraseña.");
+    }
+  }, [searchParams]);
 
   const handleCredentialsLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError("");
 
-    try {
-      const res = await signIn("credentials", {
-        email,
-        password,
-        redirect: false, // Manejamos la redirección manualmente
-      });
+    const res = await signIn("credentials", {
+      redirect: false,
+      email: form.email,
+      password: form.password,
+    });
 
-      if (res?.error) {
-        setError("Credenciales incorrectas. Intenta de nuevo.");
-      } else {
-        window.location.href = "/dashboard"; // Redirección forzosa al dashboard
-      }
-    } catch (err) {
-      setError("Ocurrió un error inesperado. Intenta más tarde.");
-    } finally {
+    if (res?.error) {
+      setError("Correo o contraseña incorrectos.");
       setLoading(false);
+    } else {
+      router.push("/dashboard");
+      router.refresh();
     }
   };
 
-  // --- RENDERIZADO PRINCIPAL ---
+  const handleGoogleLogin = () => {
+    signIn("google", { callbackUrl: "/dashboard" });
+  };
+
   return (
-    // CONTENEDOR PRINCIPAL: Modo Oscuro Sólido
-    <div className="min-h-screen bg-[#0a0a0a] text-white flex flex-col items-center justify-center relative overflow-hidden font-sans">
+    // CONTENEDOR CENTRAL: Tarjeta Minimalista Sólida
+    <div className="w-full max-w-md bg-[#111111] border border-gray-800 rounded-2xl p-8 shadow-2xl animate-in fade-in zoom-in duration-500 flex flex-col items-center">
       
-      {/* 2. CONTENEDOR CENTRAL: Tarjeta Minimalista */}
-      <div className="z-10 w-full max-w-md p-8 bg-[#111111] border border-gray-900 rounded-2xl shadow-2xl animate-in fade-in zoom-in duration-500 flex flex-col items-center gap-6">
-        
-        {/* LOGO Y TÍTULO: Profesional y Nítido */}
-        <div className="flex flex-col items-center gap-3 mb-4">
-           <Image 
-             src="/logo.png" 
-             width={100} 
-             height={100} 
-             alt="Logo SIAFI" 
-             className="drop-shadow-lg"
-           />
-           <h1 className="text-3xl font-black text-white tracking-tight">Bienvenido a SIAFI</h1>
-           <p className="text-gray-400 text-sm">Tu plataforma de reclutamiento profesional</p>
-        </div>
-
-        {/* 3. OPCIONES DE LOGIN */}
-        
-        {/* LOGIN CON GOOGLE: Sólido Blanco, rounded-xl */}
-        <button
-          onClick={() => signIn("google")}
-          className="w-full py-3.5 rounded-xl flex items-center justify-center gap-3 border border-gray-800 bg-white hover:bg-gray-100 transition-all shadow-md group active:scale-95"
-        >
-          <Image 
-             src="/google.svg" // Asegúrate de tener este archivo
-             width={24} 
-             height={24} 
-             alt="Logo Google" 
-           />
-          <span className="text-black font-semibold text-sm">Continuar con Google</span>
-        </button>
-
-        {/* SEPARADOR: Minimalista */}
-        <div className="w-full flex items-center gap-3">
-            <div className="flex-grow border-t border-gray-800"></div>
-            <span className="text-xs text-gray-600 uppercase font-mono">o inicia sesión con correo</span>
-            <div className="flex-grow border-t border-gray-800"></div>
-        </div>
-
-        {/* FEEDBACK DE ERROR: Estilo Minimalista Rojo */}
-        {error && (
-            <div className="w-full p-4 bg-red-950/50 border border-red-500/30 rounded-lg text-sm text-red-400 text-center animate-shake">
-                {error}
-            </div>
-        )}
-
-        {/* 4. FORMULARIO DE CREDENCIALES: Inputs Minimalistas */}
-        <form onSubmit={handleCredentialsLogin} className="w-full flex flex-col gap-5">
-            <input 
-                type="email" 
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="tu.correo@ejemplo.com"
-                required
-                className="w-full bg-[#0d0d0d] border border-gray-800 rounded-xl p-3 text-white text-sm focus:outline-none focus:border-[#00baff] focus:ring-1 focus:ring-[#00baff]/30 transition-all placeholder:text-gray-700"
-            />
-            <input 
-                type="password" 
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Tu contraseña secreta"
-                required
-                className="w-full bg-[#0d0d0d] border border-gray-700 rounded-xl p-3 text-white text-sm focus:outline-none focus:border-[#00baff] focus:ring-1 focus:ring-[#00baff]/30 transition-all placeholder:text-gray-700"
-            />
-            
-            {/* BOTÓN INICIAR SESIÓN: Sólido Azul Profundo, rounded-xl */}
-            <button 
-                type="submit"
-                disabled={loading}
-                className={`w-full py-3.5 rounded-xl font-bold transition-all flex items-center justify-center gap-2 active:scale-95 text-sm uppercase tracking-wider
-                ${loading 
-                   ? 'bg-gray-800 text-gray-500 cursor-not-allowed' 
-                   : 'bg-[#0051ff] hover:bg-[#0041cc] text-white shadow-lg shadow-[#0051ff]/20'
-                }`}
-            >
-                {loading ? (
-                    <>
-                    <span className="w-4 h-4 border-2 border-white rounded-full animate-spin border-t-transparent"></span>
-                    PROCESANDO...
-                    </>
-                ) : (
-                    "INICIAR SESIÓN"
-                )}
-            </button>
-        </form>
-        
-        {/* 5. ENLACE A POSTULACIÓN: Sección Separada Minimalista */}
-        <div className="w-full border-t border-gray-800 pt-6 mt-2 flex flex-col items-center gap-4">
-            <p className="text-gray-500 text-sm text-center max-w-xs leading-relaxed">
-               ¿Eres nuevo? Postúlate para unirte a SIAFI y comienza tu viaje profesional.
-            </p>
-            
-            {/* BOTÓN POSTULARSE: Sólido Azul Profundo, rounded-xl */}
-            <a 
-                href="/reclutamiento" 
-                className="w-full py-3.5 rounded-xl bg-[#0051ff] hover:bg-[#0041cc] text-white font-bold text-sm text-center transition-all shadow-lg shadow-[#0051ff]/10 active:scale-95 uppercase tracking-wider"
-            >
-                📝 POSTULARSE PARA UNIRSE
-            </a>
-        </div>
-
+      {/* Header Limpio */}
+      <div className="text-center mb-8 w-full">
+        <h1 className="text-3xl font-black text-white tracking-tight mb-1">
+          Bienvenid@ a <span className="text-[#00baff]">SophIA</span>
+        </h1>
+        <p className="text-gray-400 text-sm">Accede a nuestra comunidad</p>
       </div>
 
+      {/* Alertas (Sólidas y limpias) */}
+      {successMsg && (
+        <div className="w-full bg-green-950/30 border border-green-500/30 text-green-400 text-sm p-3 rounded-xl mb-6 text-center">
+          {successMsg}
+        </div>
+      )}
+
+      {error && (
+        <div className="w-full bg-red-950/30 border border-red-500/30 text-red-400 text-sm p-3 rounded-xl mb-6 text-center">
+          {error}
+        </div>
+      )}
+
+      {/* Botón Google (Blanco sólido, bordes redondeados modernos) */}
+      <button
+        onClick={handleGoogleLogin}
+        className="w-full bg-white text-black font-semibold text-sm py-3.5 rounded-xl flex items-center justify-center gap-3 hover:bg-gray-100 transition-all active:scale-95 mb-6"
+      >
+        <svg className="w-5 h-5" viewBox="0 0 24 24">
+          <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" style={{ fill: "#4285F4" }} />
+          <path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" style={{ fill: "#34A853" }} />
+          <path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.26.81-.58z" style={{ fill: "#FBBC05" }} />
+          <path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" style={{ fill: "#EA4335" }} />
+        </svg>
+        Continuar con Google
+      </button>
+
+      {/* Divisor Minimalista */}
+      <div className="w-full flex items-center gap-3 mb-6">
+        <div className="flex-grow border-t border-gray-800"></div>
+        <span className="text-xs text-gray-500 uppercase tracking-widest font-mono">o con correo</span>
+        <div className="flex-grow border-t border-gray-800"></div>
+      </div>
+
+      {/* Formulario Credenciales */}
+      <form onSubmit={handleCredentialsLogin} className="w-full space-y-4">
+        <div>
+          <input
+            type="email"
+            required
+            className="w-full bg-[#0a0a0a] border border-gray-800 rounded-xl p-3.5 text-white text-sm focus:border-[#0051ff] focus:ring-1 focus:ring-[#0051ff]/30 focus:outline-none transition-all placeholder-gray-600"
+            placeholder="tu.correo@ejemplo.com"
+            value={form.email}
+            onChange={(e) => setForm({ ...form, email: e.target.value })}
+          />
+        </div>
+        <div>
+          <input
+            type="password"
+            required
+            className="w-full bg-[#0a0a0a] border border-gray-800 rounded-xl p-3.5 text-white text-sm focus:border-[#0051ff] focus:ring-1 focus:ring-[#0051ff]/30 focus:outline-none transition-all placeholder-gray-600"
+            placeholder="Tu contraseña secreta"
+            value={form.password}
+            onChange={(e) => setForm({ ...form, password: e.target.value })}
+          />
+        </div>
+
+        {/* Botón Sólido Principal */}
+        <button
+          type="submit"
+          disabled={loading}
+          className="w-full bg-[#0051ff] hover:bg-[#0041cc] text-white font-bold text-sm py-3.5 rounded-xl transition-all active:scale-95 uppercase tracking-wider mt-2"
+        >
+          {loading ? "Verificando..." : "Iniciar Sesión"}
+        </button>
+      </form>
+
+      {/* Link de Registro Minimalista */}
+      <div className="mt-6 text-center text-sm text-gray-500 w-full">
+        ¿No tienes cuenta?{" "}
+        <Link href="/register" className="text-[#00baff] hover:text-[#009ac9] font-semibold transition-colors">
+          Crear cuenta
+        </Link>
+      </div>
+
+      {/* --- SECCIÓN RECLUTAMIENTO (Tarjeta Limpia) --- */}
+      <div className="w-full mt-8 pt-8 border-t border-gray-800 flex flex-col items-center">
+        <p className="text-xs text-gray-500 uppercase tracking-widest font-bold mb-4">¿Eres postulante?</p>
+        
+        <Link href="/postulacion" className="w-full block group">
+          <div className="bg-[#0a0a0a] border border-gray-800 group-hover:border-[#0051ff] rounded-xl p-4 transition-all text-center group-hover:shadow-[0_4px_20px_rgba(0,81,255,0.1)]">
+            <p className="text-white font-bold text-sm">
+              Reclutamiento 2026-2
+            </p>
+            <p className="text-xs text-[#00baff] mt-1 font-semibold transition-all">
+              Postúlate Aquí →
+            </p>
+          </div>
+        </Link>
+      </div>
+
+      {/* FOOTER */}
+      <div className="mt-8 text-center">
+        <p className="text-[10px] text-gray-500 font-mono tracking-wider uppercase mb-1">
+          SophIA by <span className="text-[#00baff] font-bold">SIAFI</span>
+        </p>
+        <p className="text-[10px] text-gray-600 font-mono">
+          Facultad de Ingeniería, UNAM
+        </p>
+      </div>
+
+    </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    // CONTENEDOR RAÍZ: Fondo negro sólido sin el NetworkBackground
+    <div className="min-h-screen bg-[#0a0a0a] font-sans text-white flex flex-col items-center justify-center p-4">
+      <Suspense fallback={
+        <div className="text-[#00baff] text-sm font-semibold animate-pulse">
+          Cargando interfaz...
+        </div>
+      }>
+        <LoginContent />
+      </Suspense>
     </div>
   );
 }

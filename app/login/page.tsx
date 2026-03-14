@@ -4,6 +4,7 @@ import { signIn } from "next-auth/react";
 import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 
 function LoginContent() {
   const router = useRouter();
@@ -47,18 +48,25 @@ function LoginContent() {
   };
 
   return (
-    // CONTENEDOR CENTRAL: Tarjeta Minimalista Sólida
-    <div className="w-full max-w-md bg-[#111111] border border-gray-800 rounded-2xl p-8 shadow-2xl animate-in fade-in zoom-in duration-500 flex flex-col items-center">
+    // CONTENEDOR CENTRAL: Tarjeta con borde azul sutil adaptada para web y móvil
+    <div className="w-full max-w-md bg-[#111111] border border-[#0051ff]/30 rounded-2xl p-8 shadow-2xl shadow-black/50 animate-in fade-in zoom-in duration-500 flex flex-col items-center">
       
       {/* Header Limpio */}
-      <div className="text-center mb-8 w-full">
+      <div className="text-center mb-8 w-full flex flex-col items-center">
+        <Image 
+          src="/logo.png" 
+          width={80} 
+          height={80} 
+          alt="Logo SIAFI" 
+          className="mb-4"
+        />
         <h1 className="text-3xl font-black text-white tracking-tight mb-1">
           Bienvenid@ a <span className="text-[#00baff]">SophIA</span>
         </h1>
         <p className="text-gray-400 text-sm">Accede a nuestra comunidad</p>
       </div>
 
-      {/* Alertas (Sólidas y limpias) */}
+      {/* Alertas */}
       {successMsg && (
         <div className="w-full bg-green-950/30 border border-green-500/30 text-green-400 text-sm p-3 rounded-xl mb-6 text-center">
           {successMsg}
@@ -71,7 +79,7 @@ function LoginContent() {
         </div>
       )}
 
-      {/* Botón Google (Blanco sólido, bordes redondeados modernos) */}
+      {/* Botón Google */}
       <button
         onClick={handleGoogleLogin}
         className="w-full bg-white text-black font-semibold text-sm py-3.5 rounded-xl flex items-center justify-center gap-3 hover:bg-gray-100 transition-all active:scale-95 mb-6"
@@ -98,7 +106,7 @@ function LoginContent() {
           <input
             type="email"
             required
-            className="w-full bg-[#0a0a0a] border border-gray-800 rounded-xl p-3.5 text-white text-sm focus:border-[#0051ff] focus:ring-1 focus:ring-[#0051ff]/30 focus:outline-none transition-all placeholder-gray-600"
+            className="w-full bg-[#0a0a0a] border border-gray-800 rounded-xl p-3.5 text-white text-sm focus:border-[#0051ff] focus:ring-1 focus:ring-[#0051ff]/50 focus:outline-none transition-all placeholder-gray-600"
             placeholder="tu.correo@ejemplo.com"
             value={form.email}
             onChange={(e) => setForm({ ...form, email: e.target.value })}
@@ -108,7 +116,7 @@ function LoginContent() {
           <input
             type="password"
             required
-            className="w-full bg-[#0a0a0a] border border-gray-800 rounded-xl p-3.5 text-white text-sm focus:border-[#0051ff] focus:ring-1 focus:ring-[#0051ff]/30 focus:outline-none transition-all placeholder-gray-600"
+            className="w-full bg-[#0a0a0a] border border-gray-800 rounded-xl p-3.5 text-white text-sm focus:border-[#0051ff] focus:ring-1 focus:ring-[#0051ff]/50 focus:outline-none transition-all placeholder-gray-600"
             placeholder="Tu contraseña secreta"
             value={form.password}
             onChange={(e) => setForm({ ...form, password: e.target.value })}
@@ -133,12 +141,12 @@ function LoginContent() {
         </Link>
       </div>
 
-      {/* --- SECCIÓN RECLUTAMIENTO (Tarjeta Limpia) --- */}
+      {/* --- SECCIÓN RECLUTAMIENTO --- */}
       <div className="w-full mt-8 pt-8 border-t border-gray-800 flex flex-col items-center">
         <p className="text-xs text-gray-500 uppercase tracking-widest font-bold mb-4">¿Eres postulante?</p>
         
         <Link href="/postulacion" className="w-full block group">
-          <div className="bg-[#0a0a0a] border border-gray-800 group-hover:border-[#0051ff] rounded-xl p-4 transition-all text-center group-hover:shadow-[0_4px_20px_rgba(0,81,255,0.1)]">
+          <div className="bg-[#0a0a0a] border border-gray-800 group-hover:border-[#0051ff]/50 rounded-xl p-4 transition-all text-center group-hover:bg-[#0051ff]/5">
             <p className="text-white font-bold text-sm">
               Reclutamiento 2026-2
             </p>
@@ -165,7 +173,7 @@ function LoginContent() {
 
 export default function LoginPage() {
   return (
-    // CONTENEDOR RAÍZ: Fondo negro sólido sin el NetworkBackground
+    // CONTENEDOR RAÍZ
     <div className="min-h-screen bg-[#0a0a0a] font-sans text-white flex flex-col items-center justify-center p-4">
       <Suspense fallback={
         <div className="text-[#00baff] text-sm font-semibold animate-pulse">

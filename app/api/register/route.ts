@@ -19,7 +19,7 @@ const PREGUNTAS_NUCLEOS: Record<string, string[]> = {
     "Cuando tienes múltiples fechas límite acercándose al mismo tiempo (por ejemplo, exámenes, tareas y un evento), ¿cómo priorizas tus actividades y gestionas tu tiempo?"
   ],
   "Difusión": [
-    "Si tuviéramos que anunciar un nuevo taller de inteligencia artificial para la comunidad de la Facultad de Ingeniería, ¿qué elementos visuales y qué tipo de mensaje incluirías en un post para captar la atención?",
+    "Si tuviéramos que anunciar un nuevo taller de inteligencia artificial para la comunidad, ¿qué elementos visuales y qué tipo de mensaje incluirías en un post para captar la atención?",
     "¿Qué experiencia tienes utilizando herramientas de diseño como Canva o similares? Menciona un proyecto o diseño del que te sientas orgulloso.",
     "¿Cómo adaptarías el tono y el vocabulario de una publicación si va dirigida a estudiantes de primer ingreso frente a una publicación dirigida a profesores o alumnos de últimos semestres?",
     "¿Qué métricas o indicadores utilizarías para saber si una campaña de difusión sobre un evento fue realmente exitosa?"
@@ -164,7 +164,7 @@ export async function POST(request: Request) {
     const notionBody = {
       parent: { database_id: CANDIDATOS_DB_ID! },
       properties: {
-        "Nombre": { title: [{ text: { content: data.nombre } }] }, 
+        "Nombre Completo": { title: [{ text: { content: data.nombre } }] }, 
         "Correo electrónico": { email: data.email },
         "Estatus del postulante": { status: { name: "Registrado" } },
         "Celular": { phone_number: data.celular },

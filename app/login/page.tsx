@@ -48,7 +48,6 @@ function LoginContent() {
   };
 
   return (
-    // CONTENEDOR CENTRAL: Tarjeta con borde azul sutil adaptada para web y móvil
     <div className="w-full max-w-md bg-[#111111] border border-[#0051ff]/30 rounded-2xl p-8 shadow-2xl shadow-black/50 animate-in fade-in zoom-in duration-500 flex flex-col items-center">
       
       {/* Header Limpio */}
@@ -117,7 +116,7 @@ function LoginContent() {
             type="password"
             required
             className="w-full bg-[#0a0a0a] border border-gray-800 rounded-xl p-3.5 text-white text-sm focus:border-[#0051ff] focus:ring-1 focus:ring-[#0051ff]/50 focus:outline-none transition-all placeholder-gray-600"
-            placeholder="Contraseña"
+            placeholder="Tu contraseña secreta"
             value={form.password}
             onChange={(e) => setForm({ ...form, password: e.target.value })}
           />
@@ -157,14 +156,29 @@ function LoginContent() {
         </Link>
       </div>
 
-      {/* FOOTER */}
-      <div className="mt-8 text-center">
-        <p className="text-[10px] text-gray-500 font-mono tracking-wider uppercase mb-1">
-          SophIA by <span className="text-[#00baff] font-bold">SIAFI</span>
+      {/* --- FOOTER & SOPORTE TÉCNICO --- */}
+      <div className="w-full mt-8 pt-6 border-t border-gray-800 text-center flex flex-col gap-5">
+        
+        {/* Texto de Ayuda / Soporte */}
+        <p className="text-xs text-gray-500 leading-relaxed">
+          ¿Tienes algún problema o necesitas ayuda? Escríbenos a{" "}
+          <a 
+            href="mailto:siafi.reclutamiento@gmail.com" 
+            className="text-[#00baff] hover:text-white transition-colors font-semibold"
+          >
+            siafi.reclutamiento@gmail.com
+          </a>
         </p>
-        <p className="text-[10px] text-gray-600 font-mono">
-          Facultad de Ingeniería, UNAM
-        </p>
+
+        {/* Créditos SIAFI */}
+        <div>
+          <p className="text-[10px] text-gray-500 font-mono tracking-wider uppercase mb-1">
+            SophIA by <span className="text-[#00baff] font-bold">SIAFI</span>
+          </p>
+          <p className="text-[10px] text-gray-600 font-mono">
+            Facultad de Ingeniería, UNAM
+          </p>
+        </div>
       </div>
 
     </div>
@@ -173,7 +187,6 @@ function LoginContent() {
 
 export default function LoginPage() {
   return (
-    // CONTENEDOR RAÍZ
     <div className="min-h-screen bg-[#0a0a0a] font-sans text-white flex flex-col items-center justify-center p-4">
       <Suspense fallback={
         <div className="text-[#00baff] text-sm font-semibold animate-pulse">

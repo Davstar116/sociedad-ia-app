@@ -117,7 +117,7 @@ function LoginContent() {
             type="password"
             required
             className="w-full bg-[#0a0a0a] border border-gray-800 rounded-xl p-3.5 text-white text-sm focus:border-[#0051ff] focus:ring-1 focus:ring-[#0051ff]/50 focus:outline-none transition-all placeholder-gray-600"
-            placeholder="Tu contraseña secreta"
+            placeholder="Contraseña"
             value={form.password}
             onChange={(e) => setForm({ ...form, password: e.target.value })}
           />

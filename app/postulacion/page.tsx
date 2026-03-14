@@ -251,7 +251,7 @@ export default function PostulacionPage() {
 
               <div className="grid grid-cols-3 gap-5">
                 <div className="col-span-2">
-                  <input required placeholder="Carrera (Ej. Ing. en Computación)" className="w-full bg-[#0a0a0a] border border-gray-800 rounded-xl p-4 text-sm focus:border-[#0051ff] focus:ring-1 focus:ring-[#0051ff]/30 outline-none transition-all placeholder:text-gray-600"
+                  <input required placeholder="Carrera" className="w-full bg-[#0a0a0a] border border-gray-800 rounded-xl p-4 text-sm focus:border-[#0051ff] focus:ring-1 focus:ring-[#0051ff]/30 outline-none transition-all placeholder:text-gray-600"
                   value={formData.carrera} onChange={e => handleChange("carrera", e.target.value)} />
                 </div>
                 <div className="col-span-1">

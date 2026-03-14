@@ -35,3 +35,37 @@ body {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
 }
+
+/* ==========================================================================
+   CUSTOM SCROLLBARS (Estilo Red Social / Minimalista)
+   ========================================================================== */
+
+/* Aplicable solo a los contenedores que tengan la clase .custom-scrollbar */
+.custom-scrollbar {
+  /* Para Firefox */
+  scrollbar-width: thin;
+  scrollbar-color: #1f2937 transparent; /* thumb y track */
+}
+
+/* Para Chrome, Edge y Safari */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px; /* Super delgadita y elegante */
+}
+
+/* El fondo (track) de la barra */
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent; 
+  border-radius: 10px;
+}
+
+/* La barrita que se arrastra (thumb) */
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: #1f2937; /* Un gris oscuro sutil (gray-800 de Tailwind) */
+  border-radius: 10px;
+  transition: background-color 0.3s ease;
+}
+
+/* Cuando pasas el mouse por encima de la barrita */
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: #0051ff; /* Nuestro azul insignia brillante */
+}

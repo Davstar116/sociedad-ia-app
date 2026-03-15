@@ -3,7 +3,6 @@
 import { useState } from "react";
 import Link from "next/link";
 
-// Constantes de las nuevas preguntas por núcleo
 const PREGUNTAS_NUCLEOS: Record<string, string[]> = {
   "Organización": [
     "Si un ponente invitado cancela su participación en una plática importante a tan solo unas horas del evento, ¿cómo manejarías la situación y qué alternativas propondrías?",
@@ -31,7 +30,7 @@ const PREGUNTAS_NUCLEOS: Record<string, string[]> = {
   ]
 };
 
-// Componente StarRating Minimalista
+// Componente StarRating Actualizado (Permite regresar a 0)
 const StarRating = ({ label, value, onChange }: { label: string, value: number, onChange: (v: number) => void }) => {
   return (
     <div className="flex justify-between items-center mb-2 bg-[#0a0a0a] p-3 rounded-xl border border-gray-800 hover:border-[#0051ff]/30 transition-colors">
@@ -41,7 +40,8 @@ const StarRating = ({ label, value, onChange }: { label: string, value: number, 
           <button
             key={star}
             type="button"
-            onClick={() => onChange(star)}
+            // ✅ AQUI: Si hacen clic en la estrella que ya está seleccionada, se regresa a 0
+            onClick={() => onChange(value === star ? 0 : star)}
             className={`text-xl transition-all ${
               star <= value 
                 ? 'text-[#00baff] scale-110 drop-shadow-[0_0_8px_rgba(0,186,255,0.4)]' 
@@ -58,7 +58,7 @@ const StarRating = ({ label, value, onChange }: { label: string, value: number, 
 
 export default function PostulacionPage() {
   const [step, setStep] = useState(1);
-  const TOTAL_STEPS = 4; // Aumentamos a 4 pasos
+  const TOTAL_STEPS = 4; 
   const [status, setStatus] = useState<'editing' | 'success_wait' | 'processing' | 'completed'>('editing');
   const [loading, setLoading] = useState(false);
   const [mensaje, setMensaje] = useState("");
@@ -73,27 +73,25 @@ export default function PostulacionPage() {
     nucleos: [] as string[], 
     cvLink: "", 
     respuestas: { aportacion: "", orgullo: "", inspiracion: "", motivo: "", fuente: "", expectativas: "", areasInteres: "" },
-    // ESTADO NUEVO PARA PREGUNTAS DINÁMICAS
     respuestasNucleos: {
       "Organización": ["", "", "", ""],
       "Difusión": ["", "", "", ""],
       "Proyectos": ["", "", "", ""],
       "Capacitación": ["", "", "", ""]
     },
+    // ✅ AQUI: Iniciamos todos los valores técnicos en 0
     skills: {
-      lenguajes: { "C#": 1, "C": 1, "C++": 1, "Java": 1, "JavaScript": 1, "Python": 1 },
-      tecnologias: { "TensorFlow/Keras": 1, "PyTorch": 1, "Scikit-learn": 1, "OpenCV": 1, "Linux": 1, "ROS/Docker": 1 },
-      micros: { "Raspberry Pi": 1, "Arduino": 1, "Tiva": 1 }
+      lenguajes: { "C#": 0, "C": 0, "C++": 0, "Java": 0, "JavaScript": 0, "Python": 0 },
+      tecnologias: { "TensorFlow/Keras": 0, "PyTorch": 0, "Scikit-learn": 0, "OpenCV": 0, "Linux": 0, "ROS/Docker": 0 },
+      micros: { "Raspberry Pi": 0, "Arduino": 0, "Tiva": 0 }
     }
   });
 
   const opcionesNucleos = ["Organización", "Difusión", "Proyectos", "Capacitación"];
 
-  // Helpers
   const handleChange = (f: string, v: any) => setFormData(p => ({ ...p, [f]: v }));
   const handleRespuesta = (f: string, v: string) => setFormData(p => ({ ...p, respuestas: { ...p.respuestas, [f]: v } }));
   
-  // Helper para las respuestas dinámicas
   const handleRespuestaNucleo = (nucleo: string, index: number, value: string) => {
     setFormData(p => {
       const newRespuestasNucleo = [...(p.respuestasNucleos as any)[nucleo]];
@@ -136,7 +134,6 @@ export default function PostulacionPage() {
         }
       }
 
-      // BLINDAJE: Filtramos solo las respuestas de los núcleos que el usuario dejó seleccionados
       const respuestasNucleosFiltradas: any = {};
       formData.nucleos.forEach(nucleo => {
           respuestasNucleosFiltradas[nucleo] = (formData.respuestasNucleos as any)[nucleo];
@@ -150,7 +147,7 @@ export default function PostulacionPage() {
         semestre: formData.semestre,
         nucleos: formData.nucleos,
         respuestas: formData.respuestas,
-        respuestasNucleos: respuestasNucleosFiltradas, // Pasamos las respuestas filtradas
+        respuestasNucleos: respuestasNucleosFiltradas, 
         skills: formData.skills,
         cvLink: finalCvLink
       };
@@ -222,7 +219,6 @@ export default function PostulacionPage() {
 
       <div className={`w-full max-w-3xl bg-[#111111] border border-[#0051ff]/30 rounded-2xl p-6 md:p-10 shadow-2xl shadow-black/50 transition-all duration-500 ${status === 'success_wait' ? 'opacity-0 scale-95' : 'opacity-100'}`}>
         
-        {/* Barra de Progreso a 4 Pasos */}
         <div className="flex gap-2 mb-10">
           {[1, 2, 3, 4].map(i => (
             <div key={i} className={`h-1.5 flex-1 rounded-full transition-all duration-300 ${step >= i ? 'bg-[#0051ff]' : 'bg-gray-800'}`} />
@@ -231,7 +227,6 @@ export default function PostulacionPage() {
 
         <form onSubmit={step === TOTAL_STEPS ? handleSubmit : (e) => { e.preventDefault(); setStep(s => s + 1); }}>
           
-          {/* --- PASO 1: DATOS PERSONALES --- */}
           {step === 1 && (
             <div className="space-y-5 animate-in fade-in slide-in-from-right-8">
               <div className="mb-6">
@@ -251,7 +246,7 @@ export default function PostulacionPage() {
 
               <div className="grid grid-cols-3 gap-5">
                 <div className="col-span-2">
-                  <input required placeholder="Carrera" className="w-full bg-[#0a0a0a] border border-gray-800 rounded-xl p-4 text-sm focus:border-[#0051ff] focus:ring-1 focus:ring-[#0051ff]/30 outline-none transition-all placeholder:text-gray-600"
+                  <input required placeholder="Carrera (Ej. Ing. en Computación)" className="w-full bg-[#0a0a0a] border border-gray-800 rounded-xl p-4 text-sm focus:border-[#0051ff] focus:ring-1 focus:ring-[#0051ff]/30 outline-none transition-all placeholder:text-gray-600"
                   value={formData.carrera} onChange={e => handleChange("carrera", e.target.value)} />
                 </div>
                 <div className="col-span-1">
@@ -290,7 +285,6 @@ export default function PostulacionPage() {
             </div>
           )}
 
-          {/* --- PASO 2: PERFIL GENERAL --- */}
           {step === 2 && (
             <div className="space-y-5 animate-in fade-in slide-in-from-right-8 h-[500px] overflow-y-auto pr-2 custom-scrollbar">
               <div className="sticky top-0 bg-[#111111] pt-2 pb-4 z-10 border-b border-gray-800 mb-4">
@@ -320,7 +314,6 @@ export default function PostulacionPage() {
             </div>
           )}
 
-          {/* --- PASO 3: PREGUNTAS POR NÚCLEO (NUEVO) --- */}
           {step === 3 && (
             <div className="space-y-6 animate-in fade-in slide-in-from-right-8 h-[500px] overflow-y-auto pr-2 custom-scrollbar">
               <div className="sticky top-0 bg-[#111111] pt-2 pb-4 z-10 border-b border-gray-800 mb-4">
@@ -362,12 +355,12 @@ export default function PostulacionPage() {
             </div>
           )}
 
-          {/* --- PASO 4: SKILLS --- */}
           {step === 4 && (
             <div className="space-y-6 animate-in fade-in slide-in-from-right-8 h-[500px] overflow-y-auto pr-2 custom-scrollbar">
               <div className="sticky top-0 bg-[#111111] pt-2 pb-4 z-10 border-b border-gray-800 mb-4">
                   <h2 className="text-2xl font-bold text-white mb-1">Evaluación Técnica</h2>
-                  <p className="text-xs text-gray-500 uppercase tracking-widest">Paso 4 de {TOTAL_STEPS} · Sé honesto con tu nivel (1 Básico - 5 Experto)</p>
+                  {/* ✅ AQUI: Texto actualizado a "0 Nulo" */}
+                  <p className="text-xs text-gray-500 uppercase tracking-widest">Paso 4 de {TOTAL_STEPS} · Sé honesto con tu nivel (0 Nulo - 5 Experto)</p>
               </div>
               
               <div className="space-y-2">
@@ -396,7 +389,6 @@ export default function PostulacionPage() {
             </div>
           )}
 
-          {/* BOTONES DE NAVEGACIÓN */}
           <div className="flex gap-4 mt-8 pt-6 border-t border-gray-800">
             {step > 1 && (
                 <button 
@@ -408,7 +400,6 @@ export default function PostulacionPage() {
                 </button>
             )}
             
-            {/* Validaciones Extras de Seguridad */}
             <button 
                 type="submit" 
                 disabled={loading || status !== 'editing' || (step === 1 && formData.nucleos.length === 0) || (step === 3 && formData.nucleos.length === 0)} 

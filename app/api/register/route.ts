@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createUser, getUserByEmail } from "../../lib/user-db";
+import nodemailer from "nodemailer"; // 1. IMPORTAMOS NODEMAILER
 
 // Configuración manual de Headers para Notion
 const NOTION_TOKEN = process.env.NOTION_TOKEN;
@@ -10,6 +11,15 @@ const notionHeaders = {
   "Content-Type": "application/json",
 };
 
+// 2. CONFIGURAMOS EL "CARTERO" DE GMAIL
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS,
+  },
+});
+
 // Diccionario de preguntas
 const PREGUNTAS_NUCLEOS: Record<string, string[]> = {
   "Organización": [
@@ -19,7 +29,7 @@ const PREGUNTAS_NUCLEOS: Record<string, string[]> = {
     "Cuando tienes múltiples fechas límite acercándose al mismo tiempo (por ejemplo, exámenes, tareas y un evento), ¿cómo priorizas tus actividades y gestionas tu tiempo?"
   ],
   "Difusión": [
-    "Si tuviéramos que anunciar un nuevo taller de inteligencia artificial para la comunidad, ¿qué elementos visuales y qué tipo de mensaje incluirías en un post para captar la atención?",
+    "Si tuviéramos que anunciar un nuevo taller de inteligencia artificial para la comunidad de la Facultad de Ingeniería, ¿qué elementos visuales y qué tipo de mensaje incluirías en un post para captar la atención?",
     "¿Qué experiencia tienes utilizando herramientas de diseño como Canva o similares? Menciona un proyecto o diseño del que te sientas orgulloso.",
     "¿Cómo adaptarías el tono y el vocabulario de una publicación si va dirigida a estudiantes de primer ingreso frente a una publicación dirigida a profesores o alumnos de últimos semestres?",
     "¿Qué métricas o indicadores utilizarías para saber si una campaña de difusión sobre un evento fue realmente exitosa?"
@@ -67,11 +77,10 @@ export async function POST(request: Request) {
 
     const duplicateData = await checkDuplicateRes.json();
     
-    // Si encontramos al menos 1 resultado en Notion con ese correo, abortamos
     if (duplicateData.results && duplicateData.results.length > 0) {
         return NextResponse.json(
             { error: "Ya existe una postulación registrada con este correo electrónico." }, 
-            { status: 400 } // Bad Request
+            { status: 400 }
         );
     }
 
@@ -195,6 +204,83 @@ export async function POST(request: Request) {
     if (!notionResponse.ok) {
       const errorText = await notionResponse.text();
       throw new Error(`Error Notion API: ${errorText}`);
+    }
+
+    // ---------------------------------------------------------
+    // 4. ENVÍO REAL DE CORREO CON NODEMAILER
+    // ---------------------------------------------------------
+    console.log("📧 Enviando credenciales a:", data.email);
+    
+    // Plantilla HTML inyectada con las variables del postulante
+    const htmlContent = `
+    <!DOCTYPE html>
+    <html lang="es">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Tus Credenciales - SIAFI</title>
+    </head>
+    <body style="margin: 0; padding: 0; background-color: #050505; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: #ffffff;">
+        <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #050505; padding: 40px 20px;">
+            <tr>
+                <td align="center">
+                    <table width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width: 600px; background-color: #111111; border: 1px solid #1f2937; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+                        <tr><td style="height: 4px; background-color: #0051ff;"></td></tr>
+                        <tr>
+                            <td align="center" style="padding: 40px 40px 20px 40px;">
+                                <h1 style="margin: 0; font-size: 28px; font-weight: 900; color: #ffffff; letter-spacing: -1px;">Soph<span style="color: #00baff;">IA</span></h1>
+                                <p style="margin: 5px 0 0 0; font-size: 12px; color: #6b7280; letter-spacing: 2px; text-transform: uppercase;">by SIAFI</p>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 20px 40px 40px 40px;">
+                                <h2 style="margin: 0 0 20px 0; font-size: 20px; color: #ffffff;">¡Hola, ${data.nombre}! 👋</h2>
+                                <p style="margin: 0 0 20px 0; font-size: 15px; color: #9ca3af; line-height: 1.6;">Tu postulación para el proceso de reclutamiento <strong>2026-2</strong> ha sido recibida exitosamente. Nos emociona mucho conocer tu perfil.</p>
+                                <p style="margin: 0 0 20px 0; font-size: 15px; color: #9ca3af; line-height: 1.6;">Hemos creado una cuenta de acceso en nuestro portal para que puedas darle seguimiento a tu proceso. Estas son tus credenciales oficiales:</p>
+                                <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #0a0a0a; border: 1px solid #2563eb; border-radius: 12px; margin-bottom: 30px;">
+                                    <tr>
+                                        <td style="padding: 20px;">
+                                            <p style="margin: 0 0 10px 0; font-size: 13px; color: #00baff; text-transform: uppercase; letter-spacing: 1px; font-weight: bold;">Datos de Acceso</p>
+                                            <p style="margin: 0 0 8px 0; font-size: 15px; color: #ffffff;"><span style="color: #6b7280;">Usuario:</span> ${data.email}</p>
+                                            <p style="margin: 0; font-size: 15px; color: #ffffff;"><span style="color: #6b7280;">Contraseña:</span> <strong style="letter-spacing: 2px; font-family: monospace;">${passwordParaCorreo}</strong></p>
+                                        </td>
+                                    </tr>
+                                </table>
+                                <h3 style="margin: 0 0 10px 0; font-size: 16px; color: #ffffff;">¿Qué sigue?</h3>
+                                <p style="margin: 0 0 30px 0; font-size: 14px; color: #9ca3af; line-height: 1.6;">Nuestro equipo y SophIA están evaluando tus respuestas. Mantente atent@ a este correo, ya que por este medio te notificaremos si avanzas a la fase de entrevistas.</p>
+                                <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                                    <tr>
+                                        <td align="center">
+                                            <a href="https://tu-proyecto.vercel.app/login" target="_blank" style="display: inline-block; background-color: #0051ff; color: #ffffff; font-size: 14px; font-weight: bold; text-decoration: none; padding: 16px 32px; border-radius: 10px; text-transform: uppercase; letter-spacing: 1px;">Ir al Portal de SIAFI</a>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="background-color: #0a0a0a; padding: 30px 40px; border-top: 1px solid #1f2937; text-align: center;">
+                                <p style="margin: 0 0 10px 0; font-size: 12px; color: #6b7280;">¿Tienes problemas para acceder? Contáctanos en:<br><a href="mailto:siafi.reclutamiento@gmail.com" style="color: #00baff; text-decoration: none; font-weight: bold;">siafi.reclutamiento@gmail.com</a></p>
+                                <p style="margin: 0; font-size: 11px; color: #4b5563; text-transform: uppercase; letter-spacing: 1px;">Facultad de Ingeniería, UNAM</p>
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+        </table>
+    </body>
+    </html>
+    `;
+
+    try {
+      await transporter.sendMail({
+        from: '"Reclutamiento SIAFI" <siafi.reclutamiento@gmail.com>', // Quien lo envía
+        to: data.email, // A quien va dirigido (el postulante)
+        subject: "Tus Credenciales de Acceso - Reclutamiento SIAFI 2026-2",
+        html: htmlContent,
+      });
+      console.log("✅ Correo enviado con éxito a", data.email);
+    } catch (mailError) {
+      console.error("⚠️ Error enviando correo:", mailError);
     }
 
     return NextResponse.json({ success: true, message: "Registro guardado correctamente" });

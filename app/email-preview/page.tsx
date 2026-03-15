@@ -1,23 +1,18 @@
-import { WelcomeEmail } from "../components/emails/WelcomeEmail";
+import { WelcomeEmailTemplate } from "../components/emails/WelcomeEmail";
 
 export default function EmailPreviewPage() {
-  return (
-    <div className="min-h-screen bg-gray-300 flex items-center justify-center p-8">
-      {/* Etiqueta flotante */}
-      <div className="fixed top-4 left-4 bg-black text-white px-4 py-2 rounded shadow-lg z-50 font-mono text-xs">
-        👁️ VISTA PREVIA
-      </div>
+  // Datos simulados para ver cómo quedaría el correo
+  const htmlCorreo = WelcomeEmailTemplate({
+    nombre: "David Postulante",
+    baseUrl: "https://tu-proyecto.vercel.app",
+    passwordGenerada: "A1B2C3D4",
+    emailUsuario: "david@ejemplo.com"
+  });
 
-      <div className="shadow-2xl">
-        {/* Pasamos la URL de producción y LAS NUEVAS CREDENCIALES SIMULADAS */}
-        <WelcomeEmail 
-          nombre="David Estudiante" 
-          baseUrl="https://sociedad-ia-app.vercel.app"
-          // 👇 Agregamos esto para que no de error y se vea completo
-          emailUsuario="david@comunidad.unam.mx"
-          passwordGenerada="X9P2-M5L1"
-        />
-      </div>
+  return (
+    <div style={{ width: '100%', minHeight: '100vh', backgroundColor: '#000' }}>
+      {/* Inyectamos el HTML crudo directamente en la página */}
+      <div dangerouslySetInnerHTML={{ __html: htmlCorreo }} />
     </div>
   );
 }

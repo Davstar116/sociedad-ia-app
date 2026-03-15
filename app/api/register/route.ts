@@ -1,10 +1,8 @@
 import { NextResponse } from "next/server";
 import { createUser, getUserByEmail } from "../../lib/user-db";
 import nodemailer from "nodemailer"; 
-// BORRAMOS react-dom/server Y LLAMAMOS A LA FUNCIÓN PURA:
-import { WelcomeEmailTemplate } from "../../components/emails/WelcomeEmail";
+import { WelcomeEmailTemplate } from "../../components/emails/WelcomeEmail"; 
 
-// Configuración manual de Headers para Notion
 const NOTION_TOKEN = process.env.NOTION_TOKEN;
 const CANDIDATOS_DB_ID = process.env.NOTION_DATABASE_ID;
 const notionHeaders = {
@@ -13,7 +11,6 @@ const notionHeaders = {
   "Content-Type": "application/json",
 };
 
-// 2. CONFIGURAMOS EL "CARTERO" DE GMAIL
 const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
@@ -22,7 +19,6 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-// Diccionario de preguntas
 const PREGUNTAS_NUCLEOS: Record<string, string[]> = {
   "Organización": [
     "Si un ponente invitado cancela su participación en una plática importante a tan solo unas horas del evento, ¿cómo manejarías la situación y qué alternativas propondrías?",
@@ -63,56 +59,33 @@ export async function POST(request: Request) {
   try {
     const data = await request.json();
 
-    // ---------------------------------------------------------
-    // 0. BLINDAJE: VERIFICAR SI EL CORREO YA ESTÁ REGISTRADO
-    // ---------------------------------------------------------
+    // 0. BLINDAJE DUPLICADOS
     const checkDuplicateRes = await fetch(`https://api.notion.com/v1/databases/${CANDIDATOS_DB_ID}/query`, {
         method: "POST",
         headers: notionHeaders,
         body: JSON.stringify({
-            filter: {
-                property: "Correo electrónico",
-                email: { equals: data.email }
-            }
+            filter: { property: "Correo electrónico", email: { equals: data.email } }
         }),
     });
 
     const duplicateData = await checkDuplicateRes.json();
-    
     if (duplicateData.results && duplicateData.results.length > 0) {
-        return NextResponse.json(
-            { error: "Ya existe una postulación registrada con este correo electrónico." }, 
-            { status: 400 }
-        );
+        return NextResponse.json({ error: "Ya existe una postulación registrada con este correo electrónico." }, { status: 400 });
     }
 
-    // ---------------------------------------------------------
-    // 1. GESTIÓN DE USUARIO (Notion Usuarios)
-    // ---------------------------------------------------------
+    // 1. USUARIOS
     const existingUser = await getUserByEmail(data.email);
     let passwordParaCorreo = "";
     
     if (!existingUser) {
       const newPassword = generatePassword();
-      await createUser({
-        email: data.email,
-        name: data.nombre,
-        password: newPassword,
-        role: "Postulante",
-        provider: "credentials"
-      });
+      await createUser({ email: data.email, name: data.nombre, password: newPassword, role: "Postulante", provider: "credentials" });
       passwordParaCorreo = newPassword;
-      console.log(`✅ Usuario creado: ${data.email} | Pass: ${newPassword}`);
     } else {
-      console.log(`⚠️ Usuario ya existía: ${data.email}`);
       passwordParaCorreo = "(Usa tu contraseña actual)";
     }
 
-    // ---------------------------------------------------------
-    // 2. PREPARAR CONTENIDO DETALLADO (Bloques de Notion)
-    // ---------------------------------------------------------
-    
-    // BLOQUES: SKILLS
+    // 2. BLOQUES NOTION
     const skillsBlocks: any[] = [];
     if (data.skills) {
         for (const category in data.skills) {
@@ -124,17 +97,11 @@ export async function POST(request: Request) {
         }
     }
 
-    // BLOQUES: RESPUESTAS GENERALES
     const respuestasBlocks: any[] = [];
     if (data.respuestas) {
         const questionsMap: any = {
-            aportacion: "Principal Aportación",
-            orgullo: "Mayor Logro/Orgullo",
-            inspiracion: "Dinámica de Trabajo",
-            motivo: "Motivo para unirse",
-            expectativas: "Expectativas",
-            fuente: "Fuente",
-            areasInteres: "Intereses Extra"
+            aportacion: "Principal Aportación", orgullo: "Mayor Logro/Orgullo", inspiracion: "Dinámica de Trabajo",
+            motivo: "Motivo para unirse", expectativas: "Expectativas", fuente: "Fuente", areasInteres: "Intereses Extra"
         };
         for (const key in data.respuestas) {
             if (questionsMap[key]) {
@@ -144,7 +111,6 @@ export async function POST(request: Request) {
         }
     }
 
-    // BLOQUES: RESPUESTAS POR NÚCLEO
     const respuestasNucleosBlocks: any[] = [];
     if (data.respuestasNucleos) {
         for (const nucleo in data.respuestasNucleos) {
@@ -169,9 +135,7 @@ export async function POST(request: Request) {
         }
     }
 
-    // ---------------------------------------------------------
     // 3. GUARDAR EN NOTION
-    // ---------------------------------------------------------
     const notionBody = {
       parent: { database_id: CANDIDATOS_DB_ID! },
       properties: {
@@ -208,14 +172,8 @@ export async function POST(request: Request) {
       throw new Error(`Error Notion API: ${errorText}`);
     }
 
-    // ---------------------------------------------------------
-    // 4. ENVÍO REAL DE CORREO CON NODEMAILER
-    // ---------------------------------------------------------
-    console.log("📧 Enviando credenciales a:", data.email);
-    
+    // 4. ENVÍO DE CORREO
     const baseUrl = request.headers.get("origin") || "https://tu-proyecto.vercel.app";
-    
-    // Solo ejecutamos la función, sin renders pesados
     const htmlContent = WelcomeEmailTemplate({
         nombre: data.nombre,
         baseUrl: baseUrl,
@@ -230,11 +188,13 @@ export async function POST(request: Request) {
         subject: "Registro Exitoso - Reclutamiento SIAFI 2026-2",
         html: htmlContent, 
       });
-      console.log("✅ Correo enviado con éxito a", data.email);
     } catch (mailError) {
       console.error("⚠️ Error enviando correo:", mailError);
     }
 
     return NextResponse.json({ success: true, message: "Registro guardado correctamente" });
+
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }

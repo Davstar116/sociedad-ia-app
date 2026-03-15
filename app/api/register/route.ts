@@ -1,9 +1,8 @@
 import { NextResponse } from "next/server";
 import { createUser, getUserByEmail } from "../../lib/user-db";
 import nodemailer from "nodemailer"; 
-// 1. IMPORTAMOS LAS HERRAMIENTAS PARA RENDERIZAR EL COMPONENTE REACT A HTML
-import { renderToString } from "react-dom/server"; 
-import { WelcomeEmail } from "../../components/emails/WelcomeEmail"; 
+// BORRAMOS react-dom/server Y LLAMAMOS A LA FUNCIÓN PURA:
+import { WelcomeEmailTemplate } from "../../components/emails/WelcomeEmail";
 
 // Configuración manual de Headers para Notion
 const NOTION_TOKEN = process.env.NOTION_TOKEN;
@@ -210,29 +209,26 @@ export async function POST(request: Request) {
     }
 
     // ---------------------------------------------------------
-    // 4. ENVÍO REAL DE CORREO CON NODEMAILER Y REACT
+    // 4. ENVÍO REAL DE CORREO CON NODEMAILER
     // ---------------------------------------------------------
     console.log("📧 Enviando credenciales a:", data.email);
     
-    // Obtenemos la URL base (ej. https://tu-proyecto.vercel.app) para que carguen bien las imágenes
     const baseUrl = request.headers.get("origin") || "https://tu-proyecto.vercel.app";
     
-    // MÁGIA: Convertimos tu componente React de WelcomeEmail en código HTML puro
-    const htmlContent = renderToString(
-      <WelcomeEmail 
-        nombre={data.nombre} 
-        baseUrl={baseUrl} 
-        passwordGenerada={passwordParaCorreo} 
-        emailUsuario={data.email} 
-      />
-    );
+    // Solo ejecutamos la función, sin renders pesados
+    const htmlContent = WelcomeEmailTemplate({
+        nombre: data.nombre,
+        baseUrl: baseUrl,
+        passwordGenerada: passwordParaCorreo,
+        emailUsuario: data.email
+    });
 
     try {
       await transporter.sendMail({
-        from: '"Reclutamiento SIAFI" <siafi.reclutamiento@gmail.com>', // Quien lo envía
-        to: data.email, // A quien va dirigido (el postulante)
-        subject: "Registro Exitoso - Reclutamiento SIAFI 2026-2", // Asunto actualizado
-        html: htmlContent, // Inyectamos el componente renderizado
+        from: '"Reclutamiento SIAFI" <siafi.reclutamiento@gmail.com>',
+        to: data.email,
+        subject: "Registro Exitoso - Reclutamiento SIAFI 2026-2",
+        html: htmlContent, 
       });
       console.log("✅ Correo enviado con éxito a", data.email);
     } catch (mailError) {
@@ -240,9 +236,5 @@ export async function POST(request: Request) {
     }
 
     return NextResponse.json({ success: true, message: "Registro guardado correctamente" });
-
-  } catch (error: any) {
-    console.error("🔥 Error CRÍTICO en API Register:", error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }

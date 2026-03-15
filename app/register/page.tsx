@@ -1,366 +1,292 @@
-"use client";
+import { NextResponse } from "next/server";
+import { createUser, getUserByEmail } from "../../lib/user-db";
+import nodemailer from "nodemailer"; // 1. IMPORTAMOS NODEMAILER
 
-import { useState } from "react";
-import Link from "next/link";
-// Hemos removido NetworkBackground para usar fondos sólidos
-
-// Componente StarRating (Rediseñado para encajar en el minimalismo)
-const StarRating = ({ label, value, onChange }: { label: string, value: number, onChange: (v: number) => void }) => {
-  return (
-    <div className="flex justify-between items-center mb-2 bg-[#0a0a0a] p-3 rounded-xl border border-gray-800 hover:border-[#0051ff]/30 transition-colors">
-      <span className="text-sm text-gray-300 font-medium">{label}</span>
-      <div className="flex gap-1.5">
-        {[1, 2, 3, 4, 5].map((star) => (
-          <button
-            key={star}
-            type="button"
-            onClick={() => onChange(star)}
-            className={`text-xl transition-all ${
-              star <= value 
-                ? 'text-[#00baff] scale-110 drop-shadow-[0_0_8px_rgba(0,186,255,0.4)]' 
-                : 'text-gray-700 hover:text-gray-500'
-            }`}
-          >
-            ★
-          </button>
-        ))}
-      </div>
-    </div>
-  );
+// Configuración manual de Headers para Notion
+const NOTION_TOKEN = process.env.NOTION_TOKEN;
+const CANDIDATOS_DB_ID = process.env.NOTION_DATABASE_ID;
+const notionHeaders = {
+  "Authorization": `Bearer ${NOTION_TOKEN}`,
+  "Notion-Version": "2022-06-28",
+  "Content-Type": "application/json",
 };
 
-export default function PostulacionPage() {
-  const [step, setStep] = useState(1);
-  const [status, setStatus] = useState<'editing' | 'success_wait' | 'processing' | 'completed'>('editing');
-  const [loading, setLoading] = useState(false);
-  const [mensaje, setMensaje] = useState("");
-  const [fileName, setFileName] = useState("");
+// 2. CONFIGURAMOS EL "CARTERO" DE GMAIL
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS,
+  },
+});
 
-  const [formData, setFormData] = useState({
-    nombre: "", 
-    email: "", 
-    telefono: "", 
-    carrera: "", 
-    semestre: "", 
-    nucleos: [] as string[], 
-    cvLink: "", 
-    respuestas: { aportacion: "", orgullo: "", inspiracion: "", motivo: "", fuente: "", expectativas: "", areasInteres: "" },
-    skills: {
-      lenguajes: { "C#": 1, "C": 1, "C++": 1, "Java": 1, "JavaScript": 1, "Python": 1 },
-      tecnologias: { "TensorFlow/Keras": 1, "PyTorch": 1, "Scikit-learn": 1, "OpenCV": 1, "Linux": 1, "ROS/Docker": 1 },
-      micros: { "Raspberry Pi": 1, "Arduino": 1, "Tiva": 1 }
+// Diccionario de preguntas
+const PREGUNTAS_NUCLEOS: Record<string, string[]> = {
+  "Organización": [
+    "Si un ponente invitado cancela su participación en una plática importante a tan solo unas horas del evento, ¿cómo manejarías la situación y qué alternativas propondrías?",
+    "En el trabajo en equipo es común que surjan desacuerdos. ¿Cómo intervienes para resolver un conflicto entre dos compañeros y mantener un buen ambiente de trabajo?",
+    "¿Qué estrategias o dinámicas propondrías para fomentar la integración y la convivencia sana entre todos los miembros de la sociedad?",
+    "Cuando tienes múltiples fechas límite acercándose al mismo tiempo (por ejemplo, exámenes, tareas y un evento), ¿cómo priorizas tus actividades y gestionas tu tiempo?"
+  ],
+  "Difusión": [
+    "Si tuviéramos que anunciar un nuevo taller de inteligencia artificial para la comunidad de la Facultad de Ingeniería, ¿qué elementos visuales y qué tipo de mensaje incluirías en un post para captar la atención?",
+    "¿Qué experiencia tienes utilizando herramientas de diseño como Canva o similares? Menciona un proyecto o diseño del que te sientas orgulloso.",
+    "¿Cómo adaptarías el tono y el vocabulario de una publicación si va dirigida a estudiantes de primer ingreso frente a una publicación dirigida a profesores o alumnos de últimos semestres?",
+    "¿Qué métricas o indicadores utilizarías para saber si una campaña de difusión sobre un evento fue realmente exitosa?"
+  ],
+  "Proyectos": [
+    "Cuéntanos sobre algún proyecto técnico, de desarrollo de software o de ingeniería en el que hayas participado. ¿Cuál fue tu rol específico y qué tecnologías utilizaste?",
+    "¿Cómo abordas un problema técnico cuando te quedas atascado, por ejemplo, cuando un código no compila o un circuito no funciona como esperabas?",
+    "¿Qué áreas de la tecnología o del desarrollo de software te interesan más explorar y cómo crees que podrías aplicarlas en un proyecto real dentro de la sociedad?",
+    "¿Qué importancia le das a las buenas prácticas, como la documentación de tu trabajo o el código limpio, cuando estás colaborando en un repositorio o proyecto conjunto?"
+  ],
+  "Capacitación": [
+    "¿Qué metodología utilizarías para enseñarle un concepto técnico complejo (como un algoritmo o el uso de una nueva herramienta) a un miembro de nuevo ingreso que no tiene experiencia previa?",
+    "Como capacitador, es vital estar en constante aprendizaje. ¿Qué métodos utilizas para mantenerte actualizado de forma autodidacta con las nuevas tecnologías y tendencias?",
+    "Imagina que debes dar una capacitación sobre gestión del tiempo al núcleo de Organización y otra sobre metodologías ágiles de desarrollo al núcleo de Proyectos. ¿Cómo adaptarías tu forma de enseñar para cada grupo?",
+    "Desde tu perspectiva, ¿cuál es la habilidad más importante que debe tener alguien dedicado a ser mentor y enseñar a otros estudiantes, y cómo la aplicas tú?"
+  ]
+};
+
+function generatePassword() {
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  let pass = "";
+  for (let i = 0; i < 8; i++) {
+    pass += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return pass;
+}
+
+export async function POST(request: Request) {
+  try {
+    const data = await request.json();
+
+    // ---------------------------------------------------------
+    // 0. BLINDAJE: VERIFICAR SI EL CORREO YA ESTÁ REGISTRADO
+    // ---------------------------------------------------------
+    const checkDuplicateRes = await fetch(`https://api.notion.com/v1/databases/${CANDIDATOS_DB_ID}/query`, {
+        method: "POST",
+        headers: notionHeaders,
+        body: JSON.stringify({
+            filter: {
+                property: "Correo electrónico",
+                email: { equals: data.email }
+            }
+        }),
+    });
+
+    const duplicateData = await checkDuplicateRes.json();
+    
+    if (duplicateData.results && duplicateData.results.length > 0) {
+        return NextResponse.json(
+            { error: "Ya existe una postulación registrada con este correo electrónico." }, 
+            { status: 400 }
+        );
     }
-  });
 
-  const opcionesNucleos = ["Organización", "Difusión", "Proyectos", "Capacitación"];
+    // ---------------------------------------------------------
+    // 1. GESTIÓN DE USUARIO (Notion Usuarios)
+    // ---------------------------------------------------------
+    const existingUser = await getUserByEmail(data.email);
+    let passwordParaCorreo = "";
+    
+    if (!existingUser) {
+      const newPassword = generatePassword();
+      await createUser({
+        email: data.email,
+        name: data.nombre,
+        password: newPassword,
+        role: "Postulante",
+        provider: "credentials"
+      });
+      passwordParaCorreo = newPassword;
+      console.log(`✅ Usuario creado: ${data.email} | Pass: ${newPassword}`);
+    } else {
+      console.log(`⚠️ Usuario ya existía: ${data.email}`);
+      passwordParaCorreo = "(Usa tu contraseña actual)";
+    }
 
-  // Helpers
-  const handleChange = (f: string, v: any) => setFormData(p => ({ ...p, [f]: v }));
-  const handleRespuesta = (f: string, v: string) => setFormData(p => ({ ...p, respuestas: { ...p.respuestas, [f]: v } }));
-  const [file, setFile] = useState<File | null>(null);
-  
-  const handleSkill = (cat: "lenguajes" | "tecnologias" | "micros", key: string, val: number) => {
-    // @ts-ignore
-    setFormData(p => ({ ...p, skills: { ...p.skills, [cat]: { ...p.skills[cat], [key]: val } } }));
-  };
-  
-  const handleNucleo = (n: string) => {
-    setFormData(p => ({ ...p, nucleos: p.nucleos.includes(n) ? p.nucleos.filter(x => x !== n) : [...p.nucleos, n] }));
-  };
+    // ---------------------------------------------------------
+    // 2. PREPARAR CONTENIDO DETALLADO (Bloques de Notion)
+    // ---------------------------------------------------------
+    
+    // BLOQUES: SKILLS
+    const skillsBlocks: any[] = [];
+    if (data.skills) {
+        for (const category in data.skills) {
+            const skillSet = data.skills[category];
+            skillsBlocks.push({ heading_3: { rich_text: [{ text: { content: category.toUpperCase() } }] } });
+            let skillText = "";
+            for (const skill in skillSet) { skillText += `${skill}: ${skillSet[skill]}/5 | `; }
+            skillsBlocks.push({ paragraph: { rich_text: [{ text: { content: skillText } }] } });
+        }
+    }
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setMensaje("");
+    // BLOQUES: RESPUESTAS GENERALES
+    const respuestasBlocks: any[] = [];
+    if (data.respuestas) {
+        const questionsMap: any = {
+            aportacion: "Principal Aportación",
+            orgullo: "Mayor Logro/Orgullo",
+            inspiracion: "Dinámica de Trabajo",
+            motivo: "Motivo para unirse",
+            expectativas: "Expectativas",
+            fuente: "Fuente",
+            areasInteres: "Intereses Extra"
+        };
+        for (const key in data.respuestas) {
+            if (questionsMap[key]) {
+                respuestasBlocks.push({ heading_3: { rich_text: [{ text: { content: questionsMap[key] } }] } });
+                respuestasBlocks.push({ paragraph: { rich_text: [{ text: { content: data.respuestas[key] || "Sin respuesta" } }] } });
+            }
+        }
+    }
+
+    // BLOQUES: RESPUESTAS POR NÚCLEO
+    const respuestasNucleosBlocks: any[] = [];
+    if (data.respuestasNucleos) {
+        for (const nucleo in data.respuestasNucleos) {
+            const respuestasArray = data.respuestasNucleos[nucleo];
+            const preguntasArray = PREGUNTAS_NUCLEOS[nucleo];
+            
+            respuestasNucleosBlocks.push({ divider: {} });
+            respuestasNucleosBlocks.push({ heading_2: { rich_text: [{ text: { content: `🎯 Respuestas: Módulo ${nucleo}` } }] } });
+
+            if (preguntasArray && respuestasArray) {
+                for (let i = 0; i < preguntasArray.length; i++) {
+                    respuestasNucleosBlocks.push({
+                        paragraph: {
+                            rich_text: [
+                                { text: { content: `${preguntasArray[i]}\n` }, annotations: { bold: true, color: "blue" } },
+                                { text: { content: respuestasArray[i] || "Sin respuesta" } }
+                            ]
+                        }
+                    });
+                }
+            }
+        }
+    }
+
+    // ---------------------------------------------------------
+    // 3. GUARDAR EN NOTION
+    // ---------------------------------------------------------
+    const notionBody = {
+      parent: { database_id: CANDIDATOS_DB_ID! },
+      properties: {
+        "Nombre Completo": { title: [{ text: { content: data.nombre } }] }, 
+        "Correo electrónico": { email: data.email },
+        "Estatus del postulante": { status: { name: "Registrado" } },
+        "Celular": { phone_number: data.celular },
+        "Núcleo": { multi_select: data.nucleos.map((n: string) => ({ name: n })) },
+        "Carrera": { rich_text: [{ text: { content: data.carrera } }] },
+        "Semestre": { number: parseInt(data.semestre) },
+        "CV": { url: data.cvLink || null },
+      },
+      children: [
+        { heading_1: { rich_text: [{ text: { content: "Perfil del Postulante" } }] } },
+        { callout: { rich_text: [{ text: { content: `Postulación recibida el ${new Date().toLocaleDateString()}` } }], icon: { emoji: "📅" } } },
+        { divider: {} },
+        { heading_2: { rich_text: [{ text: { content: "🧠 Evaluación de Skills" } }] } },
+        ...skillsBlocks,
+        { divider: {} },
+        { heading_2: { rich_text: [{ text: { content: "📝 Respuestas Generales" } }] } },
+        ...respuestasBlocks,
+        ...respuestasNucleosBlocks
+      ]
+    };
+
+    const notionResponse = await fetch("https://api.notion.com/v1/pages", {
+      method: "POST",
+      headers: notionHeaders,
+      body: JSON.stringify(notionBody),
+    });
+
+    if (!notionResponse.ok) {
+      const errorText = await notionResponse.text();
+      throw new Error(`Error Notion API: ${errorText}`);
+    }
+
+    // ---------------------------------------------------------
+    // 4. ENVÍO REAL DE CORREO CON NODEMAILER
+    // ---------------------------------------------------------
+    console.log("📧 Enviando credenciales a:", data.email);
+    
+    // Plantilla HTML inyectada con las variables del postulante
+    const htmlContent = `
+    <!DOCTYPE html>
+    <html lang="es">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Tus Credenciales - SIAFI</title>
+    </head>
+    <body style="margin: 0; padding: 0; background-color: #050505; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: #ffffff;">
+        <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #050505; padding: 40px 20px;">
+            <tr>
+                <td align="center">
+                    <table width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width: 600px; background-color: #111111; border: 1px solid #1f2937; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+                        <tr><td style="height: 4px; background-color: #0051ff;"></td></tr>
+                        <tr>
+                            <td align="center" style="padding: 40px 40px 20px 40px;">
+                                <h1 style="margin: 0; font-size: 28px; font-weight: 900; color: #ffffff; letter-spacing: -1px;">Soph<span style="color: #00baff;">IA</span></h1>
+                                <p style="margin: 5px 0 0 0; font-size: 12px; color: #6b7280; letter-spacing: 2px; text-transform: uppercase;">by SIAFI</p>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 20px 40px 40px 40px;">
+                                <h2 style="margin: 0 0 20px 0; font-size: 20px; color: #ffffff;">¡Hola, ${data.nombre}! 👋</h2>
+                                <p style="margin: 0 0 20px 0; font-size: 15px; color: #9ca3af; line-height: 1.6;">Tu postulación para el proceso de reclutamiento <strong>2026-2</strong> ha sido recibida exitosamente. Nos emociona mucho conocer tu perfil.</p>
+                                <p style="margin: 0 0 20px 0; font-size: 15px; color: #9ca3af; line-height: 1.6;">Hemos creado una cuenta de acceso en nuestro portal para que puedas darle seguimiento a tu proceso. Estas son tus credenciales oficiales:</p>
+                                <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #0a0a0a; border: 1px solid #2563eb; border-radius: 12px; margin-bottom: 30px;">
+                                    <tr>
+                                        <td style="padding: 20px;">
+                                            <p style="margin: 0 0 10px 0; font-size: 13px; color: #00baff; text-transform: uppercase; letter-spacing: 1px; font-weight: bold;">Datos de Acceso</p>
+                                            <p style="margin: 0 0 8px 0; font-size: 15px; color: #ffffff;"><span style="color: #6b7280;">Usuario:</span> ${data.email}</p>
+                                            <p style="margin: 0; font-size: 15px; color: #ffffff;"><span style="color: #6b7280;">Contraseña:</span> <strong style="letter-spacing: 2px; font-family: monospace;">${passwordParaCorreo}</strong></p>
+                                        </td>
+                                    </tr>
+                                </table>
+                                <h3 style="margin: 0 0 10px 0; font-size: 16px; color: #ffffff;">¿Qué sigue?</h3>
+                                <p style="margin: 0 0 30px 0; font-size: 14px; color: #9ca3af; line-height: 1.6;">Nuestro equipo y SophIA están evaluando tus respuestas. Mantente atent@ a este correo, ya que por este medio te notificaremos si avanzas a la fase de entrevistas.</p>
+                                <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                                    <tr>
+                                        <td align="center">
+                                            <a href="https://tu-proyecto.vercel.app/login" target="_blank" style="display: inline-block; background-color: #0051ff; color: #ffffff; font-size: 14px; font-weight: bold; text-decoration: none; padding: 16px 32px; border-radius: 10px; text-transform: uppercase; letter-spacing: 1px;">Ir al Portal de SIAFI</a>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="background-color: #0a0a0a; padding: 30px 40px; border-top: 1px solid #1f2937; text-align: center;">
+                                <p style="margin: 0 0 10px 0; font-size: 12px; color: #6b7280;">¿Tienes problemas para acceder? Contáctanos en:<br><a href="mailto:siafi.reclutamiento@gmail.com" style="color: #00baff; text-decoration: none; font-weight: bold;">siafi.reclutamiento@gmail.com</a></p>
+                                <p style="margin: 0; font-size: 11px; color: #4b5563; text-transform: uppercase; letter-spacing: 1px;">Facultad de Ingeniería, UNAM</p>
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+        </table>
+    </body>
+    </html>
+    `;
 
     try {
-      let finalCvLink = formData.cvLink;
-
-      // 1. SUBIDA CV
-      if (file) {
-        setMensaje("Subiendo documento...");
-        const uniqueName = `${formData.nombre.replace(/\s+/g, '_')}_CV.pdf`;
-        
-        try {
-            const responseUpload = await fetch(`/api/upload?filename=${encodeURIComponent(uniqueName)}`, { method: 'POST', body: file });
-            if (responseUpload.ok) {
-                const newBlob = await responseUpload.json();
-                finalCvLink = newBlob.url;
-            }
-        } catch (err) {
-            console.warn("Error subiendo archivo (continuando sin link)", err);
-        }
-      }
-
-      // 2. ENVÍO A LA API MAESTRA
-      const dataToSend = {
-        nombre: formData.nombre,
-        email: formData.email,
-        celular: formData.telefono,
-        carrera: formData.carrera,
-        semestre: formData.semestre,
-        nucleos: formData.nucleos,
-        respuestas: formData.respuestas,
-        skills: formData.skills,
-        cvLink: finalCvLink
-      };
-
-      setMensaje("Procesando perfil y generando credenciales...");
-      
-      const res = await fetch("/api/register", {
-        method: "POST", 
-        headers: { "Content-Type": "application/json" }, 
-        body: JSON.stringify(dataToSend)
+      await transporter.sendMail({
+        from: '"Reclutamiento SIAFI" <siafi.reclutamiento@gmail.com>', // Quien lo envía
+        to: data.email, // A quien va dirigido (el postulante)
+        subject: "Tus Credenciales de Acceso - Reclutamiento SIAFI 2026-2",
+        html: htmlContent,
       });
-
-      let dataRes;
-      try {
-        dataRes = await res.json();
-      } catch (e) {
-        console.error("Error parseando JSON:", e);
-        throw new Error(`Error crítico del servidor (${res.status}). Revisa los logs.`);
-      }
-
-      if (res.ok) {
-        setMensaje("¡Éxito!");
-        setStatus('success_wait');
-        setTimeout(() => setStatus('processing'), 1500);
-        setTimeout(() => setStatus('completed'), 4000);
-      } else {
-        setMensaje("Error Servidor: " + (dataRes.error || dataRes.message || "Error desconocido"));
-        setLoading(false);
-      }
-
-    } catch (error: any) {
-      console.error(error);
-      setMensaje("Fallo Técnico: " + (error.message || "Error de red"));
-      setLoading(false);
+      console.log("✅ Correo enviado con éxito a", data.email);
+    } catch (mailError) {
+      console.error("⚠️ Error enviando correo:", mailError);
     }
-  };
 
-  // --- RENDERIZADO: PANTALLA DE PROCESAMIENTO ---
-  if (status === 'processing') {
-    return (
-      <div className="min-h-screen bg-[#0a0a0a] text-white flex flex-col items-center justify-center font-sans">
-        <div className="flex flex-col items-center animate-pulse">
-           <div className="text-6xl mb-6">⚙️</div>
-           <h2 className="text-2xl font-black text-white tracking-widest uppercase">Procesando Perfil</h2>
-           <p className="text-gray-500 text-sm mt-2">Analizando datos y generando credenciales...</p>
-        </div>
-      </div>
-    );
+    return NextResponse.json({ success: true, message: "Registro guardado correctamente" });
+
+  } catch (error: any) {
+    console.error("🔥 Error CRÍTICO en API Register:", error);
+    return NextResponse.json({ error: error.message }, { status: 500 });
   }
-
-  // --- RENDERIZADO: PANTALLA DE ÉXITO ---
-  if (status === 'completed') {
-    return (
-      <div className="min-h-screen bg-[#0a0a0a] text-white flex flex-col items-center justify-center p-6 text-center font-sans">
-        <div className="animate-in zoom-in duration-700 flex flex-col items-center max-w-md w-full bg-[#111111] border border-gray-800 p-10 rounded-2xl shadow-2xl">
-           <div className="w-20 h-20 bg-green-500/10 text-green-500 rounded-full flex items-center justify-center text-4xl mb-6 border border-green-500/20">
-             ✓
-           </div>
-           <h1 className="text-3xl font-black mb-4 text-white tracking-tight">Postulación Exitosa</h1>
-           <p className="text-sm text-gray-400 leading-relaxed mb-6">
-             Tus respuestas han sido guardadas. Hemos creado tu cuenta de acceso temporal para continuar con el proceso.
-           </p>
-           <div className="w-full bg-[#0a0a0a] border border-gray-800 p-4 rounded-xl mb-8">
-             <p className="text-[#00baff] font-bold text-sm uppercase tracking-wider mb-1">📩 Revisa tu correo</p>
-             <p className="text-xs text-gray-500">Te hemos enviado tus credenciales de acceso.</p>
-           </div>
-           <Link href="/login" className="w-full py-4 bg-[#0051ff] hover:bg-[#0041cc] rounded-xl font-bold text-white text-sm uppercase tracking-wider transition-all active:scale-95 shadow-lg shadow-[#0051ff]/20">
-             Ir al Portal de Acceso
-           </Link>
-        </div>
-      </div>
-    );
-  }
-
-  // --- RENDERIZADO: FORMULARIO PRINCIPAL ---
-  return (
-    <div className="min-h-screen bg-[#0a0a0a] text-white font-sans flex flex-col items-center justify-center p-4 py-12">
-      
-      {/* Header Formulario */}
-      <div className="text-center mb-8">
-        <h1 className="text-4xl font-black tracking-tight mb-2">Únete a <span className="text-[#00baff]">SIAFI</span></h1>
-        <p className="text-gray-400 text-sm">Reclutamiento 2026-2</p>
-      </div>
-
-      {/* Contenedor Principal de la Tarjeta */}
-      <div className={`w-full max-w-3xl bg-[#111111] border border-[#0051ff]/30 rounded-2xl p-6 md:p-10 shadow-2xl shadow-black/50 transition-all duration-500 ${status === 'success_wait' ? 'opacity-0 scale-95' : 'opacity-100'}`}>
-        
-        {/* Barra de Progreso Minimalista */}
-        <div className="flex gap-2 mb-10">
-          {[1, 2, 3].map(i => (
-            <div 
-              key={i} 
-              className={`h-1.5 flex-1 rounded-full transition-all duration-300 ${
-                step >= i ? 'bg-[#0051ff]' : 'bg-gray-800'
-              }`} 
-            />
-          ))}
-        </div>
-
-        <form onSubmit={step === 3 ? handleSubmit : (e) => { e.preventDefault(); setStep(s => s + 1); }}>
-          
-          {/* --- PASO 1: DATOS PERSONALES --- */}
-          {step === 1 && (
-            <div className="space-y-5 animate-in fade-in slide-in-from-right-8">
-              <div className="mb-6">
-                  <h2 className="text-2xl font-bold text-white mb-1">Identificación</h2>
-                  <p className="text-xs text-gray-500 uppercase tracking-widest">Paso 1 de 3</p>
-              </div>
-              
-              <input required placeholder="Nombre Completo" className="w-full bg-[#0a0a0a] border border-gray-800 rounded-xl p-4 text-sm focus:border-[#0051ff] focus:ring-1 focus:ring-[#0051ff]/30 outline-none transition-all placeholder:text-gray-600"
-              value={formData.nombre} onChange={e => handleChange("nombre", e.target.value)} />
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                <input required type="email" placeholder="Correo electrónico" className="w-full bg-[#0a0a0a] border border-gray-800 rounded-xl p-4 text-sm focus:border-[#0051ff] focus:ring-1 focus:ring-[#0051ff]/30 outline-none transition-all placeholder:text-gray-600"
-                value={formData.email} onChange={e => handleChange("email", e.target.value)} />
-                
-                <input required type="tel" placeholder="Celular (10 dígitos)" className="w-full bg-[#0a0a0a] border border-gray-800 rounded-xl p-4 text-sm focus:border-[#0051ff] focus:ring-1 focus:ring-[#0051ff]/30 outline-none transition-all placeholder:text-gray-600"
-                value={formData.telefono} onChange={e => handleChange("telefono", e.target.value)} />
-              </div>
-
-              <div className="grid grid-cols-3 gap-5">
-                <div className="col-span-2">
-                  <input required placeholder="Carrera" className="w-full bg-[#0a0a0a] border border-gray-800 rounded-xl p-4 text-sm focus:border-[#0051ff] focus:ring-1 focus:ring-[#0051ff]/30 outline-none transition-all placeholder:text-gray-600"
-                  value={formData.carrera} onChange={e => handleChange("carrera", e.target.value)} />
-                </div>
-                <div className="col-span-1">
-                  <input required type="number" placeholder="Semestre" min="1" max="12" className="w-full bg-[#0a0a0a] border border-gray-800 rounded-xl p-4 text-sm text-center focus:border-[#0051ff] focus:ring-1 focus:ring-[#0051ff]/30 outline-none transition-all placeholder:text-gray-600"
-                  value={formData.semestre} onChange={e => handleChange("semestre", e.target.value)} />
-                </div>
-              </div>
-
-              <div className="mt-8">
-                <label className="block text-xs text-gray-400 mb-3 font-bold uppercase tracking-widest">Núcleos de Interés (Selecciona uno o más)</label>
-                <div className="grid grid-cols-2 gap-3">
-                  {opcionesNucleos.map(op => (
-                    <div 
-                        key={op} 
-                        onClick={() => handleNucleo(op)} 
-                        className={`cursor-pointer p-4 border rounded-xl text-center text-sm font-bold transition-all ${
-                            formData.nucleos.includes(op) 
-                            ? 'bg-[#0051ff]/10 border-[#0051ff] text-[#00baff]' 
-                            : 'bg-[#0a0a0a] border-gray-800 text-gray-500 hover:border-gray-600'
-                        }`}
-                    >
-                      {op}
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="border-2 border-dashed border-gray-800 hover:border-[#0051ff]/50 rounded-xl p-6 text-center bg-[#0a0a0a] mt-6 relative transition-all">
-                  <input type="file" accept=".pdf" onChange={(e) => {
-                      const f = e.target.files?.[0]; 
-                      if(f) { setFile(f); setFileName(f.name); }
-                  }} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
-                  <div className="text-3xl mb-2">📄</div>
-                  <span className="text-gray-400 text-sm font-medium">{fileName || "Haz clic o arrastra tu CV (PDF - Máx 5MB)"}</span>
-              </div>
-            </div>
-          )}
-
-          {/* --- PASO 2: RESPUESTAS --- */}
-          {step === 2 && (
-            <div className="space-y-5 animate-in fade-in slide-in-from-right-8">
-              <div className="mb-6">
-                  <h2 className="text-2xl font-bold text-white mb-1">Perfil SIAFI</h2>
-                  <p className="text-xs text-gray-500 uppercase tracking-widest">Paso 2 de 3</p>
-              </div>
-
-              {Object.keys(formData.respuestas).map((key) => {
-                  const placeholders: any = {
-                      aportacion: "¿Cuál sería tu principal aportación al equipo?",
-                      orgullo: "Menciona un logro del que te sientas más orgullos@",
-                      inspiracion: "¿Qué valoras más al trabajar en equipo?",
-                      motivo: "¿Por qué te gustaría unirte a SIAFI?",
-                      fuente: "¿Cómo te enteraste de nuestra convocatoria?",
-                      expectativas: "¿Qué expectativas tienes al ingresar?",
-                      areasInteres: "Menciona tus áreas de interés principales"
-                  };
-                  const isShort = key === 'fuente' || key === 'areasInteres';
-                  return isShort ? (
-                      <input key={key} type="text" placeholder={placeholders[key]} className="w-full bg-[#0a0a0a] border border-gray-800 rounded-xl p-4 text-sm focus:border-[#0051ff] focus:ring-1 focus:ring-[#0051ff]/30 outline-none transition-all placeholder:text-gray-600"
-                      value={(formData.respuestas as any)[key]} onChange={e => handleRespuesta(key, e.target.value)} />
-                  ) : (
-                      <textarea key={key} rows={3} placeholder={placeholders[key]} className="w-full bg-[#0a0a0a] border border-gray-800 rounded-xl p-4 text-sm focus:border-[#0051ff] focus:ring-1 focus:ring-[#0051ff]/30 outline-none transition-all placeholder:text-gray-600 resize-none"
-                      value={(formData.respuestas as any)[key]} onChange={e => handleRespuesta(key, e.target.value)} />
-                  );
-              })}
-            </div>
-          )}
-
-          {/* --- PASO 3: SKILLS --- */}
-          {step === 3 && (
-            <div className="space-y-6 animate-in fade-in slide-in-from-right-8 h-[500px] overflow-y-auto pr-2 custom-scrollbar">
-              <div className="sticky top-0 bg-[#111111] pt-2 pb-4 z-10 border-b border-gray-800 mb-4">
-                  <h2 className="text-2xl font-bold text-white mb-1">Evaluación Técnica</h2>
-                  <p className="text-xs text-gray-500 uppercase tracking-widest">Paso 3 de 3 · Sé honesto con tu nivel (1 Básico - 5 Experto)</p>
-              </div>
-              
-              <div className="space-y-2">
-                <h3 className="text-[#0051ff] font-bold text-sm uppercase tracking-widest mb-3">Lenguajes de Programación</h3>
-                {Object.keys(formData.skills.lenguajes).map(k => (
-                  // @ts-ignore
-                  <StarRating key={k} label={k} value={formData.skills.lenguajes[k]} onChange={(v) => handleSkill("lenguajes", k, v)} />
-                ))}
-              </div>
-              
-              <div className="space-y-2 pt-6">
-                <h3 className="text-[#0051ff] font-bold text-sm uppercase tracking-widest mb-3">Tecnologías / Frameworks</h3>
-                {Object.keys(formData.skills.tecnologias).map(k => (
-                  // @ts-ignore
-                  <StarRating key={k} label={k} value={formData.skills.tecnologias[k]} onChange={(v) => handleSkill("tecnologias", k, v)} />
-                ))}
-              </div>
-              
-              <div className="space-y-2 pt-6">
-                <h3 className="text-[#0051ff] font-bold text-sm uppercase tracking-widest mb-3">Hardware / Microcontroladores</h3>
-                {Object.keys(formData.skills.micros).map(k => (
-                  // @ts-ignore
-                  <StarRating key={k} label={k} value={formData.skills.micros[k]} onChange={(v) => handleSkill("micros", k, v)} />
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* BOTONES DE NAVEGACIÓN */}
-          <div className="flex gap-4 mt-8 pt-6 border-t border-gray-800">
-            {step > 1 && (
-                <button 
-                    type="button" 
-                    onClick={() => setStep(s => s - 1)} 
-                    className="px-6 py-4 rounded-xl font-bold text-sm uppercase tracking-wider border border-gray-800 text-gray-400 hover:bg-gray-800 hover:text-white transition-all"
-                >
-                    Atrás
-                </button>
-            )}
-            
-            <button 
-                type="submit" 
-                disabled={loading || status !== 'editing'} 
-                className="flex-1 py-4 rounded-xl font-bold text-sm uppercase tracking-wider bg-[#0051ff] hover:bg-[#0041cc] text-white transition-all active:scale-95 shadow-lg shadow-[#0051ff]/20 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {loading ? "Enviando..." : step === 3 ? "Enviar Postulación" : "Siguiente"}
-            </button>
-          </div>
-
-        </form>
-
-        {/* FEEDBACK MESAJE */}
-        {mensaje && (
-            <div className={`mt-6 p-4 rounded-xl text-center text-sm font-bold border ${
-                mensaje.includes("Éxito") 
-                ? "bg-green-950/30 border-green-500/30 text-green-400" 
-                : "bg-blue-950/30 border-blue-500/30 text-[#00baff]"
-            }`}>
-                {mensaje}
-            </div>
-        )}
-      </div>
-
-    </div>
-  );
 }

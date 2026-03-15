@@ -14,96 +14,102 @@ export const WelcomeEmail: React.FC<Readonly<EmailProps>> = ({
   emailUsuario
 }) => {
   const primerNombre = nombre ? nombre.split(" ")[0] : "Candidato";
-
-  // Aseguramos que baseUrl no tenga barra al final para evitar dobles barras en las imágenes
   const cleanBaseUrl = baseUrl ? baseUrl.replace(/\/$/, "") : "";
 
   return (
-    <div style={{ margin: 0, padding: 0, backgroundColor: '#f4f5f7', fontFamily: "'Montserrat', 'Helvetica Neue', Arial, sans-serif", color: '#334155' }}>
-      <table role="presentation" border={0} cellPadding={0} cellSpacing={0} width="100%" style={{ backgroundColor: '#f4f5f7' }}>
-        <tr>
-          <td align="center" style={{ padding: '24px 12px' }}>
-            <table role="presentation" border={0} cellPadding={0} cellSpacing={0} width="100%" style={{ maxWidth: '600px', backgroundColor: '#ffffff', borderRadius: '8px', overflow: 'hidden', boxShadow: '0 2px 12px rgba(16,24,40,0.08)' }}>
+    <html lang="es">
+      <head>
+        <meta charSet="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Registro Exitoso - SIAFI</title>
+      </head>
+      <body style={{ margin: 0, padding: 0, backgroundColor: '#050505', fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", color: '#ffffff' }}>
+        <table width="100%" cellPadding={0} cellSpacing={0} border={0} style={{ backgroundColor: '#050505', padding: '40px 20px' }}>
+          <tr>
+            <td align="center">
+              <table width="100%" cellPadding={0} cellSpacing={0} border={0} style={{ maxWidth: '600px', backgroundColor: '#111111', border: '1px solid #1f2937', borderRadius: '16px', overflow: 'hidden', boxShadow: '0 10px 30px rgba(0,0,0,0.5)' }}>
+                
+                {/* Línea de acento superior */}
+                <tr><td style={{ height: '4px', backgroundColor: '#0051ff' }}></td></tr>
 
-              {/* Header Negro */}
-              <tr>
-                <td style={{ padding: '16px 18px', backgroundColor: '#000000', color: '#ffffff' }}>
-                  <table role="presentation" width="100%" cellPadding={0} cellSpacing={0}>
-                    <tr>
-                      <td valign="middle">
-                        <img src={`${cleanBaseUrl}/email/shield.png`} alt="Escudo" width="50" style={{ display: 'block', maxWidth: '50px' }} />
-                      </td>
-                      <td valign="middle" align="right">
-                        <img src={`${cleanBaseUrl}/email/logo-text.png`} alt="SIAFI" width="130" style={{ display: 'block', maxWidth: '130px' }} />
-                      </td>
-                    </tr>
-                  </table>
-                </td>
-              </tr>
+                {/* Header Institucional Negro */}
+                <tr>
+                  <td style={{ padding: '20px 24px', backgroundColor: '#000000', borderBottom: '1px solid #1f2937' }}>
+                    <table role="presentation" width="100%" cellPadding={0} cellSpacing={0}>
+                      <tr>
+                        <td valign="middle">
+                          <img src={`${cleanBaseUrl}/email/shield.png`} alt="Escudo SIAFI" width="50" style={{ display: 'block', maxWidth: '50px' }} />
+                        </td>
+                        <td valign="middle" align="right">
+                          <img src={`${cleanBaseUrl}/email/logo-text.png`} alt="SIAFI Text" width="130" style={{ display: 'block', maxWidth: '130px' }} />
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
 
-              {/* Cuerpo */}
-              <tr>
-                <td style={{ padding: '24px' }}>
-                  <h2 style={{ margin: '0 0 8px 0', fontSize: '20px', color: '#0f172a', fontWeight: 700 }}>
-                    ¡Registro Exitoso, {primerNombre}!
-                  </h2>
-                  <p style={{ margin: '0 0 16px 0', color: '#334155', fontSize: '14px', lineHeight: 1.5 }}>
-                    Confirmamos que tus datos han sido recibidos correctamente. SophIA ha generado automáticamente una cuenta de acceso para ti y comenzará el analisis preliminar de tu perfil.
-                  </p>
-
-                  {/* 🔐 CAJA DE CREDENCIALES */}
-                  <div style={{ backgroundColor: '#f0f9ff', border: '1px solid #bce3eb', borderRadius: '6px', padding: '16px', marginBottom: '20px' }}>
-                    <p style={{ margin: '0 0 8px 0', fontSize: '12px', color: '#006d8f', fontWeight: 'bold', textTransform: 'uppercase' }}>
-                      Tus Credenciales de Acceso
+                {/* Cuerpo Principal */}
+                <tr>
+                  <td style={{ padding: '30px 40px 40px 40px' }}>
+                    <h2 style={{ margin: '0 0 20px 0', fontSize: '22px', color: '#ffffff' }}>¡Registro Exitoso, {primerNombre}! 👋</h2>
+                    
+                    <p style={{ margin: '0 0 20px 0', fontSize: '15px', color: '#9ca3af', lineHeight: 1.6 }}>
+                      Confirmamos que tus datos han sido recibidos correctamente para el reclutamiento <strong>2026-2</strong>. SophIA ha generado automáticamente una cuenta de acceso para ti y comenzará el análisis preliminar de tu perfil.
                     </p>
-                    <p style={{ margin: '0 0 4px 0', fontSize: '14px', color: '#334155' }}>
-                      <strong>Usuario:</strong> {emailUsuario}
+
+                    {/* Caja de Credenciales */}
+                    <table width="100%" cellPadding={0} cellSpacing={0} border={0} style={{ backgroundColor: '#0a0a0a', border: '1px solid #0051ff', borderRadius: '12px', marginBottom: '30px' }}>
+                      <tr>
+                        <td style={{ padding: '20px' }}>
+                          <p style={{ margin: '0 0 10px 0', fontSize: '13px', color: '#00baff', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: 'bold' }}>Tus Credenciales de Acceso</p>
+                          <p style={{ margin: '0 0 8px 0', fontSize: '15px', color: '#ffffff' }}><span style={{ color: '#6b7280' }}>Usuario:</span> {emailUsuario}</p>
+                          <p style={{ margin: 0, fontSize: '15px', color: '#ffffff' }}><span style={{ color: '#6b7280' }}>Contraseña:</span> <strong style={{ letterSpacing: '2px', fontFamily: 'monospace', backgroundColor: '#1f2937', padding: '2px 6px', borderRadius: '4px' }}>{passwordGenerada}</strong></p>
+                        </td>
+                      </tr>
+                    </table>
+
+                    {/* Caja Informativa: Qué sigue */}
+                    <div style={{ backgroundColor: '#0a0a0a', borderLeft: '4px solid #00baff', padding: '20px', marginBottom: '30px' }}>
+                      <p style={{ margin: '0 0 10px 0', fontSize: '15px', color: '#ffffff', fontWeight: 'bold' }}>¿Qué sigue ahora?</p>
+                      <p style={{ margin: '0 0 6px 0', fontSize: '14px', color: '#9ca3af', lineHeight: 1.5 }}>• Ingresa al portal usando tus credenciales para ver el estado de tu postulación.</p>
+                      <p style={{ margin: '0 0 6px 0', fontSize: '14px', color: '#9ca3af', lineHeight: 1.5 }}>• Te sugerimos mantenerte atent@ a tu bandeja de entrada o spam para futuras actualizaciones.</p>
+                      <p style={{ margin: 0, fontSize: '14px', color: '#9ca3af', lineHeight: 1.5 }}>• Sigue nuestras redes sociales para no perderte ningún aviso.</p>
+                    </div>
+
+                    {/* Botón de Acción */}
+                    <table width="100%" cellPadding={0} cellSpacing={0} border={0} style={{ marginBottom: '30px' }}>
+                      <tr>
+                        <td align="center">
+                          <a href={`${cleanBaseUrl}/login`} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-block', backgroundColor: '#0051ff', color: '#ffffff', fontSize: '14px', fontWeight: 'bold', textDecoration: 'none', padding: '14px 28px', borderRadius: '10px', textTransform: 'uppercase', letterSpacing: '1px' }}>Acceder al Portal</a>
+                        </td>
+                      </tr>
+                    </table>
+
+                    {/* Firma */}
+                    <p style={{ margin: 0, color: '#9ca3af', fontSize: '14px', lineHeight: 1.6 }}>
+                      Atentamente,<br />
+                      <strong style={{ color: '#ffffff' }}>Mesa Directiva & SophIA</strong><br />
+                      SIAFI - UNAM
                     </p>
-                    <p style={{ margin: '0', fontSize: '14px', color: '#334155' }}>
-                      <strong>Contraseña:</strong> <span style={{ fontFamily: 'monospace', backgroundColor: '#e2e8f0', padding: '2px 6px', borderRadius: '4px', letterSpacing: '1px' }}>{passwordGenerada}</span>
+                  </td>
+                </tr>
+
+                {/* Footer Institucional */}
+                <tr>
+                  <td style={{ backgroundColor: '#0a0a0a', padding: '24px 40px', borderTop: '1px solid #1f2937', textAlign: 'center' }}>
+                    <p style={{ margin: '0 0 6px 0', fontSize: '12px', color: '#6b7280' }}>2026 SIAFI - Facultad de Ingeniería, UNAM.</p>
+                    <p style={{ margin: '0 0 16px 0', fontSize: '10px', textTransform: 'uppercase', letterSpacing: '1px', color: '#4b5563' }}>Este es un mensaje generado por SophIA.</p>
+                    <p style={{ margin: 0, fontSize: '12px', color: '#6b7280' }}>
+                      ¿Problemas para acceder? <br />
+                      <a href="mailto:siafi.reclutamiento@gmail.com" style={{ color: '#00baff', textDecoration: 'none', fontWeight: 'bold' }}>siafi.reclutamiento@gmail.com</a>
                     </p>
-                  </div>
-
-                  <div style={{ textAlign: 'center', margin: '24px 0' }}>
-                    <a href={`${cleanBaseUrl}/login`} style={{ backgroundColor: '#000000', color: '#ffffff', textDecoration: 'none', padding: '12px 24px', borderRadius: '4px', fontWeight: 'bold', fontSize: '14px' }}>
-                      Acceder al Portal
-                    </a>
-                  </div>
-
-                  <hr style={{ border: 'none', borderTop: '1px solid #e6eef2', margin: '18px 0' }} />
-
-                  {/* Caja Informativa */}
-                  <div style={{ backgroundColor: '#F8FAFC', borderLeft: '4px solid #00BAFF', padding: '20px', margin: '20px 0' }}>
-                    <p style={{ margin: '0 0 10px 0', fontSize: '14px', color: '#333333', fontWeight: 'bold' }}>
-                      ¿Qué sigue ahora?
-                    </p>
-                    <p style={{ margin: '0 0 6px 0', fontSize: '14px', color: '#555555' }}>• Puedes ingresar al portal usando tus credenciales para ver el estado de tu solicitud.</p>
-                    <p style={{ margin: '0 0 6px 0', fontSize: '14px', color: '#555555' }}>• También estarán llegando actualizaciones a tu correo electrónico, te sugerimos mantenerte atento.</p>
-                    <p style={{ margin: '0 0 6px 0', fontSize: '14px', color: '#555555' }}>• Te recomendamos seguir nuestras redes sociales.</p>
-                  </div>
-
-                  {/* FIRMA ACTUALIZADA */}
-                  <p style={{ margin: '0 0 0 0', color: '#334155', fontSize: '14px', lineHeight: '1.6' }}>
-                    Atentamente,<br />
-                    <strong style={{ color: '#0f172a' }}>Mesa Directiva & SophIA</strong><br />
-                    SIAFI - UNAM
-                  </p>
-                </td>
-              </tr>
-              
-              {/* FOOTER ACTUALIZADO */}
-              <tr>
-                <td style={{ backgroundColor: '#f8fafc', padding: '14px 18px', fontSize: '12px', color: '#64748b', textAlign: 'center', borderTop: '1px solid #e2e8f0' }}>
-                  <p style={{ margin: '0 0 6px 0' }}>2026 SIAFI - Facultad de Ingeniería, UNAM.</p>
-                  <p style={{ margin: '0', fontSize: '10px', textTransform: 'uppercase', letterSpacing: '1px', opacity: 0.7 }}>
-                    Este es un mensaje generado por SophIA.
-                  </p>
-                </td>
-              </tr>
-            </table>
-          </td>
-        </tr>
-      </table>
-    </div>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </table>
+      </body>
+    </html>
   );
 };

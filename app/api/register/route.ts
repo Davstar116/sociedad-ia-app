@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { createUser, getUserByEmail } from "../../lib/user-db";
 import nodemailer from "nodemailer"; 
-import { WelcomeEmailTemplate } from "../../components/emails/WelcomeEmail"; 
+import { WelcomeEmailTemplate } from "../../components/emails/WelcomeEmail";
+import { InstructionsEmailTemplate } from "../../components/emails/InstructionsEmail"; // <-- NUEVO
 
 const NOTION_TOKEN = process.env.NOTION_TOKEN;
 const CANDIDATOS_DB_ID = process.env.NOTION_DATABASE_ID;
@@ -172,24 +173,47 @@ export async function POST(request: Request) {
       throw new Error(`Error Notion API: ${errorText}`);
     }
 
-    // 4. ENVÍO DE CORREO
+    // ---------------------------------------------------------
+    // 4. ENVÍO DE CORREOS
+    // ---------------------------------------------------------
     const baseUrl = request.headers.get("origin") || "https://tu-proyecto.vercel.app";
-    const htmlContent = WelcomeEmailTemplate({
+    
+    // Aquí pon el link real de tu video de YouTube cuando lo tengas
+    const linkTutorial = "https://www.youtube.com/watch?v=TU_LINK_AQUI"; 
+
+    const htmlBienvenida = WelcomeEmailTemplate({
         nombre: data.nombre,
         baseUrl: baseUrl,
         passwordGenerada: passwordParaCorreo,
         emailUsuario: data.email
     });
 
+    const htmlInstrucciones = InstructionsEmailTemplate({
+        nombre: data.nombre,
+        baseUrl: baseUrl,
+        youtubeLink: linkTutorial
+    });
+
     try {
+      // 4.1 Enviar el primer correo (Credenciales)
       await transporter.sendMail({
         from: '"Reclutamiento SIAFI" <siafi.reclutamiento@gmail.com>',
         to: data.email,
         subject: "Registro Exitoso - Reclutamiento SIAFI 2026-2",
-        html: htmlContent, 
+        html: htmlBienvenida, 
       });
+
+      // 4.2 Enviar el segundo correo (Instrucciones de Acceso)
+      await transporter.sendMail({
+        from: '"Reclutamiento SIAFI" <siafi.reclutamiento@gmail.com>',
+        to: data.email,
+        subject: "Siguientes Pasos: Cómo acceder a la plataforma SIAFI",
+        html: htmlInstrucciones, 
+      });
+
+      console.log("✅ Ambos correos enviados con éxito a", data.email);
     } catch (mailError) {
-      console.error("⚠️ Error enviando correo:", mailError);
+      console.error("⚠️ Error enviando correos:", mailError);
     }
 
     return NextResponse.json({ success: true, message: "Registro guardado correctamente" });

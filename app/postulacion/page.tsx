@@ -72,7 +72,7 @@ export default function PostulacionPage() {
     semestre: "", 
     nucleos: [] as string[], 
     cvLink: "", 
-    respuestas: { aportacion: "", orgullo: "", inspiracion: "", motivo: "", fuente: "", expectativas: "", areasInteres: "" },
+    respuestas: { aportacion: "", orgullo: "", inspiracion: "", motivo: "", fuente: "", expectativas: "" },
     respuestasNucleos: {
       "Organización": ["", "", "", ""],
       "Difusión": ["", "", "", ""],
@@ -299,10 +299,11 @@ export default function PostulacionPage() {
                       inspiracion: "¿Qué valoras más al trabajar en equipo?",
                       motivo: "¿Por qué te gustaría unirte a SIAFI?",
                       fuente: "¿Cómo te enteraste de nuestra convocatoria?",
-                      expectativas: "¿Qué expectativas tienes al ingresar?",
-                      areasInteres: "Menciona tus áreas de interés principales"
+                      expectativas: "¿Qué expectativas tienes al ingresar?"
+                      // ✅ ELIMINAMOS la pregunta de áreas de interés de aquí
                   };
-                  const isShort = key === 'fuente' || key === 'areasInteres';
+                  // ✅ ACTUALIZAMOS esta línea para que solo 'fuente' sea input corto
+                  const isShort = key === 'fuente';
                   return isShort ? (
                       <input required key={key} type="text" placeholder={placeholders[key]} className="w-full bg-[#0a0a0a] border border-gray-800 rounded-xl p-4 text-sm focus:border-[#0051ff] focus:ring-1 focus:ring-[#0051ff]/30 outline-none transition-all placeholder:text-gray-600"
                       value={(formData.respuestas as any)[key]} onChange={e => handleRespuesta(key, e.target.value)} />

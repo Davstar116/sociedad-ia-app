@@ -102,7 +102,7 @@ export async function POST(request: Request) {
     if (data.respuestas) {
         const questionsMap: any = {
             aportacion: "Principal Aportación", orgullo: "Mayor Logro/Orgullo", inspiracion: "Dinámica de Trabajo",
-            motivo: "Motivo para unirse", expectativas: "Expectativas", fuente: "Fuente", areasInteres: "Intereses Extra"
+            motivo: "Motivo para unirse", expectativas: "Expectativas", fuente: "Fuente"
         };
         for (const key in data.respuestas) {
             if (questionsMap[key]) {

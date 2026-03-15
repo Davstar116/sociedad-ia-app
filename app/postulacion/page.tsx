@@ -246,7 +246,7 @@ export default function PostulacionPage() {
 
               <div className="grid grid-cols-3 gap-5">
                 <div className="col-span-2">
-                  <input required placeholder="Carrera (Ej. Ing. en Computación)" className="w-full bg-[#0a0a0a] border border-gray-800 rounded-xl p-4 text-sm focus:border-[#0051ff] focus:ring-1 focus:ring-[#0051ff]/30 outline-none transition-all placeholder:text-gray-600"
+                  <input required placeholder="Carrera" className="w-full bg-[#0a0a0a] border border-gray-800 rounded-xl p-4 text-sm focus:border-[#0051ff] focus:ring-1 focus:ring-[#0051ff]/30 outline-none transition-all placeholder:text-gray-600"
                   value={formData.carrera} onChange={e => handleChange("carrera", e.target.value)} />
                 </div>
                 <div className="col-span-1">
@@ -280,7 +280,7 @@ export default function PostulacionPage() {
                       if(f) { setFile(f); setFileName(f.name); }
                   }} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
                   <div className="text-3xl mb-2">📄</div>
-                  <span className="text-gray-400 text-sm font-medium">{fileName || "Haz clic o arrastra tu CV (PDF - Máx 5MB)"}</span>
+                  <span className="text-gray-400 text-sm font-medium">{fileName || "Haz clic o arrastra tu CV (PDF - Máx 5MB) (Opcional)"}</span>
               </div>
             </div>
           )}

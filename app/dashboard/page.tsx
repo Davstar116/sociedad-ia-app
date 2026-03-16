@@ -274,7 +274,6 @@ export default function DashboardPostulante() {
           CINTILLO INFERIOR (BOTTOM NAV)
           ========================================== */}
       <nav className="fixed bottom-0 w-full bg-[#111111]/90 backdrop-blur-md border-t border-gray-800 z-40 pb-safe">
-        {/* ... (Todo tu menú inferior se mantiene exactamente igual) ... */}
         <div className="flex justify-between items-center h-16 px-6 relative max-w-lg mx-auto">
           
           <button className="flex flex-col items-center justify-center w-12 text-gray-400 hover:text-[#00baff] transition-colors">
@@ -287,9 +286,10 @@ export default function DashboardPostulante() {
             <span className="text-[9px] font-medium tracking-wide">Perfil</span>
           </button>
 
-          <div className="absolute left-1/2 -translate-x-1/2 -top-6">
-            <button className="w-14 h-14 bg-gradient-to-tr from-[#0051ff] to-[#00baff] rounded-full flex items-center justify-center shadow-[0_0_20px_rgba(0,186,255,0.4)] border-[6px] border-[#0a0a0a] hover:scale-105 transition-transform">
-              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          {/* ✅ BOTÓN CENTRAL AZUL AJUSTADO */}
+          <div className="absolute left-1/2 -translate-x-1/2 -top-4">
+            <button className="w-16 h-16 bg-gradient-to-tr from-[#0051ff] to-[#00baff] rounded-full flex items-center justify-center shadow-[0_0_20px_rgba(0,186,255,0.4)] border-[6px] border-[#0a0a0a] hover:scale-105 transition-transform">
+              <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
               </svg>
             </button>

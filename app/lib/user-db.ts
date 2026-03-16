@@ -56,8 +56,12 @@ export async function getUserByEmail(email: string): Promise<AppUser | null> {
       name: page.properties["Nombre"]?.rich_text?.[0]?.plain_text || "Usuario",
       role: page.properties["Rol"]?.select?.name || "Miembro",
       passwordHash: page.properties["Password"]?.rich_text?.[0]?.plain_text || "",
-      avatar: page.properties["Avatar"]?.url || "",
-      celular: page.properties["Celular"]?.phone_number || "", // ✅ NUEVO: Extraemos el celular
+      celular: page.properties["Celular"]?.phone_number || "",
+      // ✅ BLINDAJE: Lee la foto sin importar si la columna es tipo URL o tipo Archivo
+      avatar: page.properties["Avatar"]?.url || 
+              page.properties["Avatar"]?.files?.[0]?.file?.url || 
+              page.properties["Avatar"]?.files?.[0]?.external?.url || 
+              "", 
     };
   } catch (error) {
     console.error("Excepción en getUserByEmail:", error);

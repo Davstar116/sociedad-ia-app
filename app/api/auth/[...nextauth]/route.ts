@@ -90,6 +90,9 @@ export const authOptions: NextAuthOptions = {
           // @ts-ignore
           session.user.celular = dbUser.celular || "";
           session.user.name = dbUser.name;
+
+          // @ts-ignore
+          session.user.avatar = dbUser.avatar || "";
           
           if (session.user.email === process.env.MASTER_ADMIN_EMAIL) {
              // @ts-ignore

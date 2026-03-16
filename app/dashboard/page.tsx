@@ -110,7 +110,9 @@ export default function DashboardPostulante() {
           <Link href="/dashboard/settings" className="text-left px-4 py-3 text-sm text-gray-300 hover:bg-white/5 hover:text-white rounded-xl transition-colors">
             Configuración
           </Link>
-          <button className="text-left px-4 py-3 text-sm text-gray-300 hover:bg-white/5 hover:text-white rounded-xl transition-colors">Soporte Técnico</button>
+          <Link href="/dashboard/support" className="text-left px-4 py-3 text-sm text-gray-300 hover:bg-white/5 hover:text-white rounded-xl transition-colors">
+            Soporte Técnico
+          </Link>
         </div>
         
         <div className="p-4 border-t border-gray-800">

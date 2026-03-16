@@ -82,6 +82,7 @@ export const authOptions: NextAuthOptions = {
       if (session.user?.email) {
         // Consultamos rol actualizado en cada sesión
         const dbUser = await getUserByEmail(session.user.email);
+        
         if (dbUser) {
           // @ts-ignore
           session.user.role = dbUser.role; 
@@ -91,6 +92,11 @@ export const authOptions: NextAuthOptions = {
              // @ts-ignore
             session.user.role = "Admin Maestro";
           }
+        } else {
+          // 🚨 EL USUARIO YA NO EXISTE EN NOTION
+          // Le pegamos una etiqueta de error a la sesión
+          // @ts-ignore
+          session.error = "UserDeleted";
         }
       }
       return session;

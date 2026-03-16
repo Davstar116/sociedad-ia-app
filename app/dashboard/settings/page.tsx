@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useSession } from "next-auth/react";
+import { useSession, signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
 
 export default function SettingsPage() {
@@ -22,6 +22,15 @@ export default function SettingsPage() {
     confirmPassword: ""
   });
 
+  // 🚨 NUEVO: VIGILANTE DE SEGURIDAD PARA USUARIOS BORRADOS
+  useEffect(() => {
+    // @ts-ignore
+    if (session?.error === "UserDeleted") {
+      signOut({ callbackUrl: '/login' });
+    }
+  }, [session]);
+
+  // (Tu otro useEffect que ya tenías para llenar el formulario se queda igual)
   useEffect(() => {
     if (session?.user) {
       setFormData(prev => ({

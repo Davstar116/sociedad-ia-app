@@ -9,6 +9,15 @@ export default function DashboardPostulante() {
   
   const { data: session, status } = useSession();
 
+  // 2. NUEVO: VIGILANTE DE USUARIOS BORRADOS
+  useEffect(() => {
+    // @ts-ignore
+    if (session?.error === "UserDeleted") {
+      // Si el usuario fue borrado de Notion, destruimos su cookie y lo echamos al login
+      signOut({ callbackUrl: '/login' });
+    }
+  }, [session]);
+
   if (status === "loading") {
     return <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center text-[#00baff] animate-pulse">Cargando tu perfil...</div>;
   }

@@ -89,12 +89,16 @@ export default function SettingsPage() {
   // ✅ Modificamos el botón "Volver" para verificar cambios
   const handleBack = () => {
     if (isDirty) {
-      if (window.confirm("Tienes cambios sin guardar. ¿Estás seguro de que deseas salir? Se perderán las modificaciones.")) {
-        router.back();
-      }
+      // En lugar del window.confirm, abrimos nuestro diseño
+      setShowUnsavedModal(true);
     } else {
       router.back();
     }
+  };
+
+  const confirmLeave = () => {
+    setShowUnsavedModal(false);
+    router.back();
   };
 
   const confirmPasswordChange = () => {
@@ -112,6 +116,7 @@ export default function SettingsPage() {
 
   const confirmForgotPassword = async () => {
     setShowForgotModal(false);
+    const [showUnsavedModal, setShowUnsavedModal] = useState(false);
     setLoading(true);
     setMensaje({ tipo: "", texto: "Generando nueva contraseña..." });
     
@@ -366,6 +371,37 @@ export default function SettingsPage() {
               </button>
               <button onClick={confirmForgotPassword} className="flex-1 py-3 rounded-xl font-bold text-sm text-white bg-red-600 hover:bg-red-700 transition-colors shadow-lg shadow-red-600/20">
                 Sí, restablecer
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL 3: CAMBIOS SIN GUARDAR (DISEÑO PERSONALIZADO) */}
+      {showUnsavedModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-[#111111] border border-gray-800 rounded-2xl p-6 max-w-sm w-full shadow-2xl scale-in-95 duration-200">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-full bg-yellow-500/10 flex items-center justify-center text-yellow-500 shrink-0">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+              </div>
+              <h3 className="text-white font-bold text-lg">Cambios sin guardar</h3>
+            </div>
+            <p className="text-gray-400 text-sm mb-6 leading-relaxed">
+              Tienes modificaciones pendientes. ¿Estás seguro de que deseas salir? Los cambios que realizaste se perderán.
+            </p>
+            <div className="flex gap-3">
+              <button 
+                onClick={() => setShowUnsavedModal(false)} 
+                className="flex-1 py-3 rounded-xl font-bold text-sm text-gray-300 bg-[#1f2937] hover:bg-[#374151] transition-colors"
+              >
+                Mejor me quedo
+              </button>
+              <button 
+                onClick={confirmLeave} 
+                className="flex-1 py-3 rounded-xl font-bold text-sm text-white bg-red-600 hover:bg-red-700 transition-colors shadow-lg shadow-red-600/20"
+              >
+                Sí, salir
               </button>
             </div>
           </div>

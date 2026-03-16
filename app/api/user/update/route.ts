@@ -65,11 +65,12 @@ export async function POST(request: Request) {
       passwordChanged = true;
     }
 
-    // 2. ✅ SUBIR FOTO A VERCEL BLOB (Con sufijo aleatorio)
+    // 2. ✅ SUBIR FOTO A VERCEL BLOB (Con sufijo aleatorio y token explícito)
     if (avatarFile && avatarFile.size > 0) {
       const blob = await put(avatarFile.name, avatarFile, { 
         access: 'public',
-        addRandomSuffix: true // ✅ SOLUCIÓN AL ERROR DE VERCEL
+        addRandomSuffix: true,
+        token: process.env.BLOB_READ_WRITE_TOKEN // ✅ Le pasamos el token a la fuerza
       });
       finalAvatarUrl = blob.url;
     }

@@ -165,17 +165,22 @@ export default function SettingsPage() {
         body: submitData
       });
 
+      // ✅ NUEVO CÓDIGO DETECTIVE: Si Vercel devuelve un error HTML (como el de "Archivo muy pesado")
+      if (!res.ok && !res.headers.get("content-type")?.includes("application/json")) {
+        const textError = await res.text();
+        console.error("🚨 Error crudo del servidor:", textError);
+        throw new Error(`Error de Vercel (${res.status}): Revisa la consola (F12)`);
+      }
+
       const data = await res.json();
 
       if (res.ok) {
         setMensaje({ tipo: "success", texto: "¡Datos actualizados correctamente!" });
         setShowPasswordFields(false);
         setFormData(prev => ({ ...prev, currentPassword: "", newPassword: "", confirmPassword: "" }));
-        // ✅ Limpiamos el estado isDirty al guardar con éxito
         setIsDirty(false); 
         if (data.newAvatar) setAvatarPreview(data.newAvatar);
         
-        // Actualizamos la sesión localmente sin recargar
         await session?.update({
            ...session.user,
            name: formData.nombre,
@@ -183,12 +188,13 @@ export default function SettingsPage() {
            celular: formData.celular,
            avatar: data.newAvatar || avatarPreview
         });
-
       } else {
         setMensaje({ tipo: "error", texto: data.error || "Ocurrió un error al actualizar." });
       }
-    } catch (error) {
-      setMensaje({ tipo: "error", texto: "Error de conexión." });
+    } catch (error: any) {
+      console.error("🔥 Error capturado en el catch:", error);
+      // ✅ AHORA MOSTRARÁ EL MENSAJE REAL EN LA PANTALLA
+      setMensaje({ tipo: "error", texto: error.message || "Error desconocido." });
     } finally {
       setLoading(false);
     }

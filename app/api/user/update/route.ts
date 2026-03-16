@@ -56,7 +56,7 @@ export async function POST(request: Request) {
 
     // 3. Preparamos los datos con los nombres EXACTOS de tus columnas
     const updateProperties: any = {
-      "Nombre": { title: [{ text: { content: nombre } }] }
+      "Nombre": { rich_text: [{ text: { content: nombre } }] }
     };
 
     // Solo agregamos el celular si se envió un valor (para evitar borrarlo por accidente)

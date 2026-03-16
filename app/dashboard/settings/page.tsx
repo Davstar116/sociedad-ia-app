@@ -14,13 +14,12 @@ export default function SettingsPage() {
   const [showPasswordFields, setShowPasswordFields] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [showForgotModal, setShowForgotModal] = useState(false);
+  const [showUnsavedModal, setShowUnsavedModal] = useState(false); // ✅ AHORA SÍ ESTÁ EN SU LUGAR CORRECTO
 
-  // Estados para el Avatar
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // ✅ NUEVO ESTADO: Rastrea si hubo cambios
   const [isDirty, setIsDirty] = useState(false);
 
   const [formData, setFormData] = useState({
@@ -31,13 +30,11 @@ export default function SettingsPage() {
     confirmPassword: ""
   });
 
-  // Vigilante de seguridad
   useEffect(() => {
     // @ts-ignore
     if (session?.error === "UserDeleted") signOut({ callbackUrl: '/login' });
   }, [session]);
 
-  // Carga inmediata desde la sesión mágica
   useEffect(() => {
     if (session?.user) {
       setFormData(prev => ({
@@ -51,19 +48,15 @@ export default function SettingsPage() {
     }
   }, [session]);
 
-  // ✅ NUEVO: Vigilante del evento beforeunload (Cerrar pestaña/Recargar)
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       if (isDirty) {
-        // Estándar moderno para mostrar la alerta del navegador
         e.preventDefault();
-        e.returnValue = ''; // Requerido para Chrome/Firefox
+        e.returnValue = ''; 
       }
     };
 
     window.addEventListener('beforeunload', handleBeforeUnload);
-
-    // Limpieza al desmontar el componente
     return () => {
       window.removeEventListener('beforeunload', handleBeforeUnload);
     };
@@ -71,7 +64,6 @@ export default function SettingsPage() {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
-    // ✅ Marcamos que el formulario está "sucio" (tiene cambios)
     setIsDirty(true);
   };
 
@@ -81,15 +73,12 @@ export default function SettingsPage() {
       setAvatarFile(file);
       const previewUrl = URL.createObjectURL(file);
       setAvatarPreview(previewUrl);
-      // ✅ Marcamos cambios al subir imagen
       setIsDirty(true);
     }
   };
 
-  // ✅ Modificamos el botón "Volver" para verificar cambios
   const handleBack = () => {
     if (isDirty) {
-      // En lugar del window.confirm, abrimos nuestro diseño
       setShowUnsavedModal(true);
     } else {
       router.back();
@@ -104,19 +93,16 @@ export default function SettingsPage() {
   const confirmPasswordChange = () => {
     setShowConfirmModal(false);
     setShowPasswordFields(true);
-    // ✅ Marcamos cambios al abrir sección de password
     setIsDirty(true); 
   };
 
   const handleCancelPasswordChange = () => {
     setShowPasswordFields(false);
     setFormData(prev => ({ ...prev, currentPassword: "", newPassword: "", confirmPassword: "" }));
-    // No reseteamos isDirty aquí, ya que podría haber cambios en nombre/celular
   };
 
   const confirmForgotPassword = async () => {
     setShowForgotModal(false);
-    const [showUnsavedModal, setShowUnsavedModal] = useState(false);
     setLoading(true);
     setMensaje({ tipo: "", texto: "Generando nueva contraseña..." });
     
@@ -170,7 +156,6 @@ export default function SettingsPage() {
         body: submitData
       });
 
-      // ✅ NUEVO CÓDIGO DETECTIVE: Si Vercel devuelve un error HTML (como el de "Archivo muy pesado")
       if (!res.ok && !res.headers.get("content-type")?.includes("application/json")) {
         const textError = await res.text();
         console.error("🚨 Error crudo del servidor:", textError);
@@ -198,7 +183,6 @@ export default function SettingsPage() {
       }
     } catch (error: any) {
       console.error("🔥 Error capturado en el catch:", error);
-      // ✅ AHORA MOSTRARÁ EL MENSAJE REAL EN LA PANTALLA
       setMensaje({ tipo: "error", texto: error.message || "Error desconocido." });
     } finally {
       setLoading(false);
@@ -214,7 +198,6 @@ export default function SettingsPage() {
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white font-sans pb-20">
       <header className="sticky top-0 w-full h-16 bg-[#111111]/90 backdrop-blur-md border-b border-gray-800 z-40 flex items-center px-5 gap-4">
-        {/* ✅ BOTÓN VOLVER USANDO handleBack */}
         <button onClick={handleBack} className="text-gray-400 hover:text-white transition-colors">
           <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
         </button>

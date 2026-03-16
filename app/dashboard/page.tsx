@@ -6,16 +6,61 @@ import Link from "next/link";
 
 export default function DashboardPostulante() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  // ✅ NUEVOS ESTADOS PARA NOTIFICACIONES
+  const [isNotifMenuOpen, setIsNotifMenuOpen] = useState(false);
+  const [notificaciones, setNotificaciones] = useState<any[]>([]);
   
   const { data: session, status } = useSession();
 
   // Vigilante de usuarios borrados
   useEffect(() => {
     // @ts-ignore
-    if (session?.error === "UserDeleted") {
-      signOut({ callbackUrl: '/login' });
-    }
+    if (session?.error === "UserDeleted") signOut({ callbackUrl: '/login' });
   }, [session]);
+
+  // ✅ NUEVO: Cargar notificaciones al iniciar
+  const fetchNotificaciones = async () => {
+    if (session?.user?.email) {
+      try {
+        const res = await fetch(`/api/notifications?email=${session.user.email}`);
+        const data = await res.json();
+        if (data.notificaciones) setNotificaciones(data.notificaciones);
+      } catch (error) {
+        console.error("Error cargando notificaciones", error);
+      }
+    }
+  };
+
+  useEffect(() => {
+    fetchNotificaciones();
+    // Podríamos poner un setInterval aquí para que busque notificaciones nuevas cada minuto,
+    // pero por ahora lo cargamos al entrar al dashboard.
+  }, [session]);
+
+  // ✅ FUNCIONES DE NOTIFICACIONES
+  const unreadCount = notificaciones.filter(n => !n.leida).length;
+
+  const marcarComoLeida = async (id: string, leidaActual: boolean) => {
+    if (leidaActual) return; // Si ya está leída, no hacemos nada
+    
+    // Actualización optimista en el frontend
+    setNotificaciones(prev => prev.map(n => n.id === id ? { ...n, leida: true } : n));
+    
+    // Actualización silenciosa en el backend
+    await fetch("/api/notifications", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id, leida: true })
+    });
+  };
+
+  const borrarNotificacion = async (id: string) => {
+    // Quitamos la notificación de la pantalla al instante
+    setNotificaciones(prev => prev.filter(n => n.id !== id));
+    
+    // Le decimos a Notion que la archive
+    await fetch(`/api/notifications?id=${id}`, { method: "DELETE" });
+  };
 
   if (status === "loading") {
     return <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center text-[#00baff] animate-pulse">Cargando tu perfil...</div>;
@@ -23,14 +68,12 @@ export default function DashboardPostulante() {
 
   const userName = session?.user?.name || "Postulante";
   const userEmail = session?.user?.email || "Sin correo";
-  // ✅ OBTENEMOS LA FOTO DE LA SESIÓN
   // @ts-ignore
   const userAvatar = session?.user?.avatar; 
   
   const primerNombre = userName.split(" ")[0];
   const iniciales = userName.split(" ").map(n => n[0]).slice(0, 2).join("").toUpperCase();
 
-  // Componente reutilizable para el círculo del Avatar
   const AvatarCircle = ({ size }: { size: string }) => (
     <div className={`${size} rounded-full bg-gradient-to-tr from-[#0051ff] to-[#00baff] p-[2px] shrink-0 shadow-[0_0_15px_rgba(0,186,255,0.3)]`}>
       <div className="w-full h-full rounded-full bg-[#111111] overflow-hidden flex items-center justify-center">
@@ -52,11 +95,18 @@ export default function DashboardPostulante() {
           ========================================== */}
       <header className="fixed top-0 w-full h-16 bg-[#111111]/90 backdrop-blur-md border-b border-gray-800 z-40 flex items-center justify-between px-5">
         
-        <button className="relative p-2 text-gray-400 hover:text-white transition-colors">
+        {/* ✅ BOTÓN DE CAMPANA (Notificaciones) */}
+        <button 
+          onClick={() => setIsNotifMenuOpen(true)}
+          className="relative p-2 text-gray-400 hover:text-white transition-colors"
+        >
           <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
           </svg>
-          <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-red-500 border-2 border-[#111111] rounded-full"></span>
+          {/* ✅ PUNTO ROJO INTELIGENTE */}
+          {unreadCount > 0 && (
+            <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-red-500 border-2 border-[#111111] rounded-full animate-pulse"></span>
+          )}
         </button>
 
         <div className="flex flex-col items-center justify-center leading-none mt-1">
@@ -66,32 +116,28 @@ export default function DashboardPostulante() {
           <span className="text-[8px] text-gray-500 font-bold uppercase tracking-widest mt-0.5">by SIAFI</span>
         </div>
 
-        {/* ✅ BOTÓN SUPERIOR AHORA CON FOTO */}
-        <button 
-          onClick={() => setIsMenuOpen(true)}
-          className="hover:scale-105 transition-transform shrink-0"
-        >
+        <button onClick={() => setIsMenuOpen(true)} className="hover:scale-105 transition-transform shrink-0">
           <AvatarCircle size="w-9 h-9" />
         </button>
       </header>
 
       {/* ==========================================
-          MENÚ LATERAL (SIDEBAR OVERLAY)
+          OVERLAY OSCURO COMPARTIDO
           ========================================== */}
-      {isMenuOpen && (
+      {(isMenuOpen || isNotifMenuOpen) && (
         <div 
-          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 transition-opacity"
-          onClick={() => setIsMenuOpen(false)}
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 transition-opacity"
+          onClick={() => { setIsMenuOpen(false); setIsNotifMenuOpen(false); }}
         />
       )}
       
+      {/* ==========================================
+          MENÚ LATERAL DERECHO (PERFIL)
+          ========================================== */}
       <div className={`fixed top-0 right-0 h-full w-72 bg-[#111111] border-l border-gray-800 z-50 transform transition-transform duration-300 ease-in-out flex flex-col ${isMenuOpen ? 'translate-x-0' : 'translate-x-full'}`}>
         <div className="p-6 border-b border-gray-800 flex justify-between items-start">
-          
           <div className="flex items-center gap-4 pr-4">
-            {/* ✅ FOTO DENTRO DEL MENÚ */}
             <AvatarCircle size="w-12 h-12" />
-            
             <div>
               <p className="font-bold text-white text-lg leading-tight truncate">{primerNombre}</p>
               <p className="text-xs text-gray-400 truncate mt-1">{userEmail}</p>
@@ -100,29 +146,79 @@ export default function DashboardPostulante() {
               </div>
             </div>
           </div>
-
-          <button onClick={() => setIsMenuOpen(false)} className="text-gray-400 hover:text-white mt-1 shrink-0">
-            ✕
-          </button>
+          <button onClick={() => setIsMenuOpen(false)} className="text-gray-400 hover:text-white mt-1 shrink-0">✕</button>
         </div>
         
         <div className="p-4 flex flex-col gap-2 flex-grow">
-          <Link href="/dashboard/settings" className="text-left px-4 py-3 text-sm text-gray-300 hover:bg-white/5 hover:text-white rounded-xl transition-colors">
-            Configuración
-          </Link>
-          <Link href="/dashboard/support" className="text-left px-4 py-3 text-sm text-gray-300 hover:bg-white/5 hover:text-white rounded-xl transition-colors">
-            Soporte Técnico
-          </Link>
+          <Link href="/dashboard/settings" className="text-left px-4 py-3 text-sm text-gray-300 hover:bg-white/5 hover:text-white rounded-xl transition-colors">Configuración</Link>
+          <Link href="/dashboard/support" className="text-left px-4 py-3 text-sm text-gray-300 hover:bg-white/5 hover:text-white rounded-xl transition-colors">Soporte Técnico</Link>
         </div>
         
         <div className="p-4 border-t border-gray-800">
-          <button 
-            onClick={() => signOut({ callbackUrl: '/login' })}
-            className="w-full px-4 py-3 text-sm font-bold text-red-400 hover:bg-red-500/10 rounded-xl transition-colors flex items-center gap-3"
-          >
+          <button onClick={() => signOut({ callbackUrl: '/login' })} className="w-full px-4 py-3 text-sm font-bold text-red-400 hover:bg-red-500/10 rounded-xl transition-colors flex items-center gap-3">
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
             Cerrar Sesión
           </button>
+        </div>
+      </div>
+
+      {/* ==========================================
+          ✅ MENÚ LATERAL IZQUIERDO (NOTIFICACIONES)
+          ========================================== */}
+      <div className={`fixed top-0 left-0 h-full w-80 bg-[#111111] border-r border-gray-800 z-50 transform transition-transform duration-300 ease-in-out flex flex-col ${isNotifMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+        
+        <div className="p-5 border-b border-gray-800 flex justify-between items-center bg-[#0a0a0a]">
+          <h2 className="text-lg font-bold text-white flex items-center gap-2">
+            <svg className="w-5 h-5 text-[#00baff]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
+            Notificaciones
+          </h2>
+          <button onClick={() => setIsNotifMenuOpen(false)} className="text-gray-400 hover:text-white shrink-0">✕</button>
+        </div>
+        
+        <div className="flex-grow overflow-y-auto bg-[#111111]">
+          {notificaciones.length === 0 ? (
+            <div className="flex flex-col items-center justify-center h-full text-center p-8 opacity-50">
+              <svg className="w-12 h-12 mb-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" /></svg>
+              <p className="text-sm font-medium text-gray-400">No tienes notificaciones nuevas.</p>
+            </div>
+          ) : (
+            notificaciones.map(notif => (
+              <div 
+                key={notif.id} 
+                onClick={() => marcarComoLeida(notif.id, notif.leida)}
+                className={`p-5 border-b border-gray-800/50 cursor-pointer transition-all relative group flex gap-4 items-start ${!notif.leida ? 'bg-[#0051ff]/10' : 'hover:bg-[#1f2937]/30'}`}
+              >
+                {/* Indicador de No Leída */}
+                {!notif.leida && (
+                  <div className="absolute left-0 top-0 w-1 h-full bg-[#00baff]"></div>
+                )}
+                
+                {/* Ícono de la Notificación */}
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${!notif.leida ? 'bg-[#0051ff]/20 text-[#00baff]' : 'bg-gray-800 text-gray-400'}`}>
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                </div>
+
+                <div className="flex-1 pr-6">
+                  <div className="flex justify-between items-start mb-1 gap-2">
+                    <h3 className={`text-sm ${!notif.leida ? 'font-bold text-white' : 'font-medium text-gray-300'}`}>{notif.asunto}</h3>
+                  </div>
+                  <p className={`text-xs leading-relaxed ${!notif.leida ? 'text-gray-300' : 'text-gray-500'}`}>{notif.mensaje}</p>
+                  <p className="text-[10px] text-gray-600 mt-2 uppercase font-bold tracking-wider">
+                    {new Date(notif.fecha).toLocaleDateString('es-MX', { day: 'numeric', month: 'short', hour: '2-digit', minute:'2-digit' })}
+                  </p>
+                </div>
+
+                {/* ✅ BOTÓN DE BORRAR (Aparece en hover en PC, o siempre sutil en móvil) */}
+                <button 
+                  onClick={(e) => { e.stopPropagation(); borrarNotificacion(notif.id); }} 
+                  className="absolute right-3 top-1/2 -translate-y-1/2 p-2 text-gray-500 hover:text-red-400 hover:bg-red-400/10 rounded-xl transition-all opacity-0 group-hover:opacity-100"
+                  title="Eliminar notificación"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                </button>
+              </div>
+            ))
+          )}
         </div>
       </div>
 
@@ -150,6 +246,7 @@ export default function DashboardPostulante() {
           CINTILLO INFERIOR (BOTTOM NAV)
           ========================================== */}
       <nav className="fixed bottom-0 w-full bg-[#111111]/90 backdrop-blur-md border-t border-gray-800 z-40 pb-safe">
+        {/* ... (Todo tu menú inferior se mantiene exactamente igual) ... */}
         <div className="flex justify-between items-center h-16 px-6 relative max-w-lg mx-auto">
           
           <button className="flex flex-col items-center justify-center w-12 text-gray-400 hover:text-[#00baff] transition-colors">

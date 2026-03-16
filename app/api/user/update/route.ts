@@ -127,6 +127,25 @@ export async function POST(request: Request) {
       }
     }
 
+    // ✅ NUEVO: Generar Notificación In-App de cambio de datos
+    try {
+      // Usamos la URL base actual para llamar a nuestra propia API de notificaciones
+      const baseUrl = request.headers.get("origin") || "https://tu-proyecto.vercel.app";
+      await fetch(`${baseUrl}/api/notifications`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: email,
+          asunto: "Perfil Actualizado",
+          mensaje: passwordChanged 
+            ? "Tus credenciales de seguridad y/o datos personales han sido modificados exitosamente." 
+            : "Tus datos personales o foto de perfil han sido actualizados."
+        })
+      });
+    } catch (notifError) {
+      console.error("No se pudo generar la notificación in-app", notifError);
+    }
+
     return NextResponse.json({ success: true, message: "Datos actualizados correctamente", newAvatar: finalAvatarUrl });
 
   } catch (error: any) {

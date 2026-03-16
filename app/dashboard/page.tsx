@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useSession, signOut } from "next-auth/react"; 
 import Link from "next/link"; 
+import OneSignal from 'react-onesignal';
 
 export default function DashboardPostulante() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -35,6 +36,33 @@ export default function DashboardPostulante() {
     fetchNotificaciones();
     // Podríamos poner un setInterval aquí para que busque notificaciones nuevas cada minuto,
     // pero por ahora lo cargamos al entrar al dashboard.
+  }, [session]);
+
+  // ✅ NUEVO: Inicializar OneSignal y vincular el dispositivo al usuario
+  useEffect(() => {
+    const initOneSignal = async () => {
+      // Evitamos que se ejecute en el servidor (SSR)
+      if (typeof window !== "undefined" && session?.user?.email) {
+        try {
+          await OneSignal.init({
+            appId: process.env.NEXT_PUBLIC_ONESIGNAL_APP_ID || "",
+            // Permite probar en localhost sin problemas de HTTPS
+            allowLocalhostAsSecureOrigin: true, 
+          });
+
+          // Le mostramos la ventanita nativa pidiendo permiso
+          OneSignal.Slidedown.promptPush();
+
+          // 🔥 ESTO ES VITAL: Le decimos a OneSignal a quién le pertenece este celular
+          OneSignal.login(session.user.email);
+          
+        } catch (error) {
+          console.error("Error inicializando OneSignal:", error);
+        }
+      }
+    };
+
+    initOneSignal();
   }, [session]);
 
   // ✅ FUNCIONES DE NOTIFICACIONES

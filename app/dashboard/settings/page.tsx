@@ -5,7 +5,7 @@ import { useSession, signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
 
 export default function SettingsPage() {
-  const { data: session, status } = useSession();
+  const { data: session, status, update } = useSession();
   const router = useRouter();
 
   const [loading, setLoading] = useState(false);
@@ -181,8 +181,8 @@ export default function SettingsPage() {
         setIsDirty(false); 
         if (data.newAvatar) setAvatarPreview(data.newAvatar);
         
-        await session?.update({
-           ...session.user,
+        await update({
+           ...session?.user,
            name: formData.nombre,
            // @ts-ignore
            celular: formData.celular,

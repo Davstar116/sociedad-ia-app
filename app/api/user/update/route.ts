@@ -3,6 +3,7 @@ import { getUserByEmail } from "@/app/lib/user-db";
 import bcrypt from "bcryptjs";
 import nodemailer from "nodemailer";
 import { PasswordUpdateEmailTemplate } from "@/app/components/emails/PasswordUpdateEmail";
+import { put } from "@vercel/blob"; // ✅ NUEVO: Importamos Vercel Blob
 
 const NOTION_TOKEN = process.env.NOTION_TOKEN;
 const notionHeaders = {
@@ -19,7 +20,6 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-// ✅ NUEVO: Método GET para obtener los datos frescos del perfil
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const email = searchParams.get("email");
@@ -32,13 +32,20 @@ export async function GET(request: Request) {
   return NextResponse.json({
     nombre: user.name,
     celular: user.celular || "",
+    avatar: user.avatar || "", // ✅ Devolvemos el avatar actual
   });
 }
 
 export async function POST(request: Request) {
   try {
-    const data = await request.json();
-    const { email, nombre, celular, currentPassword, newPassword } = data;
+    // ✅ AHORA LEEMOS LOS DATOS COMO FORMDATA (Archivos + Texto)
+    const formData = await request.formData();
+    const email = formData.get("email") as string;
+    const nombre = formData.get("nombre") as string;
+    const celular = formData.get("celular") as string;
+    const currentPassword = formData.get("currentPassword") as string;
+    const newPassword = formData.get("newPassword") as string;
+    const avatarFile = formData.get("avatar") as File | null; // Capturamos el archivo
 
     if (!email) return NextResponse.json({ error: "No se proporcionó un correo." }, { status: 400 });
 
@@ -47,7 +54,9 @@ export async function POST(request: Request) {
 
     let updatedPasswordHash = user.passwordHash;
     let passwordChanged = false;
+    let finalAvatarUrl = user.avatar; // Por defecto conservamos el que ya tenía
 
+    // 1. Validar Contraseñas
     if (newPassword) {
       if (!currentPassword) return NextResponse.json({ error: "Debes proporcionar tu contraseña actual." }, { status: 400 });
       const isPasswordValid = await bcrypt.compare(currentPassword, user.passwordHash);
@@ -57,20 +66,32 @@ export async function POST(request: Request) {
       passwordChanged = true;
     }
 
-    // ✅ SOLUCIÓN AL ERROR DE NOTION
+    // 2. ✅ SUBIR FOTO A VERCEL BLOB (Si el usuario seleccionó una)
+    if (avatarFile && avatarFile.size > 0) {
+      // put() sube el archivo y nos devuelve la URL pública y segura
+      const blob = await put(avatarFile.name, avatarFile, { access: 'public' });
+      finalAvatarUrl = blob.url;
+    }
+
+    // 3. Preparar propiedades para Notion
     const updateProperties: any = {
       "Nombre": { rich_text: [{ text: { content: nombre || "" } }] }
     };
 
-    if (celular !== undefined) {
-      // Si el celular está vacío, Notion exige que sea 'null', no '""'
+    if (celular !== null && celular !== undefined) {
       updateProperties["Celular"] = { phone_number: celular ? celular : null };
+    }
+
+    // Actualizamos la URL del Avatar en Notion (Tipo 'url')
+    if (finalAvatarUrl) {
+      updateProperties["Avatar"] = { url: finalAvatarUrl };
     }
 
     if (passwordChanged) {
       updateProperties["Password"] = { rich_text: [{ text: { content: updatedPasswordHash } }] };
     }
 
+    // 4. Parche a Notion
     const notionResponse = await fetch(`https://api.notion.com/v1/pages/${user.id}`, {
       method: "PATCH",
       headers: notionHeaders,
@@ -82,6 +103,7 @@ export async function POST(request: Request) {
       throw new Error(`Error Notion API: ${errorText}`);
     }
 
+    // 5. Correo (si cambió contraseña)
     if (passwordChanged) {
       const baseUrl = request.headers.get("origin") || "https://tu-proyecto.vercel.app";
       const htmlContent = PasswordUpdateEmailTemplate({
@@ -103,7 +125,7 @@ export async function POST(request: Request) {
       }
     }
 
-    return NextResponse.json({ success: true, message: "Datos actualizados correctamente" });
+    return NextResponse.json({ success: true, message: "Datos actualizados correctamente", newAvatar: finalAvatarUrl });
 
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });

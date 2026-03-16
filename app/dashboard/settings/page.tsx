@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useSession, signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import Image from "next/image"; // Importamos Image de Next
 
 export default function SettingsPage() {
   const { data: session, status } = useSession();
@@ -13,8 +14,12 @@ export default function SettingsPage() {
   
   const [showPasswordFields, setShowPasswordFields] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
-  // ✅ NUEVO ESTADO: Para el modal de olvidó contraseña
   const [showForgotModal, setShowForgotModal] = useState(false);
+
+  // ✅ NUEVOS ESTADOS PARA EL AVATAR
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [formData, setFormData] = useState({
     nombre: "",
@@ -24,26 +29,38 @@ export default function SettingsPage() {
     confirmPassword: ""
   });
 
-  // Vigilante de seguridad
   useEffect(() => {
     // @ts-ignore
     if (session?.error === "UserDeleted") signOut({ callbackUrl: '/login' });
   }, [session]);
 
-  // ✅ CARGA INMEDIATA DESDE LA SESIÓN MÁGICA
   useEffect(() => {
-    if (session?.user) {
-      setFormData(prev => ({
-        ...prev,
-        nombre: session.user.name || "",
-        // @ts-ignore
-        celular: session.user.celular || "",
-      }));
+    if (session?.user?.email) {
+      fetch(`/api/user/update?email=${session.user.email}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.nombre) {
+            setFormData(prev => ({ ...prev, nombre: data.nombre, celular: data.celular || "" }));
+            // Cargamos la foto actual si existe
+            if (data.avatar) setAvatarPreview(data.avatar);
+          }
+        });
     }
   }, [session]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  // ✅ MANEJAR SELECCIÓN DE IMAGEN
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setAvatarFile(file);
+      // Crear URL local para previsualizar antes de guardar
+      const previewUrl = URL.createObjectURL(file);
+      setAvatarPreview(previewUrl);
+    }
   };
 
   const confirmPasswordChange = () => {
@@ -56,7 +73,6 @@ export default function SettingsPage() {
     setFormData(prev => ({ ...prev, currentPassword: "", newPassword: "", confirmPassword: "" }));
   };
 
-  // ✅ NUEVA FUNCIÓN: Ahora controlada por el Modal Oscuro
   const confirmForgotPassword = async () => {
     setShowForgotModal(false);
     setLoading(true);
@@ -69,11 +85,8 @@ export default function SettingsPage() {
         body: JSON.stringify({ email: session?.user?.email })
       });
       const data = await res.json();
-      if (res.ok) {
-        setMensaje({ tipo: "success", texto: "¡Correo enviado! Revisa tu bandeja de entrada." });
-      } else {
-        setMensaje({ tipo: "error", texto: data.error || "Ocurrió un error." });
-      }
+      if (res.ok) setMensaje({ tipo: "success", texto: "¡Correo enviado! Revisa tu bandeja de entrada." });
+      else setMensaje({ tipo: "error", texto: data.error || "Ocurrió un error." });
     } catch (error) {
       setMensaje({ tipo: "error", texto: "Error de conexión." });
     } finally {
@@ -84,37 +97,37 @@ export default function SettingsPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setMensaje({ tipo: "", texto: "" });
+    setMensaje({ tipo: "", texto: "Subiendo datos y archivos..." });
 
     if (showPasswordFields) {
       if (formData.newPassword !== formData.confirmPassword) {
         setMensaje({ tipo: "error", texto: "Las contraseñas nuevas no coinciden." });
-        setLoading(false);
-        return;
+        setLoading(false); return;
       }
       if (!formData.currentPassword) {
         setMensaje({ tipo: "error", texto: "Debes ingresar tu contraseña actual." });
-        setLoading(false);
-        return;
+        setLoading(false); return;
       }
       if (formData.newPassword.length < 6) {
         setMensaje({ tipo: "error", texto: "La nueva contraseña debe tener al menos 6 caracteres." });
-        setLoading(false);
-        return;
+        setLoading(false); return;
       }
     }
 
     try {
+      // ✅ AHORA USAMOS FORMDATA EN LUGAR DE JSON
+      const submitData = new FormData();
+      submitData.append("email", session?.user?.email || "");
+      submitData.append("nombre", formData.nombre);
+      submitData.append("celular", formData.celular);
+      submitData.append("currentPassword", formData.currentPassword);
+      submitData.append("newPassword", formData.newPassword);
+      if (avatarFile) submitData.append("avatar", avatarFile);
+
       const res = await fetch("/api/user/update", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email: session?.user?.email,
-          nombre: formData.nombre,
-          celular: formData.celular,
-          currentPassword: formData.currentPassword,
-          newPassword: formData.newPassword
-        })
+        // NO enviamos Content-Type, el navegador lo asigna automáticamente al usar FormData
+        body: submitData
       });
 
       const data = await res.json();
@@ -123,6 +136,8 @@ export default function SettingsPage() {
         setMensaje({ tipo: "success", texto: "¡Datos actualizados correctamente!" });
         setShowPasswordFields(false);
         setFormData(prev => ({ ...prev, currentPassword: "", newPassword: "", confirmPassword: "" }));
+        // Si la API devolvió la nueva URL permanente, la actualizamos
+        if (data.newAvatar) setAvatarPreview(data.newAvatar);
       } else {
         setMensaje({ tipo: "error", texto: data.error || "Ocurrió un error al actualizar." });
       }
@@ -136,6 +151,9 @@ export default function SettingsPage() {
   if (status === "loading") {
     return <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center text-[#00baff] animate-pulse">Cargando configuración...</div>;
   }
+
+  // Generar iniciales por si no hay foto
+  const iniciales = formData.nombre ? formData.nombre.split(" ").map(n => n[0]).slice(0, 2).join("").toUpperCase() : "US";
 
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white font-sans pb-20">
@@ -154,7 +172,41 @@ export default function SettingsPage() {
               <span className="w-1.5 h-4 bg-[#0051ff] rounded-full"></span>
               Datos Personales
             </h2>
-            <div className="bg-[#111111] border border-gray-800 rounded-2xl p-5 space-y-4">
+            <div className="bg-[#111111] border border-gray-800 rounded-2xl p-5 space-y-5">
+              
+              {/* ✅ SECCIÓN DEL AVATAR */}
+              <div className="flex flex-col items-center justify-center pb-2">
+                <div 
+                  className="relative w-24 h-24 rounded-full bg-gradient-to-tr from-[#0051ff] to-[#00baff] p-[3px] shadow-[0_0_20px_rgba(0,186,255,0.3)] cursor-pointer hover:scale-105 transition-transform group"
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  <div className="w-full h-full rounded-full bg-[#111111] overflow-hidden flex items-center justify-center relative">
+                    {avatarPreview ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={avatarPreview} alt="Perfil" className="w-full h-full object-cover" />
+                    ) : (
+                      <span className="text-2xl font-bold text-white tracking-widest">{iniciales}</span>
+                    )}
+                    
+                    {/* Hover Overlay */}
+                    <div className="absolute inset-0 bg-black/50 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                       <svg className="w-6 h-6 text-white mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                       <span className="text-[9px] font-bold uppercase tracking-wider text-white">Cambiar</span>
+                    </div>
+                  </div>
+                </div>
+                {/* Input Archivo Oculto */}
+                <input 
+                  type="file" 
+                  accept="image/*"
+                  ref={fileInputRef}
+                  onChange={handleImageChange}
+                  className="hidden" 
+                />
+                <p className="text-xs text-gray-500 mt-3 uppercase tracking-wider font-bold">Foto de Perfil</p>
+              </div>
+
+              {/* Resto de campos de texto */}
               <div>
                 <label className="block text-xs text-gray-500 font-bold uppercase mb-1.5">Correo Electrónico (Solo Lectura)</label>
                 <input type="email" value={session?.user?.email || ""} disabled className="w-full bg-[#0a0a0a] border border-gray-800 rounded-xl p-3 text-sm text-gray-400 cursor-not-allowed" />
@@ -217,12 +269,12 @@ export default function SettingsPage() {
           )}
 
           <button type="submit" disabled={loading} className="w-full py-4 rounded-xl font-bold text-sm uppercase tracking-wider bg-[#0051ff] hover:bg-[#0041cc] text-white transition-all active:scale-95 shadow-lg shadow-[#0051ff]/20 disabled:opacity-50 mt-2">
-            {loading ? "Guardando Cambios..." : "Guardar Cambios"}
+            {loading ? "Subiendo..." : "Guardar Cambios"}
           </button>
         </form>
       </main>
 
-      {/* MODAL 1: MODIFICAR CONTRASEÑA (CON ASTERISCOS Y AZUL) */}
+      {/* MODAL 1: MODIFICAR CONTRASEÑA */}
       {showConfirmModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
           <div className="bg-[#111111] border border-gray-800 rounded-2xl p-6 max-w-sm w-full shadow-2xl scale-in-95 duration-200">

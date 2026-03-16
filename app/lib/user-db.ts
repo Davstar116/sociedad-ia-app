@@ -1,7 +1,7 @@
 import bcrypt from "bcryptjs";
 
 const USERS_DB_ID = process.env.NOTION_USERS_DB_ID;
-const CANDIDATOS_DB_ID = process.env.NOTION_DATABASE_ID; // ✅ La tabla de Candidatos
+const CANDIDATOS_DB_ID = process.env.NOTION_DATABASE_ID; // La tabla de Candidatos
 const NOTION_TOKEN = process.env.NOTION_TOKEN;
 
 // Configuración de cabeceras para hablar con Notion "a mano"
@@ -19,7 +19,7 @@ export interface AppUser {
   passwordHash?: string;
   avatar?: string;
   celular?: string;
-  estatus?: string; // ✅ NUEVO: Agregado para el estatus de postulación
+  estatus?: string; 
 }
 
 // 1. Buscar usuario por Email (Usando FETCH)
@@ -52,7 +52,7 @@ export async function getUserByEmail(email: string): Promise<AppUser | null> {
     const page: any = data.results[0];
     
     // --- BÚSQUEDA 2: Obtener Estatus (Tabla Candidatos_2026) ---
-    let estatusPostulante = "Registrado"; // Valor por defecto si no ha llenado su postulación
+    let estatusPostulante = "Registrado"; 
 
     if (CANDIDATOS_DB_ID) {
       const candidatoRes = await fetch(`https://api.notion.com/v1/databases/${CANDIDATOS_DB_ID}/query`, {
@@ -60,7 +60,7 @@ export async function getUserByEmail(email: string): Promise<AppUser | null> {
         headers: notionHeaders,
         body: JSON.stringify({
           filter: {
-            property: "Correo electrónico", // ✅ Modificado con el nombre exacto de tu columna
+            property: "Correo electrónico", 
             email: { equals: email },
           },
         }),
@@ -69,11 +69,18 @@ export async function getUserByEmail(email: string): Promise<AppUser | null> {
 
       if (candidatoRes.ok) {
         const candidatoData = await candidatoRes.json();
+        
         if (candidatoData.results.length > 0) {
           const candidatoPage = candidatoData.results[0];
-          // ✅ Extraemos el estatus de la columna exacta
-          estatusPostulante = candidatoPage.properties["Estatus del postulante"]?.select?.name || "Registrado";
+          const propiedadEstatus = candidatoPage.properties["Estatus del postulante"];
+          
+          // ✅ BLINDAJE APLICADO: Ahora prioriza buscar en el cajón "status"
+          estatusPostulante = propiedadEstatus?.status?.name || 
+                              propiedadEstatus?.select?.name || 
+                              "Registrado";
         }
+      } else {
+        console.error("No se pudo conectar a la tabla de Candidatos_2026");
       }
     }
     
@@ -89,7 +96,7 @@ export async function getUserByEmail(email: string): Promise<AppUser | null> {
               page.properties["Avatar"]?.files?.[0]?.file?.url || 
               page.properties["Avatar"]?.files?.[0]?.external?.url || 
               "", 
-      estatus: estatusPostulante, // ✅ Inyectamos el estatus encontrado
+      estatus: estatusPostulante, 
     };
   } catch (error) {
     console.error("Excepción en getUserByEmail:", error);

@@ -2,7 +2,8 @@ import { getToken } from "next-auth/jwt";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-export async function middleware(req: NextRequest) {
+// ✅ AQUÍ ESTÁ EL CAMBIO: Renombramos la función a 'proxy'
+export async function proxy(req: NextRequest) {
   // Obtenemos el token de la sesión activa directamente de las cookies
   const token = await getToken({ req });
   const { pathname } = req.nextUrl;

@@ -127,23 +127,44 @@ export async function POST(request: Request) {
       }
     }
 
-    // ✅ NUEVO: Generar Notificación In-App de cambio de datos
+    // ✅ NUEVO: Generar Notificación In-App (Notion) + Push Notification (OneSignal)
     try {
-      // Usamos la URL base actual para llamar a nuestra propia API de notificaciones
+      const asuntoNotif = "Perfil Actualizado";
+      const mensajeNotif = passwordChanged 
+        ? "Tus credenciales de seguridad y/o datos personales han sido modificados exitosamente." 
+        : "Tus datos personales o foto de perfil han sido actualizados.";
+
+      // 1. Crear notificación en tu campanita (Base de datos de Notion)
       const baseUrl = request.headers.get("origin") || "https://tu-proyecto.vercel.app";
       await fetch(`${baseUrl}/api/notifications`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email: email,
-          asunto: "Perfil Actualizado",
-          mensaje: passwordChanged 
-            ? "Tus credenciales de seguridad y/o datos personales han sido modificados exitosamente." 
-            : "Tus datos personales o foto de perfil han sido actualizados."
-        })
+        body: JSON.stringify({ email: email, asunto: asuntoNotif, mensaje: mensajeNotif })
       });
+
+      // 2. 🚀 DISPARAR PUSH NOTIFICATION AL CELULAR/PC (OneSignal)
+      if (process.env.NEXT_PUBLIC_ONESIGNAL_APP_ID && process.env.ONESIGNAL_REST_API_KEY) {
+        await fetch("https://onesignal.com/api/v1/notifications", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Basic ${process.env.ONESIGNAL_REST_API_KEY}`
+          },
+          body: JSON.stringify({
+            app_id: process.env.NEXT_PUBLIC_ONESIGNAL_APP_ID,
+            // Apuntamos específicamente al celular/PC logueado con este correo
+            include_aliases: { external_id: [email] }, 
+            target_channel: "push",
+            headings: { "en": asuntoNotif, "es": asuntoNotif },
+            contents: { "en": mensajeNotif, "es": mensajeNotif },
+          })
+        });
+      } else {
+        console.warn("Faltan las variables de entorno de OneSignal");
+      }
+
     } catch (notifError) {
-      console.error("No se pudo generar la notificación in-app", notifError);
+      console.error("No se pudo generar la notificación completa", notifError);
     }
 
     return NextResponse.json({ success: true, message: "Datos actualizados correctamente", newAvatar: finalAvatarUrl });

@@ -24,7 +24,7 @@ export function SupportTicketEmailTemplate({ nombre, correo, celular, rol, asunt
             <td align="center">
             <table width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width: 600px; background-color: #111111; border: 1px solid #1f2937; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
                 
-                <tr><td style="height: 4px; background-color: #ef4444;"></td></tr>
+                <tr><td style="height: 4px; background-color: #00baff;"></td></tr>
                 
                 <tr>
                 <td style="padding: 20px 24px; background-color: #000000; border-bottom: 1px solid #1f2937;">
@@ -53,9 +53,9 @@ export function SupportTicketEmailTemplate({ nombre, correo, celular, rol, asunt
                         <p style="margin: 0; font-size: 14px; color: #d1d5db;"><strong>Rol:</strong> <span style="background-color: #1f2937; padding: 2px 8px; border-radius: 4px; font-size: 12px;">${rol}</span></p>
                     </div>
 
-                    <div style="background-color: #3b0707; border-left: 4px solid #ef4444; padding: 20px; margin-bottom: 30px;">
-                        <p style="margin: 0 0 8px 0; font-size: 15px; color: #fca5a5; font-weight: bold;">Asunto: ${asunto}</p>
-                        <p style="margin: 0; font-size: 14px; color: #fecaca; line-height: 1.6; white-space: pre-wrap;">${mensaje}</p>
+                    <div style="background-color: #111111; border-left: 4px solid #0051ff; padding: 20px; margin-bottom: 30px;">
+                        <p style="margin: 0 0 8px 0; font-size: 15px; color: #00baff; font-weight: bold;">Asunto: ${asunto}</p>
+                        <p style="margin: 0; font-size: 14px; color: #d1d5db; line-height: 1.6; white-space: pre-wrap;">${mensaje}</p>
                     </div>
                     
                     <p style="margin: 0; color: #6b7280; font-size: 12px; text-align: center;">
@@ -63,6 +63,18 @@ export function SupportTicketEmailTemplate({ nombre, correo, celular, rol, asunt
                     </p>
                 </td>
                 </tr>
+
+                <tr>
+                <td style="background-color: #0a0a0a; padding: 24px 40px; border-top: 1px solid #1f2937; text-align: center;">
+                    <p style="margin: 0 0 6px 0; font-size: 12px; color: #6b7280;">2026 SIAFI - Facultad de Ingeniería, UNAM.</p>
+                    <p style="margin: 0 0 16px 0; font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: #4b5563;">Este es un mensaje generado por SophIA.</p>
+                    <p style="margin: 0; font-size: 12px; color: #6b7280;">
+                    ¿Problemas con el sistema? <br />
+                    <a href="mailto:siafi.reclutamiento@gmail.com" style="color: #00baff; text-decoration: none; font-weight: bold;">siafi.reclutamiento@gmail.com</a>
+                    </p>
+                </td>
+                </tr>
+
             </table>
             </td>
         </tr>

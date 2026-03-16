@@ -49,14 +49,20 @@ export default function SupportPage() {
       const data = await res.json();
 
       if (res.ok) {
-        setMensajeApi({ tipo: "success", texto: "¡Tu reporte ha sido enviado al equipo técnico exitosamente!" });
-        setFormData({ asunto: "", mensaje: "" }); // Limpiar formulario
+        setMensajeApi({ tipo: "success", texto: "¡Tu reporte ha sido enviado! Redirigiendo al inicio..." });
+        setFormData({ asunto: "", mensaje: "" }); 
+        
+        // ✅ NUEVO: Redirigimos al dashboard después de 2.5 segundos
+        setTimeout(() => {
+          router.push("/dashboard");
+        }, 2500);
+
       } else {
         setMensajeApi({ tipo: "error", texto: data.error || "Ocurrió un error al enviar el reporte." });
+        setLoading(false); // Solo quitamos el loading si hay error, si es éxito lo dejamos para la transición
       }
     } catch (error) {
       setMensajeApi({ tipo: "error", texto: "Error de conexión con el servidor." });
-    } finally {
       setLoading(false);
     }
   };

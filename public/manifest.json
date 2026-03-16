@@ -2,10 +2,10 @@
   "name": "SophIA App",
   "short_name": "SophIA",
   "description": "Plataforma de Inteligencia Artificial SIAFI",
-  "start_url": "/login",
+  "start_url": "/", 
   "display": "standalone",
-  "background_color": "#000000",
-  "theme_color": "#000000",
+  "background_color": "#0a0a0a",
+  "theme_color": "#0a0a0a",
   "icons": [
     {
       "src": "/icon.png",

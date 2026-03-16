@@ -2,18 +2,17 @@
 
 import { useState, useEffect } from "react";
 import { useSession, signOut } from "next-auth/react"; 
-import Link from "next/link"; // NUEVO: Importamos Link para la navegación
+import Link from "next/link"; 
 
 export default function DashboardPostulante() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   
   const { data: session, status } = useSession();
 
-  // 2. NUEVO: VIGILANTE DE USUARIOS BORRADOS
+  // Vigilante de usuarios borrados
   useEffect(() => {
     // @ts-ignore
     if (session?.error === "UserDeleted") {
-      // Si el usuario fue borrado de Notion, destruimos su cookie y lo echamos al login
       signOut({ callbackUrl: '/login' });
     }
   }, [session]);
@@ -24,11 +23,26 @@ export default function DashboardPostulante() {
 
   const userName = session?.user?.name || "Postulante";
   const userEmail = session?.user?.email || "Sin correo";
+  // ✅ OBTENEMOS LA FOTO DE LA SESIÓN
+  // @ts-ignore
+  const userAvatar = session?.user?.avatar; 
   
-  // Extraemos solo el primer nombre
   const primerNombre = userName.split(" ")[0];
-  
   const iniciales = userName.split(" ").map(n => n[0]).slice(0, 2).join("").toUpperCase();
+
+  // Componente reutilizable para el círculo del Avatar
+  const AvatarCircle = ({ size }: { size: string }) => (
+    <div className={`${size} rounded-full bg-gradient-to-tr from-[#0051ff] to-[#00baff] p-[2px] shrink-0 shadow-[0_0_15px_rgba(0,186,255,0.3)]`}>
+      <div className="w-full h-full rounded-full bg-[#111111] overflow-hidden flex items-center justify-center">
+        {userAvatar ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={userAvatar} alt="Perfil" className="w-full h-full object-cover" />
+        ) : (
+          <span className={`${size === 'w-9 h-9' ? 'text-xs' : 'text-sm'} font-bold text-white`}>{iniciales}</span>
+        )}
+      </div>
+    </div>
+  );
 
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white font-sans overflow-hidden">
@@ -52,13 +66,12 @@ export default function DashboardPostulante() {
           <span className="text-[8px] text-gray-500 font-bold uppercase tracking-widest mt-0.5">by SIAFI</span>
         </div>
 
+        {/* ✅ BOTÓN SUPERIOR AHORA CON FOTO */}
         <button 
           onClick={() => setIsMenuOpen(true)}
-          className="w-9 h-9 rounded-full bg-gradient-to-tr from-[#0051ff] to-[#00baff] p-[2px] hover:scale-105 transition-transform shrink-0"
+          className="hover:scale-105 transition-transform shrink-0"
         >
-          <div className="w-full h-full rounded-full bg-[#111111] overflow-hidden flex items-center justify-center">
-             <span className="text-xs font-bold text-white">{iniciales}</span>
-          </div>
+          <AvatarCircle size="w-9 h-9" />
         </button>
       </header>
 
@@ -75,13 +88,9 @@ export default function DashboardPostulante() {
       <div className={`fixed top-0 right-0 h-full w-72 bg-[#111111] border-l border-gray-800 z-50 transform transition-transform duration-300 ease-in-out flex flex-col ${isMenuOpen ? 'translate-x-0' : 'translate-x-full'}`}>
         <div className="p-6 border-b border-gray-800 flex justify-between items-start">
           
-          {/* NUEVO: Contenedor con Foto y Datos */}
           <div className="flex items-center gap-4 pr-4">
-            <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-[#0051ff] to-[#00baff] p-[2px] shrink-0 shadow-[0_0_15px_rgba(0,186,255,0.3)]">
-              <div className="w-full h-full rounded-full bg-[#111111] overflow-hidden flex items-center justify-center">
-                <span className="text-sm font-bold text-white">{iniciales}</span>
-              </div>
-            </div>
+            {/* ✅ FOTO DENTRO DEL MENÚ */}
+            <AvatarCircle size="w-12 h-12" />
             
             <div>
               <p className="font-bold text-white text-lg leading-tight truncate">{primerNombre}</p>
@@ -98,7 +107,6 @@ export default function DashboardPostulante() {
         </div>
         
         <div className="p-4 flex flex-col gap-2 flex-grow">
-          {/* NUEVO: Botón de configuración ahora es un Link que redirige */}
           <Link href="/dashboard/settings" className="text-left px-4 py-3 text-sm text-gray-300 hover:bg-white/5 hover:text-white rounded-xl transition-colors">
             Configuración
           </Link>
@@ -122,7 +130,7 @@ export default function DashboardPostulante() {
       <main className="pt-24 pb-28 px-5 max-w-lg mx-auto min-h-screen flex flex-col gap-6">
         <div className="bg-[#111111] border border-gray-800 rounded-2xl p-6 shadow-xl relative overflow-hidden">
           <div className="absolute top-0 left-0 w-1 h-full bg-[#0051ff]"></div>
-          <h2 className="text-xl font-bold mb-1">Hola, {primerNombre}</h2>
+          <h2 className="text-xl font-bold mb-1">Hola, {primerNombre} 👋</h2>
           <p className="text-sm text-gray-400 mb-5">Bienvenid@ a tu panel de control SIAFI.</p>
           <div className="bg-[#0a0a0a] border border-gray-800 rounded-xl p-4 flex items-center justify-between">
             <div>

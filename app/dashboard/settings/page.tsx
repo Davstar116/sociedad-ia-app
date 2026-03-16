@@ -3,7 +3,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useSession, signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import Image from "next/image"; // Importamos Image de Next
 
 export default function SettingsPage() {
   const { data: session, status } = useSession();
@@ -16,10 +15,13 @@ export default function SettingsPage() {
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [showForgotModal, setShowForgotModal] = useState(false);
 
-  // ✅ NUEVOS ESTADOS PARA EL AVATAR
+  // Estados para el Avatar
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // ✅ NUEVO ESTADO: Rastrea si hubo cambios
+  const [isDirty, setIsDirty] = useState(false);
 
   const [formData, setFormData] = useState({
     nombre: "",
@@ -29,48 +31,83 @@ export default function SettingsPage() {
     confirmPassword: ""
   });
 
+  // Vigilante de seguridad
   useEffect(() => {
     // @ts-ignore
     if (session?.error === "UserDeleted") signOut({ callbackUrl: '/login' });
   }, [session]);
 
+  // Carga inmediata desde la sesión mágica
   useEffect(() => {
-    if (session?.user?.email) {
-      fetch(`/api/user/update?email=${session.user.email}`)
-        .then(res => res.json())
-        .then(data => {
-          if (data.nombre) {
-            setFormData(prev => ({ ...prev, nombre: data.nombre, celular: data.celular || "" }));
-            // Cargamos la foto actual si existe
-            if (data.avatar) setAvatarPreview(data.avatar);
-          }
-        });
+    if (session?.user) {
+      setFormData(prev => ({
+        ...prev,
+        nombre: session.user.name || "",
+        // @ts-ignore
+        celular: session.user.celular || "",
+      }));
+      // @ts-ignore
+      if (session.user.avatar) setAvatarPreview(session.user.avatar);
     }
   }, [session]);
 
+  // ✅ NUEVO: Vigilante del evento beforeunload (Cerrar pestaña/Recargar)
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (isDirty) {
+        // Estándar moderno para mostrar la alerta del navegador
+        e.preventDefault();
+        e.returnValue = ''; // Requerido para Chrome/Firefox
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    // Limpieza al desmontar el componente
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, [isDirty]);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+    // ✅ Marcamos que el formulario está "sucio" (tiene cambios)
+    setIsDirty(true);
   };
 
-  // ✅ MANEJAR SELECCIÓN DE IMAGEN
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       setAvatarFile(file);
-      // Crear URL local para previsualizar antes de guardar
       const previewUrl = URL.createObjectURL(file);
       setAvatarPreview(previewUrl);
+      // ✅ Marcamos cambios al subir imagen
+      setIsDirty(true);
+    }
+  };
+
+  // ✅ Modificamos el botón "Volver" para verificar cambios
+  const handleBack = () => {
+    if (isDirty) {
+      if (window.confirm("Tienes cambios sin guardar. ¿Estás seguro de que deseas salir? Se perderán las modificaciones.")) {
+        router.back();
+      }
+    } else {
+      router.back();
     }
   };
 
   const confirmPasswordChange = () => {
     setShowConfirmModal(false);
     setShowPasswordFields(true);
+    // ✅ Marcamos cambios al abrir sección de password
+    setIsDirty(true); 
   };
 
   const handleCancelPasswordChange = () => {
     setShowPasswordFields(false);
     setFormData(prev => ({ ...prev, currentPassword: "", newPassword: "", confirmPassword: "" }));
+    // No reseteamos isDirty aquí, ya que podría haber cambios en nombre/celular
   };
 
   const confirmForgotPassword = async () => {
@@ -115,7 +152,6 @@ export default function SettingsPage() {
     }
 
     try {
-      // ✅ AHORA USAMOS FORMDATA EN LUGAR DE JSON
       const submitData = new FormData();
       submitData.append("email", session?.user?.email || "");
       submitData.append("nombre", formData.nombre);
@@ -126,7 +162,6 @@ export default function SettingsPage() {
 
       const res = await fetch("/api/user/update", {
         method: "POST",
-        // NO enviamos Content-Type, el navegador lo asigna automáticamente al usar FormData
         body: submitData
       });
 
@@ -136,8 +171,19 @@ export default function SettingsPage() {
         setMensaje({ tipo: "success", texto: "¡Datos actualizados correctamente!" });
         setShowPasswordFields(false);
         setFormData(prev => ({ ...prev, currentPassword: "", newPassword: "", confirmPassword: "" }));
-        // Si la API devolvió la nueva URL permanente, la actualizamos
+        // ✅ Limpiamos el estado isDirty al guardar con éxito
+        setIsDirty(false); 
         if (data.newAvatar) setAvatarPreview(data.newAvatar);
+        
+        // Actualizamos la sesión localmente sin recargar
+        await session?.update({
+           ...session.user,
+           name: formData.nombre,
+           // @ts-ignore
+           celular: formData.celular,
+           avatar: data.newAvatar || avatarPreview
+        });
+
       } else {
         setMensaje({ tipo: "error", texto: data.error || "Ocurrió un error al actualizar." });
       }
@@ -152,13 +198,13 @@ export default function SettingsPage() {
     return <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center text-[#00baff] animate-pulse">Cargando configuración...</div>;
   }
 
-  // Generar iniciales por si no hay foto
   const iniciales = formData.nombre ? formData.nombre.split(" ").map(n => n[0]).slice(0, 2).join("").toUpperCase() : "US";
 
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white font-sans pb-20">
       <header className="sticky top-0 w-full h-16 bg-[#111111]/90 backdrop-blur-md border-b border-gray-800 z-40 flex items-center px-5 gap-4">
-        <button onClick={() => router.back()} className="text-gray-400 hover:text-white transition-colors">
+        {/* ✅ BOTÓN VOLVER USANDO handleBack */}
+        <button onClick={handleBack} className="text-gray-400 hover:text-white transition-colors">
           <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
         </button>
         <h1 className="text-lg font-bold">Configuración</h1>
@@ -174,7 +220,6 @@ export default function SettingsPage() {
             </h2>
             <div className="bg-[#111111] border border-gray-800 rounded-2xl p-5 space-y-5">
               
-              {/* ✅ SECCIÓN DEL AVATAR */}
               <div className="flex flex-col items-center justify-center pb-2">
                 <div 
                   className="relative w-24 h-24 rounded-full bg-gradient-to-tr from-[#0051ff] to-[#00baff] p-[3px] shadow-[0_0_20px_rgba(0,186,255,0.3)] cursor-pointer hover:scale-105 transition-transform group"
@@ -188,14 +233,12 @@ export default function SettingsPage() {
                       <span className="text-2xl font-bold text-white tracking-widest">{iniciales}</span>
                     )}
                     
-                    {/* Hover Overlay */}
                     <div className="absolute inset-0 bg-black/50 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                        <svg className="w-6 h-6 text-white mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
                        <span className="text-[9px] font-bold uppercase tracking-wider text-white">Cambiar</span>
                     </div>
                   </div>
                 </div>
-                {/* Input Archivo Oculto */}
                 <input 
                   type="file" 
                   accept="image/*"
@@ -206,7 +249,6 @@ export default function SettingsPage() {
                 <p className="text-xs text-gray-500 mt-3 uppercase tracking-wider font-bold">Foto de Perfil</p>
               </div>
 
-              {/* Resto de campos de texto */}
               <div>
                 <label className="block text-xs text-gray-500 font-bold uppercase mb-1.5">Correo Electrónico (Solo Lectura)</label>
                 <input type="email" value={session?.user?.email || ""} disabled className="w-full bg-[#0a0a0a] border border-gray-800 rounded-xl p-3 text-sm text-gray-400 cursor-not-allowed" />
@@ -277,7 +319,7 @@ export default function SettingsPage() {
       {/* MODAL 1: MODIFICAR CONTRASEÑA */}
       {showConfirmModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-[#111111] border border-gray-800 rounded-2xl p-6 max-w-sm w-full shadow-2xl scale-in-95 duration-200">
+          <div className="bg-[#111111] border border-gray-800 rounded-2xl p-6 max-sm w-full shadow-2xl scale-in-95 duration-200">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-10 h-10 rounded-full bg-[#0051ff]/10 flex items-center justify-center text-[#00baff] shrink-0 font-black text-xl pt-1">
                 ***

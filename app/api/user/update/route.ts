@@ -3,7 +3,7 @@ import { getUserByEmail } from "@/app/lib/user-db";
 import bcrypt from "bcryptjs";
 import nodemailer from "nodemailer";
 import { PasswordUpdateEmailTemplate } from "@/app/components/emails/PasswordUpdateEmail";
-import { put } from "@vercel/blob"; // ✅ NUEVO: Importamos Vercel Blob
+import { put } from "@vercel/blob"; 
 
 const NOTION_TOKEN = process.env.NOTION_TOKEN;
 const notionHeaders = {
@@ -32,20 +32,19 @@ export async function GET(request: Request) {
   return NextResponse.json({
     nombre: user.name,
     celular: user.celular || "",
-    avatar: user.avatar || "", // ✅ Devolvemos el avatar actual
+    avatar: user.avatar || "", 
   });
 }
 
 export async function POST(request: Request) {
   try {
-    // ✅ AHORA LEEMOS LOS DATOS COMO FORMDATA (Archivos + Texto)
     const formData = await request.formData();
     const email = formData.get("email") as string;
     const nombre = formData.get("nombre") as string;
     const celular = formData.get("celular") as string;
     const currentPassword = formData.get("currentPassword") as string;
     const newPassword = formData.get("newPassword") as string;
-    const avatarFile = formData.get("avatar") as File | null; // Capturamos el archivo
+    const avatarFile = formData.get("avatar") as File | null; 
 
     if (!email) return NextResponse.json({ error: "No se proporcionó un correo." }, { status: 400 });
 
@@ -54,7 +53,7 @@ export async function POST(request: Request) {
 
     let updatedPasswordHash = user.passwordHash;
     let passwordChanged = false;
-    let finalAvatarUrl = user.avatar; // Por defecto conservamos el que ya tenía
+    let finalAvatarUrl = user.avatar; 
 
     // 1. Validar Contraseñas
     if (newPassword) {
@@ -66,10 +65,12 @@ export async function POST(request: Request) {
       passwordChanged = true;
     }
 
-    // 2. ✅ SUBIR FOTO A VERCEL BLOB (Si el usuario seleccionó una)
+    // 2. ✅ SUBIR FOTO A VERCEL BLOB (Con sufijo aleatorio)
     if (avatarFile && avatarFile.size > 0) {
-      // put() sube el archivo y nos devuelve la URL pública y segura
-      const blob = await put(avatarFile.name, avatarFile, { access: 'public' });
+      const blob = await put(avatarFile.name, avatarFile, { 
+        access: 'public',
+        addRandomSuffix: true // ✅ SOLUCIÓN AL ERROR DE VERCEL
+      });
       finalAvatarUrl = blob.url;
     }
 
@@ -82,7 +83,7 @@ export async function POST(request: Request) {
       updateProperties["Celular"] = { phone_number: celular ? celular : null };
     }
 
-    // Actualizamos la URL del Avatar en Notion (Tipo 'url')
+    // Actualizamos la URL del Avatar en Notion
     if (finalAvatarUrl) {
       updateProperties["Avatar"] = { url: finalAvatarUrl };
     }

@@ -5,6 +5,13 @@ import { getUserByEmail, createUser } from "@/app/lib/user-db";
 import bcrypt from "bcryptjs";
 
 export const authOptions: NextAuthOptions = {
+  // --- AÑADIMOS LA CONFIGURACIÓN DE SESIÓN AQUÍ ---
+  session: {
+    strategy: "jwt",
+    maxAge: 30 * 24 * 60 * 60, // La sesión durará 30 días (en segundos)
+  },
+  // ------------------------------------------------
+
   providers: [
     // 1. Login con Google
     GoogleProvider({

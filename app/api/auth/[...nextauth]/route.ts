@@ -94,6 +94,10 @@ export const authOptions: NextAuthOptions = {
           // @ts-ignore
           session.user.avatar = dbUser.avatar || "";
           
+          // ✅ NUEVA LÍNEA MÁGICA: Inyectamos el estatus de postulación
+          // @ts-ignore
+          session.user.estatus = dbUser.estatus || "Registrado";
+          
           if (session.user.email === process.env.MASTER_ADMIN_EMAIL) {
              // @ts-ignore
             session.user.role = "Admin Maestro";

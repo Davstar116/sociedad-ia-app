@@ -1,6 +1,7 @@
 import bcrypt from "bcryptjs";
 
 const USERS_DB_ID = process.env.NOTION_USERS_DB_ID;
+const CANDIDATOS_DB_ID = process.env.NOTION_DATABASE_ID; // ✅ La tabla de Candidatos
 const NOTION_TOKEN = process.env.NOTION_TOKEN;
 
 // Configuración de cabeceras para hablar con Notion "a mano"
@@ -17,7 +18,8 @@ export interface AppUser {
   role: "Admin Maestro" | "Miembro" | "Postulante";
   passwordHash?: string;
   avatar?: string;
-  celular?: string; // ✅ NUEVO: Agregado para tipado
+  celular?: string;
+  estatus?: string; // ✅ NUEVO: Agregado para el estatus de postulación
 }
 
 // 1. Buscar usuario por Email (Usando FETCH)
@@ -25,6 +27,7 @@ export async function getUserByEmail(email: string): Promise<AppUser | null> {
   if (!USERS_DB_ID || !NOTION_TOKEN) return null;
 
   try {
+    // --- BÚSQUEDA 1: Obtener datos de acceso (Tabla Usuarios) ---
     const response = await fetch(`https://api.notion.com/v1/databases/${USERS_DB_ID}/query`, {
       method: "POST",
       headers: notionHeaders,
@@ -34,7 +37,7 @@ export async function getUserByEmail(email: string): Promise<AppUser | null> {
           title: { equals: email },
         },
       }),
-      cache: 'no-store' // Importante para no leer datos viejos
+      cache: 'no-store' 
     });
 
     if (!response.ok) {
@@ -44,12 +47,37 @@ export async function getUserByEmail(email: string): Promise<AppUser | null> {
     }
 
     const data = await response.json();
-
     if (data.results.length === 0) return null;
 
     const page: any = data.results[0];
     
-    // Extracción segura de datos
+    // --- BÚSQUEDA 2: Obtener Estatus (Tabla Candidatos_2026) ---
+    let estatusPostulante = "Registrado"; // Valor por defecto si no ha llenado su postulación
+
+    if (CANDIDATOS_DB_ID) {
+      const candidatoRes = await fetch(`https://api.notion.com/v1/databases/${CANDIDATOS_DB_ID}/query`, {
+        method: "POST",
+        headers: notionHeaders,
+        body: JSON.stringify({
+          filter: {
+            property: "Correo electrónico", // ✅ Modificado con el nombre exacto de tu columna
+            email: { equals: email },
+          },
+        }),
+        cache: 'no-store'
+      });
+
+      if (candidatoRes.ok) {
+        const candidatoData = await candidatoRes.json();
+        if (candidatoData.results.length > 0) {
+          const candidatoPage = candidatoData.results[0];
+          // ✅ Extraemos el estatus de la columna exacta
+          estatusPostulante = candidatoPage.properties["Estatus del postulante"]?.select?.name || "Registrado";
+        }
+      }
+    }
+    
+    // Extracción segura de datos combinados
     return {
       id: page.id,
       email: page.properties["Email"]?.title?.[0]?.plain_text || "",
@@ -57,11 +85,11 @@ export async function getUserByEmail(email: string): Promise<AppUser | null> {
       role: page.properties["Rol"]?.select?.name || "Miembro",
       passwordHash: page.properties["Password"]?.rich_text?.[0]?.plain_text || "",
       celular: page.properties["Celular"]?.phone_number || "",
-      // ✅ BLINDAJE: Lee la foto sin importar si la columna es tipo URL o tipo Archivo
       avatar: page.properties["Avatar"]?.url || 
               page.properties["Avatar"]?.files?.[0]?.file?.url || 
               page.properties["Avatar"]?.files?.[0]?.external?.url || 
               "", 
+      estatus: estatusPostulante, // ✅ Inyectamos el estatus encontrado
     };
   } catch (error) {
     console.error("Excepción en getUserByEmail:", error);
@@ -77,7 +105,7 @@ export async function createUser(userData: {
   role?: string;
   avatar?: string;
   provider: "google" | "credentials";
-  celular?: string; // ✅ NUEVO: Permitimos recibir el celular
+  celular?: string; 
 }) {
   if (!USERS_DB_ID || !NOTION_TOKEN) throw new Error("Faltan credenciales DB");
 
@@ -105,7 +133,7 @@ export async function createUser(userData: {
         "Rol": { select: { name: initialRole } },
         "AuthProvider": { select: { name: userData.provider } },
         "Avatar": { url: userData.avatar || null },
-        "Celular": { phone_number: userData.celular || null }, // ✅ NUEVO: Lo guardamos en Notion
+        "Celular": { phone_number: userData.celular || null }, 
       },
     }),
   });

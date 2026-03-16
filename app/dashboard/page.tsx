@@ -7,19 +7,16 @@ import OneSignal from 'react-onesignal';
 
 export default function DashboardPostulante() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  // ✅ NUEVOS ESTADOS PARA NOTIFICACIONES
   const [isNotifMenuOpen, setIsNotifMenuOpen] = useState(false);
   const [notificaciones, setNotificaciones] = useState<any[]>([]);
   
   const { data: session, status } = useSession();
 
-  // Vigilante de usuarios borrados
   useEffect(() => {
     // @ts-ignore
     if (session?.error === "UserDeleted") signOut({ callbackUrl: '/login' });
   }, [session]);
 
-  // ✅ NUEVO: Cargar notificaciones al iniciar
   const fetchNotificaciones = async () => {
     if (session?.user?.email) {
       try {
@@ -34,28 +31,19 @@ export default function DashboardPostulante() {
 
   useEffect(() => {
     fetchNotificaciones();
-    // Podríamos poner un setInterval aquí para que busque notificaciones nuevas cada minuto,
-    // pero por ahora lo cargamos al entrar al dashboard.
   }, [session]);
 
-  // ✅ NUEVO: Inicializar OneSignal y vincular el dispositivo al usuario
   useEffect(() => {
     const initOneSignal = async () => {
-      // Evitamos que se ejecute en el servidor (SSR)
       if (typeof window !== "undefined" && session?.user?.email) {
         try {
           await OneSignal.init({
             appId: process.env.NEXT_PUBLIC_ONESIGNAL_APP_ID || "",
-            // Permite probar en localhost sin problemas de HTTPS
             allowLocalhostAsSecureOrigin: true, 
           });
 
-          // Le mostramos la ventanita nativa pidiendo permiso
           OneSignal.Slidedown.promptPush();
-
-          // 🔥 ESTO ES VITAL: Le decimos a OneSignal a quién le pertenece este celular
           OneSignal.login(session.user.email);
-          
         } catch (error) {
           console.error("Error inicializando OneSignal:", error);
         }
@@ -65,16 +53,11 @@ export default function DashboardPostulante() {
     initOneSignal();
   }, [session]);
 
-  // ✅ FUNCIONES DE NOTIFICACIONES
   const unreadCount = notificaciones.filter(n => !n.leida).length;
 
   const marcarComoLeida = async (id: string, leidaActual: boolean) => {
-    if (leidaActual) return; // Si ya está leída, no hacemos nada
-    
-    // Actualización optimista en el frontend
+    if (leidaActual) return; 
     setNotificaciones(prev => prev.map(n => n.id === id ? { ...n, leida: true } : n));
-    
-    // Actualización silenciosa en el backend
     await fetch("/api/notifications", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
@@ -83,10 +66,7 @@ export default function DashboardPostulante() {
   };
 
   const borrarNotificacion = async (id: string) => {
-    // Quitamos la notificación de la pantalla al instante
     setNotificaciones(prev => prev.filter(n => n.id !== id));
-    
-    // Le decimos a Notion que la archive
     await fetch(`/api/notifications?id=${id}`, { method: "DELETE" });
   };
 
@@ -98,6 +78,9 @@ export default function DashboardPostulante() {
   const userEmail = session?.user?.email || "Sin correo";
   // @ts-ignore
   const userAvatar = session?.user?.avatar; 
+  // ✅ OBTENEMOS EL ESTATUS DESDE LA SESIÓN
+  // @ts-ignore
+  const userEstatus = session?.user?.estatus || "Registrado"; 
   
   const primerNombre = userName.split(" ")[0];
   const iniciales = userName.split(" ").map(n => n[0]).slice(0, 2).join("").toUpperCase();
@@ -115,6 +98,114 @@ export default function DashboardPostulante() {
     </div>
   );
 
+  // ✅ FUNCIÓN RENDERIZADORA DE ESTADOS (STATE-DRIVEN UI)
+  const renderStatusCard = () => {
+    switch (userEstatus) {
+      case "Aprobado para Entrevista":
+        return (
+          <div className="bg-[#111111] border border-yellow-500/30 rounded-2xl p-6 shadow-[0_0_30px_rgba(234,179,8,0.1)] relative overflow-hidden animate-in fade-in duration-500">
+            <div className="absolute top-0 left-0 w-1 h-full bg-yellow-500"></div>
+            <div className="flex justify-between items-start mb-4">
+              <div>
+                <span className="inline-block px-3 py-1 bg-yellow-500/10 border border-yellow-500/20 rounded-full text-[10px] font-bold text-yellow-500 uppercase tracking-widest mb-3">Siguiente Etapa</span>
+                <h2 className="text-xl font-bold mb-1">¡Felicidades, {primerNombre}! 🎉</h2>
+              </div>
+              <div className="w-12 h-12 rounded-full bg-yellow-500/10 flex items-center justify-center text-2xl shadow-[0_0_15px_rgba(234,179,8,0.2)]">
+                🗓️
+              </div>
+            </div>
+            <p className="text-sm text-gray-400 mb-5 leading-relaxed">Tu perfil ha destacado y has sido <strong>Aprobado para Entrevista</strong>. Prepárate para platicar con el equipo sobre tu experiencia y pasión por la tecnología.</p>
+            <button className="w-full py-3 bg-yellow-500 hover:bg-yellow-600 text-[#0a0a0a] font-black text-sm uppercase tracking-wider rounded-xl transition-colors shadow-lg shadow-yellow-500/20">
+              Agendar mi Entrevista
+            </button>
+          </div>
+        );
+
+      case "Aceptado":
+        return (
+          <div className="bg-[#111111] border border-green-500/30 rounded-2xl p-6 shadow-[0_0_30px_rgba(34,197,94,0.15)] relative overflow-hidden animate-in fade-in zoom-in duration-500">
+            <div className="absolute top-0 left-0 w-1 h-full bg-green-500"></div>
+            <div className="flex justify-between items-start mb-4">
+              <div>
+                <span className="inline-block px-3 py-1 bg-green-500/10 border border-green-500/20 rounded-full text-[10px] font-bold text-green-400 uppercase tracking-widest mb-3">Selección Final</span>
+                <h2 className="text-xl font-bold mb-1">¡Eres SIAFI, {primerNombre}! 🚀</h2>
+              </div>
+              <div className="w-12 h-12 rounded-full bg-green-500/10 flex items-center justify-center text-2xl shadow-[0_0_15px_rgba(34,197,94,0.2)]">
+                🏆
+              </div>
+            </div>
+            <p className="text-sm text-gray-300 mb-5 leading-relaxed">Nos emociona informarte que has sido <strong>Aceptado</strong> en la Sociedad de Inteligencia Artificial de la Facultad de Ingeniería. ¡Comienza el viaje!</p>
+            <button className="w-full py-3 bg-green-500 hover:bg-green-600 text-white font-black text-sm uppercase tracking-wider rounded-xl transition-colors shadow-lg shadow-green-500/20">
+              Ir a mi nuevo Dashboard
+            </button>
+          </div>
+        );
+
+      case "No Seleccionado":
+      case "Rechazado":
+        const esFiltro = userEstatus === "No Seleccionado";
+        return (
+          <div className="bg-[#111111] border border-gray-800 rounded-2xl p-6 relative overflow-hidden opacity-90 animate-in fade-in duration-500">
+            <div className="absolute top-0 left-0 w-1 h-full bg-gray-600"></div>
+            <div className="flex justify-between items-start mb-4">
+              <div>
+                <span className="inline-block px-3 py-1 bg-gray-800 rounded-full text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3">Proceso Concluido</span>
+                <h2 className="text-lg font-bold mb-1">Hola, {primerNombre}.</h2>
+              </div>
+              <div className="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center text-xl">
+                ✉️
+              </div>
+            </div>
+            <p className="text-sm text-gray-400 leading-relaxed mb-4">
+              {esFiltro 
+                ? "Agradecemos muchísimo el interés mostrado en tu registro. En esta ocasión, no has sido seleccionado para avanzar a la etapa de entrevistas debido al alto volumen y perfil de las candidaturas." 
+                : "Agradecemos profundamente el tiempo que dedicaste en la entrevista. En esta ocasión, hemos decidido avanzar con otros perfiles que se alinean más de cerca con las necesidades actuales del núcleo."}
+            </p>
+            <p className="text-sm text-gray-500 italic">Te animamos a seguir preparándote e intentarlo en nuestra próxima convocatoria. ¡Mucho éxito!</p>
+          </div>
+        );
+
+      case "Registrado":
+      default:
+        return (
+          <div className="bg-[#111111] border border-[#0051ff]/30 rounded-2xl p-6 shadow-[0_0_30px_rgba(0,81,255,0.1)] relative overflow-hidden animate-in fade-in duration-500">
+            <div className="absolute top-0 left-0 w-1 h-full bg-[#0051ff]"></div>
+            <div className="flex justify-between items-start mb-6">
+              <div>
+                <h2 className="text-xl font-bold mb-1">Hola, {primerNombre} 👋</h2>
+                <p className="text-sm text-gray-400">Bienvenid@ a tu panel SIAFI.</p>
+              </div>
+              <div className="w-10 h-10 rounded-full bg-[#00baff]/10 flex items-center justify-center text-xl shadow-[0_0_15px_rgba(0,186,255,0.2)]">
+                📝
+              </div>
+            </div>
+
+            <div className="bg-[#0a0a0a] border border-gray-800 rounded-xl p-5">
+              <p className="text-xs text-gray-500 uppercase tracking-widest font-bold mb-4">Línea de Tiempo de Postulación</p>
+              
+              {/* Stepper Simple */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-6 h-6 rounded-full bg-[#0051ff] text-white flex items-center justify-center text-xs shadow-[0_0_10px_rgba(0,81,255,0.5)]">✓</div>
+                  <p className="text-sm font-bold text-white">Registro Exitoso</p>
+                </div>
+                <div className="w-0.5 h-4 bg-gray-800 ml-3"></div>
+                <div className="flex items-center gap-3">
+                  <div className="w-6 h-6 rounded-full bg-[#0a0a0a] border-2 border-[#00baff] text-[#00baff] flex items-center justify-center text-xs animate-pulse">●</div>
+                  <p className="text-sm font-bold text-[#00baff]">Revisión de Perfil</p>
+                </div>
+                <div className="w-0.5 h-4 bg-gray-800 ml-3"></div>
+                <div className="flex items-center gap-3 opacity-40">
+                  <div className="w-6 h-6 rounded-full bg-gray-800 flex items-center justify-center text-xs text-gray-500">3</div>
+                  <p className="text-sm font-medium text-gray-500">Entrevista</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white font-sans overflow-hidden">
       
@@ -123,7 +214,6 @@ export default function DashboardPostulante() {
           ========================================== */}
       <header className="fixed top-0 w-full h-16 bg-[#111111]/90 backdrop-blur-md border-b border-gray-800 z-40 flex items-center justify-between px-5">
         
-        {/* ✅ BOTÓN DE CAMPANA (Notificaciones) */}
         <button 
           onClick={() => setIsNotifMenuOpen(true)}
           className="relative p-2 text-gray-400 hover:text-white transition-colors"
@@ -131,7 +221,6 @@ export default function DashboardPostulante() {
           <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
           </svg>
-          {/* ✅ PUNTO ROJO INTELIGENTE */}
           {unreadCount > 0 && (
             <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-red-500 border-2 border-[#111111] rounded-full animate-pulse"></span>
           )}
@@ -191,7 +280,7 @@ export default function DashboardPostulante() {
       </div>
 
       {/* ==========================================
-          ✅ MENÚ LATERAL IZQUIERDO (NOTIFICACIONES)
+          MENÚ LATERAL IZQUIERDO (NOTIFICACIONES)
           ========================================== */}
       <div className={`fixed top-0 left-0 h-full w-80 bg-[#111111] border-r border-gray-800 z-50 transform transition-transform duration-300 ease-in-out flex flex-col ${isNotifMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         
@@ -216,12 +305,10 @@ export default function DashboardPostulante() {
                 onClick={() => marcarComoLeida(notif.id, notif.leida)}
                 className={`p-5 border-b border-gray-800/50 cursor-pointer transition-all relative group flex gap-4 items-start ${!notif.leida ? 'bg-[#0051ff]/10' : 'hover:bg-[#1f2937]/30'}`}
               >
-                {/* Indicador de No Leída */}
                 {!notif.leida && (
                   <div className="absolute left-0 top-0 w-1 h-full bg-[#00baff]"></div>
                 )}
                 
-                {/* Ícono de la Notificación */}
                 <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${!notif.leida ? 'bg-[#0051ff]/20 text-[#00baff]' : 'bg-gray-800 text-gray-400'}`}>
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                 </div>
@@ -236,7 +323,6 @@ export default function DashboardPostulante() {
                   </p>
                 </div>
 
-                {/* ✅ BOTÓN DE BORRAR (Aparece en hover en PC, o siempre sutil en móvil) */}
                 <button 
                   onClick={(e) => { e.stopPropagation(); borrarNotificacion(notif.id); }} 
                   className="absolute right-3 top-1/2 -translate-y-1/2 p-2 text-gray-500 hover:text-red-400 hover:bg-red-400/10 rounded-xl transition-all opacity-0 group-hover:opacity-100"
@@ -251,23 +337,13 @@ export default function DashboardPostulante() {
       </div>
 
       {/* ==========================================
-          CONTENIDO PRINCIPAL
+          CONTENIDO PRINCIPAL (AHORA DINÁMICO)
           ========================================== */}
       <main className="pt-24 pb-28 px-5 max-w-lg mx-auto min-h-screen flex flex-col gap-6">
-        <div className="bg-[#111111] border border-gray-800 rounded-2xl p-6 shadow-xl relative overflow-hidden">
-          <div className="absolute top-0 left-0 w-1 h-full bg-[#0051ff]"></div>
-          <h2 className="text-xl font-bold mb-1">Hola, {primerNombre} 👋</h2>
-          <p className="text-sm text-gray-400 mb-5">Bienvenid@ a tu panel de control SIAFI.</p>
-          <div className="bg-[#0a0a0a] border border-gray-800 rounded-xl p-4 flex items-center justify-between">
-            <div>
-              <p className="text-xs text-gray-500 uppercase tracking-widest font-bold mb-1">Estatus Actual</p>
-              <p className="text-sm font-semibold text-[#00baff]">Postulación Recibida</p>
-            </div>
-            <div className="w-10 h-10 rounded-full bg-[#00baff]/10 flex items-center justify-center text-xl shadow-[0_0_15px_rgba(0,186,255,0.2)]">
-              📝
-            </div>
-          </div>
-        </div>
+        
+        {/* Renderiza la tarjeta correspondiente al estado del usuario */}
+        {renderStatusCard()}
+
       </main>
 
       {/* ==========================================
@@ -286,7 +362,6 @@ export default function DashboardPostulante() {
             <span className="text-[9px] font-medium tracking-wide">Perfil</span>
           </button>
 
-          {/* ✅ BOTÓN CENTRAL AZUL AJUSTADO */}
           <div className="absolute left-1/2 -translate-x-1/2 -top-4">
             <button className="w-16 h-16 bg-gradient-to-tr from-[#0051ff] to-[#00baff] rounded-full flex items-center justify-center shadow-[0_0_20px_rgba(0,186,255,0.4)] border-[6px] border-[#0a0a0a] hover:scale-105 transition-transform">
               <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">

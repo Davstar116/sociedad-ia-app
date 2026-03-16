@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useSession, signOut } from "next-auth/react"; 
 import Link from "next/link"; 
 import OneSignal from 'react-onesignal';
@@ -10,7 +10,16 @@ export default function DashboardPostulante() {
   const [isNotifMenuOpen, setIsNotifMenuOpen] = useState(false);
   const [notificaciones, setNotificaciones] = useState<any[]>([]);
   
-  const { data: session, status } = useSession();
+  const { data: session, status, update } = useSession();
+  const hasRefreshed = useRef(false);
+
+  // ✅ NUEVO: Actualización silenciosa de estatus al entrar
+  useEffect(() => {
+    if (status === "authenticated" && !hasRefreshed.current) {
+      update(); // Refresca los datos en segundo plano
+      hasRefreshed.current = true;
+    }
+  }, [status, update]);
 
   useEffect(() => {
     // @ts-ignore
@@ -78,7 +87,6 @@ export default function DashboardPostulante() {
   const userEmail = session?.user?.email || "Sin correo";
   // @ts-ignore
   const userAvatar = session?.user?.avatar; 
-  // ✅ OBTENEMOS EL ESTATUS DESDE LA SESIÓN
   // @ts-ignore
   const userEstatus = session?.user?.estatus || "Registrado"; 
   
@@ -98,110 +106,143 @@ export default function DashboardPostulante() {
     </div>
   );
 
-  // ✅ FUNCIÓN RENDERIZADORA DE ESTADOS (STATE-DRIVEN UI)
-  const renderStatusCard = () => {
+  const renderDashboardContent = () => {
     switch (userEstatus) {
       case "Aprobado para Entrevista":
         return (
-          <div className="bg-[#111111] border border-yellow-500/30 rounded-2xl p-6 shadow-[0_0_30px_rgba(234,179,8,0.1)] relative overflow-hidden animate-in fade-in duration-500">
-            <div className="absolute top-0 left-0 w-1 h-full bg-yellow-500"></div>
-            <div className="flex justify-between items-start mb-4">
-              <div>
-                <span className="inline-block px-3 py-1 bg-yellow-500/10 border border-yellow-500/20 rounded-full text-[10px] font-bold text-yellow-500 uppercase tracking-widest mb-3">Siguiente Etapa</span>
-                <h2 className="text-xl font-bold mb-1">¡Felicidades, {primerNombre}! 🎉</h2>
+          <main className="pt-24 pb-28 px-5 max-w-lg mx-auto min-h-screen flex flex-col items-center justify-center gap-6 animate-in zoom-in-95 fade-in duration-500">
+            <div className="text-center w-full">
+              <div className="w-28 h-28 bg-yellow-500/10 text-yellow-500 rounded-full flex items-center justify-center text-6xl mx-auto mb-6 shadow-[0_0_50px_rgba(234,179,8,0.2)] animate-bounce">
+                🌟
               </div>
-              <div className="w-12 h-12 rounded-full bg-yellow-500/10 flex items-center justify-center text-2xl shadow-[0_0_15px_rgba(234,179,8,0.2)]">
-                🗓️
-              </div>
+              <h2 className="text-3xl font-black mb-2 text-white tracking-tight">¡Aprobado!</h2>
+              <p className="text-yellow-500 font-bold tracking-widest uppercase text-xs mb-8">Siguiente Etapa: Entrevista</p>
             </div>
-            <p className="text-sm text-gray-400 mb-5 leading-relaxed">Tu perfil ha destacado y has sido <strong>Aprobado para Entrevista</strong>. Prepárate para platicar con el equipo sobre tu experiencia y pasión por la tecnología.</p>
-            <button className="w-full py-3 bg-yellow-500 hover:bg-yellow-600 text-[#0a0a0a] font-black text-sm uppercase tracking-wider rounded-xl transition-colors shadow-lg shadow-yellow-500/20">
-              Agendar mi Entrevista
-            </button>
-          </div>
+            
+            <div className="bg-[#111111] border border-yellow-500/30 rounded-3xl p-8 text-center shadow-2xl relative overflow-hidden w-full">
+              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-yellow-600 to-yellow-400"></div>
+              <p className="text-gray-300 text-sm leading-relaxed mb-8">
+                Felicidades <strong>{primerNombre}</strong>, tu perfil ha destacado entre los demás postulantes. Queremos conocerte mejor, platicar sobre tu visión y tu pasión por la inteligencia artificial.
+              </p>
+              <button className="w-full py-4 bg-gradient-to-r from-yellow-500 to-yellow-400 hover:from-yellow-400 hover:to-yellow-300 text-[#0a0a0a] font-black text-sm uppercase tracking-wider rounded-xl transition-all shadow-lg shadow-yellow-500/20 active:scale-95">
+                Agendar Entrevista
+              </button>
+            </div>
+          </main>
         );
 
       case "Aceptado":
         return (
-          <div className="bg-[#111111] border border-green-500/30 rounded-2xl p-6 shadow-[0_0_30px_rgba(34,197,94,0.15)] relative overflow-hidden animate-in fade-in zoom-in duration-500">
-            <div className="absolute top-0 left-0 w-1 h-full bg-green-500"></div>
-            <div className="flex justify-between items-start mb-4">
-              <div>
-                <span className="inline-block px-3 py-1 bg-green-500/10 border border-green-500/20 rounded-full text-[10px] font-bold text-green-400 uppercase tracking-widest mb-3">Selección Final</span>
-                <h2 className="text-xl font-bold mb-1">¡Eres SIAFI, {primerNombre}! 🚀</h2>
+          <main className="pt-24 pb-28 px-5 max-w-lg mx-auto min-h-screen flex flex-col items-center justify-center gap-6 animate-in slide-in-from-bottom-10 fade-in duration-700">
+            <div className="text-center w-full">
+              <div className="w-28 h-28 bg-green-500/10 text-green-400 rounded-full flex items-center justify-center text-6xl mx-auto mb-6 shadow-[0_0_50px_rgba(34,197,94,0.3)]">
+                🚀
               </div>
-              <div className="w-12 h-12 rounded-full bg-green-500/10 flex items-center justify-center text-2xl shadow-[0_0_15px_rgba(34,197,94,0.2)]">
-                🏆
+              <h2 className="text-4xl font-black mb-2 text-white tracking-tight">¡Eres SIAFI!</h2>
+              <p className="text-green-400 font-bold tracking-widest uppercase text-xs mb-8">Selección Final 2026</p>
+            </div>
+            
+            <div className="bg-[#111111] border border-green-500/30 rounded-3xl p-8 text-center shadow-2xl relative overflow-hidden w-full">
+              <div className="absolute inset-0 bg-green-500/5 backdrop-blur-3xl"></div>
+              <div className="relative z-10">
+                <p className="text-gray-300 text-sm leading-relaxed mb-8">
+                  Nos emociona muchísimo informarte que has sido oficialmente <strong>Aceptado</strong> en la Sociedad de Inteligencia Artificial de la Facultad de Ingeniería. ¡Comienza una nueva etapa llena de aprendizaje!
+                </p>
+                <button className="w-full py-4 bg-green-500 hover:bg-green-400 text-[#0a0a0a] font-black text-sm uppercase tracking-wider rounded-xl transition-all shadow-lg shadow-green-500/20 active:scale-95">
+                  Ir al Workspace Oficial
+                </button>
               </div>
             </div>
-            <p className="text-sm text-gray-300 mb-5 leading-relaxed">Nos emociona informarte que has sido <strong>Aceptado</strong> en la Sociedad de Inteligencia Artificial de la Facultad de Ingeniería. ¡Comienza el viaje!</p>
-            <button className="w-full py-3 bg-green-500 hover:bg-green-600 text-white font-black text-sm uppercase tracking-wider rounded-xl transition-colors shadow-lg shadow-green-500/20">
-              Ir a mi nuevo Dashboard
-            </button>
-          </div>
+          </main>
         );
 
       case "No Seleccionado":
       case "Rechazado":
         const esFiltro = userEstatus === "No Seleccionado";
         return (
-          <div className="bg-[#111111] border border-gray-800 rounded-2xl p-6 relative overflow-hidden opacity-90 animate-in fade-in duration-500">
-            <div className="absolute top-0 left-0 w-1 h-full bg-gray-600"></div>
-            <div className="flex justify-between items-start mb-4">
-              <div>
-                <span className="inline-block px-3 py-1 bg-gray-800 rounded-full text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3">Proceso Concluido</span>
-                <h2 className="text-lg font-bold mb-1">Hola, {primerNombre}.</h2>
-              </div>
-              <div className="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center text-xl">
+          <main className="pt-24 pb-28 px-5 max-w-lg mx-auto min-h-screen flex flex-col items-center justify-center gap-6 animate-in fade-in duration-700 opacity-90">
+            <div className="text-center w-full mt-4">
+              <div className="w-24 h-24 bg-gray-800 text-gray-400 rounded-full flex items-center justify-center text-5xl mx-auto mb-6 shadow-inner">
                 ✉️
               </div>
+              <h2 className="text-2xl font-bold mb-2 text-white">Hola, {primerNombre}.</h2>
+              <p className="text-gray-500 font-bold tracking-widest uppercase text-xs mb-8">Proceso Concluido</p>
             </div>
-            <p className="text-sm text-gray-400 leading-relaxed mb-4">
-              {esFiltro 
-                ? "Agradecemos muchísimo el interés mostrado en tu registro. En esta ocasión, no has sido seleccionado para avanzar a la etapa de entrevistas debido al alto volumen y perfil de las candidaturas." 
-                : "Agradecemos profundamente el tiempo que dedicaste en la entrevista. En esta ocasión, hemos decidido avanzar con otros perfiles que se alinean más de cerca con las necesidades actuales del núcleo."}
-            </p>
-            <p className="text-sm text-gray-500 italic">Te animamos a seguir preparándote e intentarlo en nuestra próxima convocatoria. ¡Mucho éxito!</p>
-          </div>
+            
+            <div className="bg-[#111111] border border-gray-800 rounded-3xl p-8 text-center shadow-2xl w-full">
+              <p className="text-gray-400 text-sm leading-relaxed mb-8">
+                {esFiltro 
+                  ? "Agradecemos muchísimo el interés mostrado en tu registro. En esta ocasión, debido al alto volumen y perfil de las candidaturas, no has sido seleccionado para avanzar a la etapa de entrevistas." 
+                  : "Agradecemos profundamente el tiempo y esfuerzo que dedicaste en la entrevista. En esta ocasión, hemos decidido avanzar con otros perfiles que se alinean más de cerca con las necesidades actuales de SIAFI."}
+              </p>
+              <div className="p-4 bg-gray-900/50 rounded-xl border border-gray-800/50">
+                <p className="text-gray-500 text-[11px] leading-relaxed italic">
+                  No te desanimes. Te invitamos a seguir preparándote e intentarlo de nuevo en nuestra próxima convocatoria. ¡Te deseamos mucho éxito en todos tus proyectos!
+                </p>
+              </div>
+            </div>
+          </main>
         );
 
       case "Registrado":
       default:
         return (
-          <div className="bg-[#111111] border border-[#0051ff]/30 rounded-2xl p-6 shadow-[0_0_30px_rgba(0,81,255,0.1)] relative overflow-hidden animate-in fade-in duration-500">
-            <div className="absolute top-0 left-0 w-1 h-full bg-[#0051ff]"></div>
-            <div className="flex justify-between items-start mb-6">
-              <div>
-                <h2 className="text-xl font-bold mb-1">Hola, {primerNombre} 👋</h2>
-                <p className="text-sm text-gray-400">Bienvenid@ a tu panel SIAFI.</p>
-              </div>
-              <div className="w-10 h-10 rounded-full bg-[#00baff]/10 flex items-center justify-center text-xl shadow-[0_0_15px_rgba(0,186,255,0.2)]">
-                📝
+          <main className="pt-24 pb-28 px-5 max-w-lg mx-auto min-h-screen flex flex-col gap-6 animate-in fade-in duration-500">
+            <div className="bg-[#111111] border border-gray-800 rounded-2xl p-6 shadow-xl relative overflow-hidden">
+              <div className="absolute top-0 left-0 w-1 h-full bg-[#0051ff]"></div>
+              <h2 className="text-xl font-bold mb-1">Hola, {primerNombre} 👋</h2>
+              <p className="text-sm text-gray-400 mb-5">Bienvenid@ a tu panel de control SIAFI.</p>
+              
+              <div className="bg-[#0a0a0a] border border-gray-800 rounded-xl p-4 flex items-center justify-between">
+                <div>
+                  <p className="text-xs text-gray-500 uppercase tracking-widest font-bold mb-1">Estatus Actual</p>
+                  <p className="text-sm font-semibold text-[#00baff]">Postulación Recibida</p>
+                </div>
+                <div className="w-10 h-10 rounded-full bg-[#00baff]/10 flex items-center justify-center text-xl shadow-[0_0_15px_rgba(0,186,255,0.2)]">
+                  📝
+                </div>
               </div>
             </div>
 
-            <div className="bg-[#0a0a0a] border border-gray-800 rounded-xl p-5">
-              <p className="text-xs text-gray-500 uppercase tracking-widest font-bold mb-4">Línea de Tiempo de Postulación</p>
+            <div className="bg-[#111111] border border-gray-800 rounded-2xl p-6 shadow-xl relative overflow-hidden">
+              <h3 className="text-sm font-bold text-white mb-6 uppercase tracking-wider flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-[#0051ff]"></span>
+                Línea de Tiempo
+              </h3>
               
-              {/* Stepper Simple */}
-              <div className="space-y-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-6 h-6 rounded-full bg-[#0051ff] text-white flex items-center justify-center text-xs shadow-[0_0_10px_rgba(0,81,255,0.5)]">✓</div>
-                  <p className="text-sm font-bold text-white">Registro Exitoso</p>
+              <div className="space-y-6">
+                <div className="flex items-start gap-4">
+                  <div className="w-8 h-8 rounded-full bg-[#0051ff] text-white flex items-center justify-center text-sm shadow-[0_0_15px_rgba(0,81,255,0.4)] shrink-0 z-10 relative">✓</div>
+                  <div className="pt-1">
+                    <p className="text-sm font-bold text-white mb-1">Registro Completado</p>
+                    <p className="text-xs text-gray-500 leading-relaxed">Tus datos básicos y cuenta han sido creados exitosamente.</p>
+                  </div>
                 </div>
-                <div className="w-0.5 h-4 bg-gray-800 ml-3"></div>
-                <div className="flex items-center gap-3">
-                  <div className="w-6 h-6 rounded-full bg-[#0a0a0a] border-2 border-[#00baff] text-[#00baff] flex items-center justify-center text-xs animate-pulse">●</div>
-                  <p className="text-sm font-bold text-[#00baff]">Revisión de Perfil</p>
+                
+                <div className="absolute left-[39px] top-[95px] w-0.5 h-12 bg-gradient-to-b from-[#0051ff] to-[#0a0a0a]"></div>
+                
+                <div className="flex items-start gap-4">
+                  <div className="w-8 h-8 rounded-full bg-[#0a0a0a] border-2 border-[#00baff] text-[#00baff] flex items-center justify-center text-sm shadow-[0_0_15px_rgba(0,186,255,0.2)] animate-pulse shrink-0 z-10 relative">
+                    <span className="w-2 h-2 rounded-full bg-[#00baff]"></span>
+                  </div>
+                  <div className="pt-1">
+                    <p className="text-sm font-bold text-[#00baff] mb-1">Revisión de Perfil</p>
+                    <p className="text-xs text-gray-400 leading-relaxed">El equipo está analizando tus respuestas y perfil. Te notificaremos pronto.</p>
+                  </div>
                 </div>
-                <div className="w-0.5 h-4 bg-gray-800 ml-3"></div>
-                <div className="flex items-center gap-3 opacity-40">
-                  <div className="w-6 h-6 rounded-full bg-gray-800 flex items-center justify-center text-xs text-gray-500">3</div>
-                  <p className="text-sm font-medium text-gray-500">Entrevista</p>
+
+                <div className="absolute left-[39px] top-[175px] w-0.5 h-12 bg-gray-800"></div>
+
+                <div className="flex items-start gap-4 opacity-40">
+                  <div className="w-8 h-8 rounded-full bg-gray-800 text-gray-500 flex items-center justify-center text-sm shrink-0 z-10 relative">3</div>
+                  <div className="pt-1">
+                    <p className="text-sm font-bold text-gray-400 mb-1">Entrevista</p>
+                    <p className="text-xs text-gray-500 leading-relaxed">Fase exclusiva para perfiles seleccionados.</p>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
+          </main>
         );
     }
   };
@@ -209,11 +250,7 @@ export default function DashboardPostulante() {
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white font-sans overflow-hidden">
       
-      {/* ==========================================
-          CINTILLO SUPERIOR (TOP BAR)
-          ========================================== */}
       <header className="fixed top-0 w-full h-16 bg-[#111111]/90 backdrop-blur-md border-b border-gray-800 z-40 flex items-center justify-between px-5">
-        
         <button 
           onClick={() => setIsNotifMenuOpen(true)}
           className="relative p-2 text-gray-400 hover:text-white transition-colors"
@@ -238,9 +275,6 @@ export default function DashboardPostulante() {
         </button>
       </header>
 
-      {/* ==========================================
-          OVERLAY OSCURO COMPARTIDO
-          ========================================== */}
       {(isMenuOpen || isNotifMenuOpen) && (
         <div 
           className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 transition-opacity"
@@ -248,9 +282,6 @@ export default function DashboardPostulante() {
         />
       )}
       
-      {/* ==========================================
-          MENÚ LATERAL DERECHO (PERFIL)
-          ========================================== */}
       <div className={`fixed top-0 right-0 h-full w-72 bg-[#111111] border-l border-gray-800 z-50 transform transition-transform duration-300 ease-in-out flex flex-col ${isMenuOpen ? 'translate-x-0' : 'translate-x-full'}`}>
         <div className="p-6 border-b border-gray-800 flex justify-between items-start">
           <div className="flex items-center gap-4 pr-4">
@@ -279,11 +310,7 @@ export default function DashboardPostulante() {
         </div>
       </div>
 
-      {/* ==========================================
-          MENÚ LATERAL IZQUIERDO (NOTIFICACIONES)
-          ========================================== */}
       <div className={`fixed top-0 left-0 h-full w-80 bg-[#111111] border-r border-gray-800 z-50 transform transition-transform duration-300 ease-in-out flex flex-col ${isNotifMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}>
-        
         <div className="p-5 border-b border-gray-800 flex justify-between items-center bg-[#0a0a0a]">
           <h2 className="text-lg font-bold text-white flex items-center gap-2">
             <svg className="w-5 h-5 text-[#00baff]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
@@ -305,14 +332,10 @@ export default function DashboardPostulante() {
                 onClick={() => marcarComoLeida(notif.id, notif.leida)}
                 className={`p-5 border-b border-gray-800/50 cursor-pointer transition-all relative group flex gap-4 items-start ${!notif.leida ? 'bg-[#0051ff]/10' : 'hover:bg-[#1f2937]/30'}`}
               >
-                {!notif.leida && (
-                  <div className="absolute left-0 top-0 w-1 h-full bg-[#00baff]"></div>
-                )}
-                
+                {!notif.leida && <div className="absolute left-0 top-0 w-1 h-full bg-[#00baff]"></div>}
                 <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${!notif.leida ? 'bg-[#0051ff]/20 text-[#00baff]' : 'bg-gray-800 text-gray-400'}`}>
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                 </div>
-
                 <div className="flex-1 pr-6">
                   <div className="flex justify-between items-start mb-1 gap-2">
                     <h3 className={`text-sm ${!notif.leida ? 'font-bold text-white' : 'font-medium text-gray-300'}`}>{notif.asunto}</h3>
@@ -322,7 +345,6 @@ export default function DashboardPostulante() {
                     {new Date(notif.fecha).toLocaleDateString('es-MX', { day: 'numeric', month: 'short', hour: '2-digit', minute:'2-digit' })}
                   </p>
                 </div>
-
                 <button 
                   onClick={(e) => { e.stopPropagation(); borrarNotificacion(notif.id); }} 
                   className="absolute right-3 top-1/2 -translate-y-1/2 p-2 text-gray-500 hover:text-red-400 hover:bg-red-400/10 rounded-xl transition-all opacity-0 group-hover:opacity-100"
@@ -336,19 +358,8 @@ export default function DashboardPostulante() {
         </div>
       </div>
 
-      {/* ==========================================
-          CONTENIDO PRINCIPAL (AHORA DINÁMICO)
-          ========================================== */}
-      <main className="pt-24 pb-28 px-5 max-w-lg mx-auto min-h-screen flex flex-col gap-6">
-        
-        {/* Renderiza la tarjeta correspondiente al estado del usuario */}
-        {renderStatusCard()}
+      {renderDashboardContent()}
 
-      </main>
-
-      {/* ==========================================
-          CINTILLO INFERIOR (BOTTOM NAV)
-          ========================================== */}
       <nav className="fixed bottom-0 w-full bg-[#111111]/90 backdrop-blur-md border-t border-gray-800 z-40 pb-safe">
         <div className="flex justify-between items-center h-16 px-6 relative max-w-lg mx-auto">
           

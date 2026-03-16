@@ -13,6 +13,8 @@ export default function SettingsPage() {
   
   const [showPasswordFields, setShowPasswordFields] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
+  // ✅ NUEVO ESTADO: Para el modal de olvidó contraseña
+  const [showForgotModal, setShowForgotModal] = useState(false);
 
   const [formData, setFormData] = useState({
     nombre: "",
@@ -28,20 +30,15 @@ export default function SettingsPage() {
     if (session?.error === "UserDeleted") signOut({ callbackUrl: '/login' });
   }, [session]);
 
-  // Cargar datos frescos desde la API
+  // ✅ CARGA INMEDIATA DESDE LA SESIÓN MÁGICA
   useEffect(() => {
-    if (session?.user?.email) {
-      fetch(`/api/user/update?email=${session.user.email}`)
-        .then(res => res.json())
-        .then(data => {
-          if (data.nombre) {
-            setFormData(prev => ({
-              ...prev,
-              nombre: data.nombre,
-              celular: data.celular || "",
-            }));
-          }
-        });
+    if (session?.user) {
+      setFormData(prev => ({
+        ...prev,
+        nombre: session.user.name || "",
+        // @ts-ignore
+        celular: session.user.celular || "",
+      }));
     }
   }, [session]);
 
@@ -59,10 +56,9 @@ export default function SettingsPage() {
     setFormData(prev => ({ ...prev, currentPassword: "", newPassword: "", confirmPassword: "" }));
   };
 
-  // Función para recuperación de contraseña
-  const handleForgotPassword = async () => {
-    if(!confirm("¿Deseas restablecer tu contraseña? Se enviará una clave temporal a tu correo.")) return;
-    
+  // ✅ NUEVA FUNCIÓN: Ahora controlada por el Modal Oscuro
+  const confirmForgotPassword = async () => {
+    setShowForgotModal(false);
     setLoading(true);
     setMensaje({ tipo: "", texto: "Generando nueva contraseña..." });
     
@@ -202,7 +198,7 @@ export default function SettingsPage() {
                     <input type="password" name="confirmPassword" value={formData.confirmPassword} onChange={handleChange} className="w-full bg-[#0a0a0a] border border-gray-800 rounded-xl p-3 text-sm focus:border-[#0051ff] focus:ring-1 focus:ring-[#0051ff]/30 outline-none transition-all placeholder:text-gray-600" placeholder="Repite tu nueva contraseña" />
                   </div>
                   <div className="flex justify-between items-center pt-2">
-                    <button type="button" onClick={handleForgotPassword} className="text-xs text-[#00baff] hover:underline font-bold tracking-wider transition-colors">
+                    <button type="button" onClick={() => setShowForgotModal(true)} className="text-xs text-[#00baff] hover:underline font-bold tracking-wider transition-colors">
                       ¿Olvidé mi contraseña?
                     </button>
                     <button type="button" onClick={handleCancelPasswordChange} className="text-xs text-red-400 hover:text-red-300 font-bold uppercase tracking-wider transition-colors">
@@ -226,13 +222,13 @@ export default function SettingsPage() {
         </form>
       </main>
 
-      {/* MODAL REDISEÑADO */}
+      {/* MODAL 1: MODIFICAR CONTRASEÑA (CON ASTERISCOS Y AZUL) */}
       {showConfirmModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
           <div className="bg-[#111111] border border-gray-800 rounded-2xl p-6 max-w-sm w-full shadow-2xl scale-in-95 duration-200">
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-full bg-[#0051ff]/10 flex items-center justify-center text-[#00baff] shrink-0">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4v-3.828l7.172-7.172A6 6 0 0115 7h.01z" /></svg>
+              <div className="w-10 h-10 rounded-full bg-[#0051ff]/10 flex items-center justify-center text-[#00baff] shrink-0 font-black text-xl pt-1">
+                ***
               </div>
               <h3 className="text-white font-bold text-lg">Modificar Contraseña</h3>
             </div>
@@ -250,6 +246,32 @@ export default function SettingsPage() {
           </div>
         </div>
       )}
+
+      {/* MODAL 2: OLVIDÓ CONTRASEÑA */}
+      {showForgotModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-[#111111] border border-gray-800 rounded-2xl p-6 max-w-sm w-full shadow-2xl scale-in-95 duration-200">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-full bg-red-500/10 flex items-center justify-center text-red-500 shrink-0">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+              </div>
+              <h3 className="text-white font-bold text-lg">Recuperar Acceso</h3>
+            </div>
+            <p className="text-gray-400 text-sm mb-6 leading-relaxed">
+              ¿Deseas restablecer tu contraseña? Se generará una clave temporal segura y se te enviará a tu correo electrónico.
+            </p>
+            <div className="flex gap-3">
+              <button onClick={() => setShowForgotModal(false)} className="flex-1 py-3 rounded-xl font-bold text-sm text-gray-300 bg-[#1f2937] hover:bg-[#374151] transition-colors">
+                Cancelar
+              </button>
+              <button onClick={confirmForgotPassword} className="flex-1 py-3 rounded-xl font-bold text-sm text-white bg-red-600 hover:bg-red-700 transition-colors shadow-lg shadow-red-600/20">
+                Sí, restablecer
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

@@ -23,7 +23,7 @@ export function PasswordUpdateEmailTemplate({ nombre, baseUrl, newPassword, emai
             <td align="center">
             <table width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width: 600px; background-color: #111111; border: 1px solid #1f2937; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
                 
-                <tr><td style="height: 4px; background-color: #ef4444;"></td></tr>
+                <tr><td style="height: 4px; background-color: #00baff;"></td></tr>
                 
                 <tr>
                 <td style="padding: 20px 24px; background-color: #000000; border-bottom: 1px solid #1f2937;">
@@ -48,7 +48,7 @@ export function PasswordUpdateEmailTemplate({ nombre, baseUrl, newPassword, emai
                     </p>
                     
                     ${newPassword ? `
-                    <div style="background-color: #0a0a0a; border: 1px solid #ef4444; border-radius: 12px; padding: 20px; margin-bottom: 30px;">
+                    <div style="background-color: #0a0a0a; border: 1px solid #0051ff; border-radius: 12px; padding: 20px; margin-bottom: 30px;">
                         <p style="margin: 0 0 10px 0; font-size: 13px; color: #ef4444; text-transform: uppercase; letter-spacing: 1px; font-weight: bold;">Tus Nuevas Credenciales</p>
                         <p style="margin: 0 0 8px 0; font-size: 15px; color: #ffffff;"><span style="color: #6b7280;">Usuario:</span> ${emailUsuario}</p>
                         <p style="margin: 0; font-size: 15px; color: #ffffff;"><span style="color: #6b7280;">Nueva Contraseña:</span> <strong style="letter-spacing: 2px; font-family: monospace; background-color: #1f2937; padding: 2px 6px; border-radius: 4px;">${newPassword}</strong></p>
@@ -58,14 +58,48 @@ export function PasswordUpdateEmailTemplate({ nombre, baseUrl, newPassword, emai
                     <div style="background-color: #111111; border-left: 4px solid #00baff; padding: 20px; margin-bottom: 30px;">
                         <p style="margin: 0 0 8px 0; font-size: 14px; color: #ffffff; font-weight: bold;">¿No fuiste tú?</p>
                         <p style="margin: 0; font-size: 14px; color: #9ca3af; line-height: 1.5;">
-                            Si no realizaste este cambio, por favor contáctanos inmediatamente a soporte para proteger tu cuenta.
+                            Si no realizaste este cambio, por favor escríbenos inmediatamente al correo <strong>siafi.reclutamiento@gmail.com</strong> para proteger tu cuenta.
                         </p>
                     </div>
                     
-                    <p style="margin: 0; color: #9ca3af; font-size: 14px; line-height: 1.6;">
+                    <p style="margin: 0 0 30px 0; color: #9ca3af; font-size: 14px; line-height: 1.6;">
                     Atentamente,<br />
                     <strong style="color: #ffffff;">Equipo de Seguridad SophIA</strong><br />
                     SIAFI - UNAM
+                    </p>
+
+                    <table width="100%" cellpadding="0" cellspacing="0" border="0" style="border-top: 1px solid #1f2937; padding-top: 25px;">
+                        <tr>
+                            <td align="center">
+                                <p style="margin: 0 0 15px 0; font-size: 12px; color: #6b7280; font-weight: bold; text-transform: uppercase; letter-spacing: 2px;">Síguenos en nuestras redes</p>
+                                <table cellpadding="0" cellspacing="0" border="0">
+                                    <tr>
+                                        <td style="padding: 0 12px;">
+                                            <a href="https://www.instagram.com/unam.siafi?igsh=cWdteXJlZmZ3OTl" target="_blank" style="text-decoration: none;">
+                                                <img src="https://img.icons8.com/ios-filled/50/ffffff/instagram-new.png" alt="Instagram" width="28" height="28" style="display: block; border: 0;" />
+                                            </a>
+                                        </td>
+                                        <td style="padding: 0 12px;">
+                                            <a href="https://www.facebook.com/share/1DrHanvRs1/" target="_blank" style="text-decoration: none;">
+                                                <img src="https://img.icons8.com/ios-filled/50/ffffff/facebook-new.png" alt="Facebook" width="28" height="28" style="display: block; border: 0;" />
+                                            </a>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </td>
+                        </tr>
+                    </table>
+
+                </td>
+                </tr>
+                
+                <tr>
+                <td style="background-color: #0a0a0a; padding: 24px 40px; border-top: 1px solid #1f2937; text-align: center;">
+                    <p style="margin: 0 0 6px 0; font-size: 12px; color: #6b7280;">2026 SIAFI - Facultad de Ingeniería, UNAM.</p>
+                    <p style="margin: 0 0 16px 0; font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: #4b5563;">Este es un mensaje generado por SophIA.</p>
+                    <p style="margin: 0; font-size: 12px; color: #6b7280;">
+                    ¿Problemas con el sistema? <br />
+                    <a href="mailto:siafi.reclutamiento@gmail.com" style="color: #00baff; text-decoration: none; font-weight: bold;">siafi.reclutamiento@gmail.com</a>
                     </p>
                 </td>
                 </tr>

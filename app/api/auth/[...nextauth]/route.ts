@@ -77,24 +77,25 @@ export const authOptions: NextAuthOptions = {
       return true;
     },
     
-    // Inyectamos el Rol en la sesión para usarlo en el Frontend
+    // Inyectamos el Rol y Datos en la sesión para usarlo en el Frontend
     async session({ session }) {
       if (session.user?.email) {
-        // Consultamos rol actualizado en cada sesión
+        // Consultamos datos frescos en cada sesión
         const dbUser = await getUserByEmail(session.user.email);
         
         if (dbUser) {
           // @ts-ignore
           session.user.role = dbUser.role; 
+          // ✅ AÑADIMOS ESTO: Inyectamos el celular y forzamos el nombre actualizado
+          // @ts-ignore
+          session.user.celular = dbUser.celular || "";
+          session.user.name = dbUser.name;
           
-          // Seguridad extra: Si es el correo maestro, forzar rol
           if (session.user.email === process.env.MASTER_ADMIN_EMAIL) {
              // @ts-ignore
             session.user.role = "Admin Maestro";
           }
         } else {
-          // 🚨 EL USUARIO YA NO EXISTE EN NOTION
-          // Le pegamos una etiqueta de error a la sesión
           // @ts-ignore
           session.error = "UserDeleted";
         }

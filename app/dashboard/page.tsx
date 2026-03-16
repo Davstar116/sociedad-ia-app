@@ -13,10 +13,9 @@ export default function DashboardPostulante() {
   const { data: session, status, update } = useSession();
   const hasRefreshed = useRef(false);
 
-  // ✅ NUEVO: Actualización silenciosa de estatus al entrar
   useEffect(() => {
     if (status === "authenticated" && !hasRefreshed.current) {
-      update(); // Refresca los datos en segundo plano
+      update(); 
       hasRefreshed.current = true;
     }
   }, [status, update]);
@@ -122,7 +121,7 @@ export default function DashboardPostulante() {
             <div className="bg-[#111111] border border-yellow-500/30 rounded-3xl p-8 text-center shadow-2xl relative overflow-hidden w-full">
               <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-yellow-600 to-yellow-400"></div>
               <p className="text-gray-300 text-sm leading-relaxed mb-8">
-                Felicidades <strong>{primerNombre}</strong>, tu perfil ha destacado entre los demás postulantes. Queremos conocerte mejor, platicar sobre tu visión y tu pasión por la inteligencia artificial.
+                Felicidades <strong>{primerNombre}</strong>, tu perfil ha destacado entre los demás postulantes. Queremos conocerte mejor, platicar sobre tu visión y tu pasión por la tecnología.
               </p>
               <button className="w-full py-4 bg-gradient-to-r from-yellow-500 to-yellow-400 hover:from-yellow-400 hover:to-yellow-300 text-[#0a0a0a] font-black text-sm uppercase tracking-wider rounded-xl transition-all shadow-lg shadow-yellow-500/20 active:scale-95">
                 Agendar Entrevista
@@ -146,7 +145,7 @@ export default function DashboardPostulante() {
               <div className="absolute inset-0 bg-green-500/5 backdrop-blur-3xl"></div>
               <div className="relative z-10">
                 <p className="text-gray-300 text-sm leading-relaxed mb-8">
-                  Nos emociona muchísimo informarte que has sido oficialmente <strong>Aceptado</strong> en la Sociedad de Inteligencia Artificial de la Facultad de Ingeniería. ¡Comienza una nueva etapa llena de aprendizaje!
+                  Nos emociona muchísimo informarte que has sido oficialmente <strong>Aceptado</strong> en la Sociedad de Inteligencia Artificial de la Facultad de Ingeniería. ¡Comienza una nueva etapa!
                 </p>
                 <button className="w-full py-4 bg-green-500 hover:bg-green-400 text-[#0a0a0a] font-black text-sm uppercase tracking-wider rounded-xl transition-all shadow-lg shadow-green-500/20 active:scale-95">
                   Ir al Workspace Oficial
@@ -177,69 +176,37 @@ export default function DashboardPostulante() {
               </p>
               <div className="p-4 bg-gray-900/50 rounded-xl border border-gray-800/50">
                 <p className="text-gray-500 text-[11px] leading-relaxed italic">
-                  No te desanimes. Te invitamos a seguir preparándote e intentarlo de nuevo en nuestra próxima convocatoria. ¡Te deseamos mucho éxito en todos tus proyectos!
+                  No te desanimes. Te invitamos a seguir preparándote e intentarlo de nuevo en nuestra próxima convocatoria. ¡Te deseamos mucho éxito en tus proyectos!
                 </p>
               </div>
             </div>
           </main>
         );
 
+      // ==========================
+      // ✅ NUEVO DISEÑO INMERSIVO PARA "REGISTRADO"
+      // ==========================
       case "Registrado":
       default:
         return (
-          <main className="pt-24 pb-28 px-5 max-w-lg mx-auto min-h-screen flex flex-col gap-6 animate-in fade-in duration-500">
-            <div className="bg-[#111111] border border-gray-800 rounded-2xl p-6 shadow-xl relative overflow-hidden">
-              <div className="absolute top-0 left-0 w-1 h-full bg-[#0051ff]"></div>
-              <h2 className="text-xl font-bold mb-1">Hola, {primerNombre} 👋</h2>
-              <p className="text-sm text-gray-400 mb-5">Bienvenid@ a tu panel de control SIAFI.</p>
-              
-              <div className="bg-[#0a0a0a] border border-gray-800 rounded-xl p-4 flex items-center justify-between">
-                <div>
-                  <p className="text-xs text-gray-500 uppercase tracking-widest font-bold mb-1">Estatus Actual</p>
-                  <p className="text-sm font-semibold text-[#00baff]">Postulación Recibida</p>
-                </div>
-                <div className="w-10 h-10 rounded-full bg-[#00baff]/10 flex items-center justify-center text-xl shadow-[0_0_15px_rgba(0,186,255,0.2)]">
-                  📝
-                </div>
+          <main className="pt-24 pb-28 px-5 max-w-lg mx-auto min-h-screen flex flex-col items-center justify-center gap-6 animate-in fade-in duration-700">
+            <div className="text-center w-full mt-4">
+              <div className="w-28 h-28 bg-[#0051ff]/10 text-[#00baff] rounded-full flex items-center justify-center text-6xl mx-auto mb-6 shadow-[0_0_50px_rgba(0,186,255,0.2)] animate-pulse">
+                ⏳
               </div>
+              <h2 className="text-3xl font-black mb-2 text-white tracking-tight">En Revisión</h2>
+              <p className="text-[#00baff] font-bold tracking-widest uppercase text-xs mb-8">Postulación Recibida</p>
             </div>
 
-            <div className="bg-[#111111] border border-gray-800 rounded-2xl p-6 shadow-xl relative overflow-hidden">
-              <h3 className="text-sm font-bold text-white mb-6 uppercase tracking-wider flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-[#0051ff]"></span>
-                Línea de Tiempo
-              </h3>
-              
-              <div className="space-y-6">
-                <div className="flex items-start gap-4">
-                  <div className="w-8 h-8 rounded-full bg-[#0051ff] text-white flex items-center justify-center text-sm shadow-[0_0_15px_rgba(0,81,255,0.4)] shrink-0 z-10 relative">✓</div>
-                  <div className="pt-1">
-                    <p className="text-sm font-bold text-white mb-1">Registro Completado</p>
-                    <p className="text-xs text-gray-500 leading-relaxed">Tus datos básicos y cuenta han sido creados exitosamente.</p>
-                  </div>
-                </div>
-                
-                <div className="absolute left-[39px] top-[95px] w-0.5 h-12 bg-gradient-to-b from-[#0051ff] to-[#0a0a0a]"></div>
-                
-                <div className="flex items-start gap-4">
-                  <div className="w-8 h-8 rounded-full bg-[#0a0a0a] border-2 border-[#00baff] text-[#00baff] flex items-center justify-center text-sm shadow-[0_0_15px_rgba(0,186,255,0.2)] animate-pulse shrink-0 z-10 relative">
-                    <span className="w-2 h-2 rounded-full bg-[#00baff]"></span>
-                  </div>
-                  <div className="pt-1">
-                    <p className="text-sm font-bold text-[#00baff] mb-1">Revisión de Perfil</p>
-                    <p className="text-xs text-gray-400 leading-relaxed">El equipo está analizando tus respuestas y perfil. Te notificaremos pronto.</p>
-                  </div>
-                </div>
-
-                <div className="absolute left-[39px] top-[175px] w-0.5 h-12 bg-gray-800"></div>
-
-                <div className="flex items-start gap-4 opacity-40">
-                  <div className="w-8 h-8 rounded-full bg-gray-800 text-gray-500 flex items-center justify-center text-sm shrink-0 z-10 relative">3</div>
-                  <div className="pt-1">
-                    <p className="text-sm font-bold text-gray-400 mb-1">Entrevista</p>
-                    <p className="text-xs text-gray-500 leading-relaxed">Fase exclusiva para perfiles seleccionados.</p>
-                  </div>
-                </div>
+            <div className="bg-[#111111] border border-gray-800 rounded-3xl p-8 text-center shadow-2xl relative overflow-hidden w-full">
+              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#0051ff] to-[#00baff]"></div>
+              <p className="text-gray-300 text-sm leading-relaxed mb-6">
+                Hola <strong>{primerNombre}</strong>, hemos recibido tu registro de forma exitosa. En este momento, el equipo de SIAFI se encuentra analizando tu perfil detalladamente.
+              </p>
+              <div className="p-4 bg-gray-900/50 rounded-xl border border-gray-800/50">
+                <p className="text-gray-500 text-[11px] leading-relaxed italic">
+                  Te enviaremos una notificación por este medio y directamente a tu celular en cuanto haya una actualización sobre tu proceso. ¡Mantente al pendiente!
+                </p>
               </div>
             </div>
           </main>
@@ -250,6 +217,11 @@ export default function DashboardPostulante() {
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white font-sans overflow-hidden">
       
+      {/* 🔴 MODO DESARROLLADOR: Muestra el estatus real arriba en pequeñito para comprobar si Notion está conectando */}
+      <div className="fixed top-[64px] left-0 w-full bg-red-600 text-white text-[10px] text-center font-bold uppercase z-50">
+        Estatus en Sistema: [{userEstatus}]
+      </div>
+
       <header className="fixed top-0 w-full h-16 bg-[#111111]/90 backdrop-blur-md border-b border-gray-800 z-40 flex items-center justify-between px-5">
         <button 
           onClick={() => setIsNotifMenuOpen(true)}
@@ -362,17 +334,14 @@ export default function DashboardPostulante() {
 
       <nav className="fixed bottom-0 w-full bg-[#111111]/90 backdrop-blur-md border-t border-gray-800 z-40 pb-safe">
         <div className="flex justify-between items-center h-16 px-6 relative max-w-lg mx-auto">
-          
-          <button className="flex flex-col items-center justify-center w-12 text-gray-400 hover:text-[#00baff] transition-colors">
+          <button className="flex flex-col items-center justify-center w-12 text-[#00baff] transition-colors">
             <svg className="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
             <span className="text-[9px] font-medium tracking-wide">Estatus</span>
           </button>
-          
           <button className="flex flex-col items-center justify-center w-12 text-gray-400 hover:text-[#00baff] transition-colors mr-6">
             <svg className="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
             <span className="text-[9px] font-medium tracking-wide">Perfil</span>
           </button>
-
           <div className="absolute left-1/2 -translate-x-1/2 -top-4">
             <button className="w-16 h-16 bg-gradient-to-tr from-[#0051ff] to-[#00baff] rounded-full flex items-center justify-center shadow-[0_0_20px_rgba(0,186,255,0.4)] border-[6px] border-[#0a0a0a] hover:scale-105 transition-transform">
               <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -380,17 +349,14 @@ export default function DashboardPostulante() {
               </svg>
             </button>
           </div>
-
           <button className="flex flex-col items-center justify-center w-12 text-gray-400 hover:text-[#00baff] transition-colors ml-6">
             <svg className="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
             <span className="text-[9px] font-medium tracking-wide">Ayuda</span>
           </button>
-
           <button className="flex flex-col items-center justify-center w-12 text-gray-400 hover:text-[#00baff] transition-colors">
             <svg className="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
             <span className="text-[9px] font-medium tracking-wide">Fechas</span>
           </button>
-          
         </div>
       </nav>
 

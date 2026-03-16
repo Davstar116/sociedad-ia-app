@@ -10,6 +10,9 @@ export default function DashboardPostulante() {
   const [isNotifMenuOpen, setIsNotifMenuOpen] = useState(false);
   const [notificaciones, setNotificaciones] = useState<any[]>([]);
   
+  // ✅ NUEVO ESTADO: Controla qué pestaña estamos viendo
+  const [activeTab, setActiveTab] = useState("home");
+  
   const { data: session, status, update } = useSession();
   const hasRefreshed = useRef(false);
 
@@ -105,7 +108,8 @@ export default function DashboardPostulante() {
     </div>
   );
 
-  const renderDashboardContent = () => {
+  // ✅ FUNCIÓN RENDERIZADORA DE LA PESTAÑA "HOME" (EL ESTATUS)
+  const renderHomeTab = () => {
     switch (userEstatus) {
       case "Aprobado para Entrevista":
         return (
@@ -183,9 +187,6 @@ export default function DashboardPostulante() {
           </main>
         );
 
-      // ==========================
-      // ✅ NUEVO DISEÑO INMERSIVO PARA "REGISTRADO"
-      // ==========================
       case "Registrado":
       default:
         return (
@@ -214,31 +215,70 @@ export default function DashboardPostulante() {
     }
   };
 
+  // ✅ RENDERIZADOR PRINCIPAL: Decide qué pantalla mostrar según la pestaña activa
+  const renderActiveContent = () => {
+    switch (activeTab) {
+      case "estatus":
+        return (
+          <main className="pt-24 pb-28 px-5 max-w-lg mx-auto min-h-screen animate-in fade-in duration-300">
+            <h2 className="text-xl font-bold mb-4">Información de la Convocatoria</h2>
+            <div className="bg-[#111111] border border-gray-800 rounded-2xl p-6 text-center text-gray-500 text-sm">
+              <p>Aquí irá el documento de la convocatoria y requisitos.</p>
+            </div>
+          </main>
+        );
+      case "perfil":
+        return (
+          <main className="pt-24 pb-28 px-5 max-w-lg mx-auto min-h-screen animate-in fade-in duration-300">
+            <h2 className="text-xl font-bold mb-4">Tu Perfil</h2>
+            <div className="bg-[#111111] border border-gray-800 rounded-2xl p-6 text-center text-gray-500 text-sm">
+              <p>Aquí se mostrarán las respuestas y el CV que subiste en tu postulación.</p>
+            </div>
+          </main>
+        );
+      case "ayuda":
+        return (
+          <main className="pt-24 pb-28 px-5 max-w-lg mx-auto min-h-screen animate-in fade-in duration-300">
+            <h2 className="text-xl font-bold mb-4">Centro de Ayuda</h2>
+            <div className="bg-[#111111] border border-gray-800 rounded-2xl p-6 text-center text-gray-500 text-sm">
+              <p>Preguntas frecuentes o chat de soporte técnico.</p>
+            </div>
+          </main>
+        );
+      case "fechas":
+        return (
+          <main className="pt-24 pb-28 px-5 max-w-lg mx-auto min-h-screen animate-in fade-in duration-300">
+            <h2 className="text-xl font-bold mb-4">Fechas Importantes</h2>
+            <div className="bg-[#111111] border border-gray-800 rounded-2xl p-6 text-center text-gray-500 text-sm">
+              <p>Calendario de resultados y entrevistas.</p>
+            </div>
+          </main>
+        );
+      case "home":
+      default:
+        return renderHomeTab();
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white font-sans overflow-hidden">
       
-      {/* 🔴 MODO DESARROLLADOR: Muestra el estatus real arriba en pequeñito para comprobar si Notion está conectando */}
-      <div className="fixed top-[64px] left-0 w-full bg-red-600 text-white text-[10px] text-center font-bold uppercase z-50">
-        Estatus en Sistema: [{userEstatus}]
+      {/* 🔴 MODO DESARROLLADOR: Te ayudará a saber qué lee Notion */}
+      <div className="fixed top-[64px] left-0 w-full bg-red-600/80 backdrop-blur-sm text-white text-[10px] text-center font-bold uppercase z-50 py-0.5">
+        Estatus detectado: [{userEstatus}]
       </div>
 
+      {/* HEADER SUPERIOR */}
       <header className="fixed top-0 w-full h-16 bg-[#111111]/90 backdrop-blur-md border-b border-gray-800 z-40 flex items-center justify-between px-5">
-        <button 
-          onClick={() => setIsNotifMenuOpen(true)}
-          className="relative p-2 text-gray-400 hover:text-white transition-colors"
-        >
+        <button onClick={() => setIsNotifMenuOpen(true)} className="relative p-2 text-gray-400 hover:text-white transition-colors">
           <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
           </svg>
-          {unreadCount > 0 && (
-            <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-red-500 border-2 border-[#111111] rounded-full animate-pulse"></span>
-          )}
+          {unreadCount > 0 && <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-red-500 border-2 border-[#111111] rounded-full animate-pulse"></span>}
         </button>
 
-        <div className="flex flex-col items-center justify-center leading-none mt-1">
-          <h1 className="text-xl font-black tracking-tight">
-            Soph<span className="text-[#00baff]">IA</span>
-          </h1>
+        <div className="flex flex-col items-center justify-center leading-none mt-1 cursor-pointer" onClick={() => setActiveTab("home")}>
+          <h1 className="text-xl font-black tracking-tight">Soph<span className="text-[#00baff]">IA</span></h1>
           <span className="text-[8px] text-gray-500 font-bold uppercase tracking-widest mt-0.5">by SIAFI</span>
         </div>
 
@@ -247,14 +287,14 @@ export default function DashboardPostulante() {
         </button>
       </header>
 
+      {/* OVERLAYS Y MENÚS LATERALES (Se mantienen igual) */}
       {(isMenuOpen || isNotifMenuOpen) && (
-        <div 
-          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 transition-opacity"
-          onClick={() => { setIsMenuOpen(false); setIsNotifMenuOpen(false); }}
-        />
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 transition-opacity" onClick={() => { setIsMenuOpen(false); setIsNotifMenuOpen(false); }} />
       )}
       
+      {/* MENÚ DERECHO */}
       <div className={`fixed top-0 right-0 h-full w-72 bg-[#111111] border-l border-gray-800 z-50 transform transition-transform duration-300 ease-in-out flex flex-col ${isMenuOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+        {/* ... (Contenido del menú derecho se mantiene igual) ... */}
         <div className="p-6 border-b border-gray-800 flex justify-between items-start">
           <div className="flex items-center gap-4 pr-4">
             <AvatarCircle size="w-12 h-12" />
@@ -282,7 +322,9 @@ export default function DashboardPostulante() {
         </div>
       </div>
 
+      {/* MENÚ IZQUIERDO */}
       <div className={`fixed top-0 left-0 h-full w-80 bg-[#111111] border-r border-gray-800 z-50 transform transition-transform duration-300 ease-in-out flex flex-col ${isNotifMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+        {/* ... (Contenido del menú de notificaciones se mantiene igual) ... */}
         <div className="p-5 border-b border-gray-800 flex justify-between items-center bg-[#0a0a0a]">
           <h2 className="text-lg font-bold text-white flex items-center gap-2">
             <svg className="w-5 h-5 text-[#00baff]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
@@ -330,33 +372,57 @@ export default function DashboardPostulante() {
         </div>
       </div>
 
-      {renderDashboardContent()}
+      {/* ✅ SE CARGA LA PESTAÑA ACTIVA */}
+      {renderActiveContent()}
 
+      {/* ✅ CINTILLO INFERIOR (CONECTADO A LAS PESTAÑAS) */}
       <nav className="fixed bottom-0 w-full bg-[#111111]/90 backdrop-blur-md border-t border-gray-800 z-40 pb-safe">
         <div className="flex justify-between items-center h-16 px-6 relative max-w-lg mx-auto">
-          <button className="flex flex-col items-center justify-center w-12 text-[#00baff] transition-colors">
+          
+          <button 
+            onClick={() => setActiveTab("estatus")}
+            className={`flex flex-col items-center justify-center w-12 transition-colors ${activeTab === "estatus" ? "text-[#00baff]" : "text-gray-400 hover:text-gray-200"}`}
+          >
             <svg className="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
             <span className="text-[9px] font-medium tracking-wide">Estatus</span>
           </button>
-          <button className="flex flex-col items-center justify-center w-12 text-gray-400 hover:text-[#00baff] transition-colors mr-6">
+          
+          <button 
+            onClick={() => setActiveTab("perfil")}
+            className={`flex flex-col items-center justify-center w-12 mr-6 transition-colors ${activeTab === "perfil" ? "text-[#00baff]" : "text-gray-400 hover:text-gray-200"}`}
+          >
             <svg className="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
             <span className="text-[9px] font-medium tracking-wide">Perfil</span>
           </button>
+
+          {/* BOTÓN CENTRAL: LA CASITA (HOME/ESTATUS VISUAL) */}
           <div className="absolute left-1/2 -translate-x-1/2 -top-4">
-            <button className="w-16 h-16 bg-gradient-to-tr from-[#0051ff] to-[#00baff] rounded-full flex items-center justify-center shadow-[0_0_20px_rgba(0,186,255,0.4)] border-[6px] border-[#0a0a0a] hover:scale-105 transition-transform">
-              <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <button 
+              onClick={() => setActiveTab("home")}
+              className={`w-16 h-16 rounded-full flex items-center justify-center border-[6px] border-[#0a0a0a] transition-all duration-300 ${activeTab === "home" ? "bg-gradient-to-tr from-[#0051ff] to-[#00baff] shadow-[0_0_20px_rgba(0,186,255,0.4)] scale-105" : "bg-gray-800 text-gray-400 hover:bg-gray-700 hover:text-white"}`}
+            >
+              <svg className={`w-7 h-7 ${activeTab === "home" ? "text-white" : "currentColor"}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
               </svg>
             </button>
           </div>
-          <button className="flex flex-col items-center justify-center w-12 text-gray-400 hover:text-[#00baff] transition-colors ml-6">
+
+          <button 
+            onClick={() => setActiveTab("ayuda")}
+            className={`flex flex-col items-center justify-center w-12 ml-6 transition-colors ${activeTab === "ayuda" ? "text-[#00baff]" : "text-gray-400 hover:text-gray-200"}`}
+          >
             <svg className="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
             <span className="text-[9px] font-medium tracking-wide">Ayuda</span>
           </button>
-          <button className="flex flex-col items-center justify-center w-12 text-gray-400 hover:text-[#00baff] transition-colors">
+
+          <button 
+            onClick={() => setActiveTab("fechas")}
+            className={`flex flex-col items-center justify-center w-12 transition-colors ${activeTab === "fechas" ? "text-[#00baff]" : "text-gray-400 hover:text-gray-200"}`}
+          >
             <svg className="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
             <span className="text-[9px] font-medium tracking-wide">Fechas</span>
           </button>
+          
         </div>
       </nav>
 

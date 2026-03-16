@@ -13,6 +13,7 @@ export default function SettingsPage() {
   
   // NUEVO ESTADO: Controla si se muestran los campos de contraseña
   const [showPasswordFields, setShowPasswordFields] = useState(false);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
 
   const [formData, setFormData] = useState({
     nombre: "",
@@ -45,10 +46,13 @@ export default function SettingsPage() {
   };
 
   const handleShowPasswordChange = () => {
-    // Alerta de confirmación nativa
-    if (window.confirm("¿Estás seguro de que deseas modificar tu contraseña por motivos de seguridad?")) {
-      setShowPasswordFields(true);
-    }
+    // En lugar del window.confirm, abrimos nuestro modal
+    setShowConfirmModal(true);
+  };
+
+  const confirmPasswordChange = () => {
+    setShowConfirmModal(false);
+    setShowPasswordFields(true);
   };
 
   const handleCancelPasswordChange = () => {
@@ -260,6 +264,39 @@ export default function SettingsPage() {
 
         </form>
       </main>
+
+      {/* ==========================================
+          MODAL DE CONFIRMACIÓN DE SEGURIDAD
+          ========================================== */}
+      {showConfirmModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-[#111111] border border-gray-800 rounded-2xl p-6 max-w-sm w-full shadow-2xl scale-in-95 duration-200">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-full bg-red-500/10 flex items-center justify-center text-red-500 shrink-0">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+              </div>
+              <h3 className="text-white font-bold text-lg">Modificar Seguridad</h3>
+            </div>
+            <p className="text-gray-400 text-sm mb-6 leading-relaxed">
+              ¿Estás seguro de que deseas modificar tu contraseña? Por motivos de seguridad se te pedirá confirmar tu contraseña actual.
+            </p>
+            <div className="flex gap-3">
+              <button 
+                onClick={() => setShowConfirmModal(false)}
+                className="flex-1 py-3 rounded-xl font-bold text-sm text-gray-300 bg-[#1f2937] hover:bg-[#374151] transition-colors"
+              >
+                Cancelar
+              </button>
+              <button 
+                onClick={confirmPasswordChange}
+                className="flex-1 py-3 rounded-xl font-bold text-sm text-white bg-red-600 hover:bg-red-700 transition-colors shadow-lg shadow-red-600/20"
+              >
+                Sí, modificar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );

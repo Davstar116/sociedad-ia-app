@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { createUser, getUserByEmail } from "../../lib/user-db";
 import nodemailer from "nodemailer"; 
 import { WelcomeEmailTemplate } from "../../components/emails/WelcomeEmail";
-import { InstructionsEmailTemplate } from "../../components/emails/InstructionsEmail"; // <-- NUEVO
+import { InstructionsEmailTemplate } from "../../components/emails/InstructionsEmail";
 
 const NOTION_TOKEN = process.env.NOTION_TOKEN;
 const CANDIDATOS_DB_ID = process.env.NOTION_DATABASE_ID;
@@ -80,7 +80,15 @@ export async function POST(request: Request) {
     
     if (!existingUser) {
       const newPassword = generatePassword();
-      await createUser({ email: data.email, name: data.nombre, password: newPassword, role: "Postulante", provider: "credentials" });
+      // ✅ CAMBIO AQUÍ: Pasamos el celular a createUser
+      await createUser({ 
+          email: data.email, 
+          name: data.nombre, 
+          password: newPassword, 
+          role: "Postulante", 
+          provider: "credentials",
+          celular: data.celular || data.telefono // Cubrimos ambos nombres de variable por seguridad
+      });
       passwordParaCorreo = newPassword;
     } else {
       passwordParaCorreo = "(Usa tu contraseña actual)";
@@ -143,7 +151,7 @@ export async function POST(request: Request) {
         "Nombre Completo": { title: [{ text: { content: data.nombre } }] }, 
         "Correo electrónico": { email: data.email },
         "Estatus del postulante": { status: { name: "Registrado" } },
-        "Celular": { phone_number: data.celular },
+        "Celular": { phone_number: data.celular || data.telefono }, // Cubrimos ambos aquí también
         "Núcleo": { multi_select: data.nucleos.map((n: string) => ({ name: n })) },
         "Carrera": { rich_text: [{ text: { content: data.carrera } }] },
         "Semestre": { number: parseInt(data.semestre) },

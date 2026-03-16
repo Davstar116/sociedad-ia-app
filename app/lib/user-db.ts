@@ -17,6 +17,7 @@ export interface AppUser {
   role: "Admin Maestro" | "Miembro" | "Postulante";
   passwordHash?: string;
   avatar?: string;
+  celular?: string; // ✅ NUEVO: Agregado para tipado
 }
 
 // 1. Buscar usuario por Email (Usando FETCH)
@@ -56,6 +57,7 @@ export async function getUserByEmail(email: string): Promise<AppUser | null> {
       role: page.properties["Rol"]?.select?.name || "Miembro",
       passwordHash: page.properties["Password"]?.rich_text?.[0]?.plain_text || "",
       avatar: page.properties["Avatar"]?.url || "",
+      celular: page.properties["Celular"]?.phone_number || "", // ✅ NUEVO: Extraemos el celular
     };
   } catch (error) {
     console.error("Excepción en getUserByEmail:", error);
@@ -71,6 +73,7 @@ export async function createUser(userData: {
   role?: string;
   avatar?: string;
   provider: "google" | "credentials";
+  celular?: string; // ✅ NUEVO: Permitimos recibir el celular
 }) {
   if (!USERS_DB_ID || !NOTION_TOKEN) throw new Error("Faltan credenciales DB");
 
@@ -98,6 +101,7 @@ export async function createUser(userData: {
         "Rol": { select: { name: initialRole } },
         "AuthProvider": { select: { name: userData.provider } },
         "Avatar": { url: userData.avatar || null },
+        "Celular": { phone_number: userData.celular || null }, // ✅ NUEVO: Lo guardamos en Notion
       },
     }),
   });

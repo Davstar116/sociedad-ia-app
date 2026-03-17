@@ -10,7 +10,6 @@ export default function DashboardPostulante() {
   const [isNotifMenuOpen, setIsNotifMenuOpen] = useState(false);
   const [notificaciones, setNotificaciones] = useState<any[]>([]);
   
-  // ✅ NUEVO ESTADO: Controla qué pestaña estamos viendo
   const [activeTab, setActiveTab] = useState("home");
   
   const { data: session, status, update } = useSession();
@@ -108,32 +107,41 @@ export default function DashboardPostulante() {
     </div>
   );
 
-  // ✅ FUNCIÓN RENDERIZADORA DE LA PESTAÑA "HOME" (EL ESTATUS)
   const renderHomeTab = () => {
     switch (userEstatus) {
+      
+      // ==========================
+      // PANTALLA: APROBADO PARA ENTREVISTA
+      // ==========================
       case "Aprobado para Entrevista":
         return (
           <main className="pt-24 pb-28 px-5 max-w-lg mx-auto min-h-screen flex flex-col items-center justify-center gap-6 animate-in zoom-in-95 fade-in duration-500">
             <div className="text-center w-full">
-              <div className="w-28 h-28 bg-yellow-500/10 text-yellow-500 rounded-full flex items-center justify-center text-6xl mx-auto mb-6 shadow-[0_0_50px_rgba(234,179,8,0.2)] animate-bounce">
+              <div className="w-28 h-28 bg-[#0051ff]/10 text-[#00baff] rounded-full flex items-center justify-center text-6xl mx-auto mb-6 shadow-[0_0_50px_rgba(0,186,255,0.2)] animate-bounce">
                 🌟
               </div>
               <h2 className="text-3xl font-black mb-2 text-white tracking-tight">¡Aprobado!</h2>
-              <p className="text-yellow-500 font-bold tracking-widest uppercase text-xs mb-8">Siguiente Etapa: Entrevista</p>
+              {/* ✅ El texto sigue siendo amarillo brillante */}
+              <p className="text-yellow-500 font-bold tracking-widest uppercase text-xs mb-8 drop-shadow-[0_0_8px_rgba(234,179,8,0.5)]">Siguiente Etapa: Entrevista</p>
             </div>
             
-            <div className="bg-[#111111] border border-yellow-500/30 rounded-3xl p-8 text-center shadow-2xl relative overflow-hidden w-full">
-              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-yellow-600 to-yellow-400"></div>
+            {/* ✅ Cuadro en tonalidad azul SIAFI */}
+            <div className="bg-[#111111] border border-[#0051ff]/30 rounded-3xl p-8 text-center shadow-2xl relative overflow-hidden w-full">
+              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#0051ff] to-[#00baff]"></div>
               <p className="text-gray-300 text-sm leading-relaxed mb-8">
                 Felicidades <strong>{primerNombre}</strong>, tu perfil ha destacado entre los demás postulantes. Queremos conocerte mejor, platicar sobre tu visión y tu pasión por la tecnología.
               </p>
-              <button className="w-full py-4 bg-gradient-to-r from-yellow-500 to-yellow-400 hover:from-yellow-400 hover:to-yellow-300 text-[#0a0a0a] font-black text-sm uppercase tracking-wider rounded-xl transition-all shadow-lg shadow-yellow-500/20 active:scale-95">
+              {/* ✅ Botón Verde */}
+              <button className="w-full py-4 bg-green-500 hover:bg-green-600 text-white font-black text-sm uppercase tracking-wider rounded-xl transition-all shadow-lg shadow-green-500/20 active:scale-95">
                 Agendar Entrevista
               </button>
             </div>
           </main>
         );
 
+      // ==========================
+      // PANTALLA: ACEPTADO FINAL
+      // ==========================
       case "Aceptado":
         return (
           <main className="pt-24 pb-28 px-5 max-w-lg mx-auto min-h-screen flex flex-col items-center justify-center gap-6 animate-in slide-in-from-bottom-10 fade-in duration-700">
@@ -142,7 +150,8 @@ export default function DashboardPostulante() {
                 🚀
               </div>
               <h2 className="text-4xl font-black mb-2 text-white tracking-tight">¡Eres SIAFI!</h2>
-              <p className="text-green-400 font-bold tracking-widest uppercase text-xs mb-8">Selección Final 2026</p>
+              {/* ✅ Nuevo texto solicitado */}
+              <p className="text-green-400 font-bold tracking-widest uppercase text-xs mb-8">¡Felicidades, has sido aceptad@!</p>
             </div>
             
             <div className="bg-[#111111] border border-green-500/30 rounded-3xl p-8 text-center shadow-2xl relative overflow-hidden w-full">
@@ -151,14 +160,18 @@ export default function DashboardPostulante() {
                 <p className="text-gray-300 text-sm leading-relaxed mb-8">
                   Nos emociona muchísimo informarte que has sido oficialmente <strong>Aceptado</strong> en la Sociedad de Inteligencia Artificial de la Facultad de Ingeniería. ¡Comienza una nueva etapa!
                 </p>
+                {/* ✅ Botón con el texto de WhatsApp */}
                 <button className="w-full py-4 bg-green-500 hover:bg-green-400 text-[#0a0a0a] font-black text-sm uppercase tracking-wider rounded-xl transition-all shadow-lg shadow-green-500/20 active:scale-95">
-                  Ir al Workspace Oficial
+                  Unirse al grupo de WhatsApp
                 </button>
               </div>
             </div>
           </main>
         );
 
+      // ==========================
+      // PANTALLA: NO SELECCIONADO / RECHAZADO
+      // ==========================
       case "No Seleccionado":
       case "Rechazado":
         const esFiltro = userEstatus === "No Seleccionado";
@@ -187,6 +200,9 @@ export default function DashboardPostulante() {
           </main>
         );
 
+      // ==========================
+      // PANTALLA: REGISTRADO (DEFAULT)
+      // ==========================
       case "Registrado":
       default:
         return (
@@ -215,7 +231,6 @@ export default function DashboardPostulante() {
     }
   };
 
-  // ✅ RENDERIZADOR PRINCIPAL: Decide qué pantalla mostrar según la pestaña activa
   const renderActiveContent = () => {
     switch (activeTab) {
       case "estatus":
@@ -263,12 +278,6 @@ export default function DashboardPostulante() {
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white font-sans overflow-hidden">
       
-      {/* 🔴 MODO DESARROLLADOR: Te ayudará a saber qué lee Notion */}
-      <div className="fixed top-[64px] left-0 w-full bg-red-600/80 backdrop-blur-sm text-white text-[10px] text-center font-bold uppercase z-50 py-0.5">
-        Estatus detectado: [{userEstatus}]
-      </div>
-
-      {/* HEADER SUPERIOR */}
       <header className="fixed top-0 w-full h-16 bg-[#111111]/90 backdrop-blur-md border-b border-gray-800 z-40 flex items-center justify-between px-5">
         <button onClick={() => setIsNotifMenuOpen(true)} className="relative p-2 text-gray-400 hover:text-white transition-colors">
           <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -287,14 +296,11 @@ export default function DashboardPostulante() {
         </button>
       </header>
 
-      {/* OVERLAYS Y MENÚS LATERALES (Se mantienen igual) */}
       {(isMenuOpen || isNotifMenuOpen) && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 transition-opacity" onClick={() => { setIsMenuOpen(false); setIsNotifMenuOpen(false); }} />
       )}
       
-      {/* MENÚ DERECHO */}
       <div className={`fixed top-0 right-0 h-full w-72 bg-[#111111] border-l border-gray-800 z-50 transform transition-transform duration-300 ease-in-out flex flex-col ${isMenuOpen ? 'translate-x-0' : 'translate-x-full'}`}>
-        {/* ... (Contenido del menú derecho se mantiene igual) ... */}
         <div className="p-6 border-b border-gray-800 flex justify-between items-start">
           <div className="flex items-center gap-4 pr-4">
             <AvatarCircle size="w-12 h-12" />
@@ -322,9 +328,7 @@ export default function DashboardPostulante() {
         </div>
       </div>
 
-      {/* MENÚ IZQUIERDO */}
       <div className={`fixed top-0 left-0 h-full w-80 bg-[#111111] border-r border-gray-800 z-50 transform transition-transform duration-300 ease-in-out flex flex-col ${isNotifMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}>
-        {/* ... (Contenido del menú de notificaciones se mantiene igual) ... */}
         <div className="p-5 border-b border-gray-800 flex justify-between items-center bg-[#0a0a0a]">
           <h2 className="text-lg font-bold text-white flex items-center gap-2">
             <svg className="w-5 h-5 text-[#00baff]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
@@ -372,10 +376,8 @@ export default function DashboardPostulante() {
         </div>
       </div>
 
-      {/* ✅ SE CARGA LA PESTAÑA ACTIVA */}
       {renderActiveContent()}
 
-      {/* ✅ CINTILLO INFERIOR (CONECTADO A LAS PESTAÑAS) */}
       <nav className="fixed bottom-0 w-full bg-[#111111]/90 backdrop-blur-md border-t border-gray-800 z-40 pb-safe">
         <div className="flex justify-between items-center h-16 px-6 relative max-w-lg mx-auto">
           
@@ -395,7 +397,6 @@ export default function DashboardPostulante() {
             <span className="text-[9px] font-medium tracking-wide">Perfil</span>
           </button>
 
-          {/* BOTÓN CENTRAL: LA CASITA (HOME/ESTATUS VISUAL) */}
           <div className="absolute left-1/2 -translate-x-1/2 -top-4">
             <button 
               onClick={() => setActiveTab("home")}

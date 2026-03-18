@@ -10,7 +10,6 @@ export default function DashboardPostulante() {
   const [isNotifMenuOpen, setIsNotifMenuOpen] = useState(false);
   const [notificaciones, setNotificaciones] = useState<any[]>([]);
   
-  // ✅ PESTAÑA ACTIVA: Las opciones son "siafi", "proyectos", "home", "eventos", "nucleos"
   const [activeTab, setActiveTab] = useState("home");
   
   const { data: session, status, update } = useSession();
@@ -214,18 +213,98 @@ export default function DashboardPostulante() {
     }
   };
 
-  // ✅ NUEVAS FUNCIONES PARA RENDERIZAR LAS NUEVAS PESTAÑAS
+  // ✅ AQUÍ INTEGRAMOS LA PANTALLA OFICIAL DE SIAFI
   const renderActiveContent = () => {
     switch (activeTab) {
       case "siafi":
         return (
-          <main className="pt-24 pb-28 px-5 max-w-lg mx-auto min-h-screen animate-in fade-in duration-300">
-            <h2 className="text-xl font-bold mb-4">Acerca de SIAFI</h2>
-            <div className="bg-[#111111] border border-gray-800 rounded-2xl p-6 text-center text-gray-500 text-sm">
-              <p>Aquí pondremos la misión, visión, directiva y qué hacemos en la sociedad.</p>
+          <main className="pt-24 pb-28 px-5 max-w-lg mx-auto min-h-screen animate-in fade-in duration-500">
+            
+            {/* Header de la Pestaña */}
+            <div className="flex items-center gap-4 mb-8">
+              <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-[#0051ff]/20 to-[#00baff]/20 text-[#00baff] flex items-center justify-center text-3xl shadow-[0_0_20px_rgba(0,186,255,0.2)] border border-[#00baff]/10">
+                🧠
+              </div>
+              <div>
+                <h2 className="text-2xl font-black text-white tracking-tight">Acerca de SIAFI</h2>
+                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-0.5">Facultad de Ingeniería UNAM</p>
+              </div>
+            </div>
+
+            {/* Imagen Principal (Hero Image) */}
+            <div className="w-full h-48 rounded-3xl overflow-hidden mb-6 shadow-2xl border border-gray-800 relative group">
+               {/* eslint-disable-next-line @next/next/no-img-element */}
+               <img src="https://images.unsplash.com/photo-1620712943543-bcc4688e7485?q=80&w=800&auto=format&fit=crop" alt="Red Neuronal Artificial" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+               <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-black/40 to-transparent"></div>
+               <div className="absolute bottom-4 left-5 right-5">
+                 <span className="inline-block px-2 py-1 bg-[#0051ff]/50 backdrop-blur-md rounded-md text-[9px] font-bold text-white uppercase tracking-widest border border-white/10">Tecnología de Vanguardia</span>
+               </div>
+            </div>
+
+            {/* Texto General (El que tú me proporcionaste) */}
+            <div className="bg-[#111111] border border-gray-800 rounded-3xl p-6 mb-6 shadow-xl relative overflow-hidden">
+               <div className="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-[#0051ff] to-[#00baff]"></div>
+               <p className="text-gray-300 text-sm leading-relaxed">
+                 <strong className="text-white">La Sociedad de Inteligencia Artificial de la Facultad de Ingeniería (SIAFI)</strong> es una agrupación estudiantil que busca compartir con la comunidad el impacto de la IA y cómo podemos conectar esta tecnología con nuestro día a día.
+               </p>
+            </div>
+
+            {/* Enfoque / Objetivo y Visión (Grid) */}
+            <div className="grid grid-cols-1 gap-4 mb-6">
+               <div className="bg-gradient-to-br from-[#111111] to-[#1a1a1a] border border-gray-800 rounded-3xl p-6 shadow-xl hover:border-gray-700 transition-colors">
+                 <div className="flex items-center gap-3 mb-3">
+                   <div className="w-8 h-8 rounded-full bg-[#0051ff]/10 flex items-center justify-center text-[#0051ff]">🎯</div>
+                   <h3 className="font-bold text-white text-sm uppercase tracking-wide">Nuestro Objetivo</h3>
+                 </div>
+                 <p className="text-gray-400 text-xs leading-relaxed">
+                   Fomentar el aprendizaje y la investigación en Inteligencia Artificial, creando una red de colaboración entre estudiantes, profesores y profesionales. Buscamos desarrollar proyectos innovadores que impacten positivamente a nuestra sociedad.
+                 </p>
+               </div>
+
+               <div className="bg-gradient-to-br from-[#111111] to-[#1a1a1a] border border-gray-800 rounded-3xl p-6 shadow-xl hover:border-gray-700 transition-colors">
+                 <div className="flex items-center gap-3 mb-3">
+                   <div className="w-8 h-8 rounded-full bg-[#00baff]/10 flex items-center justify-center text-[#00baff]">👁️</div>
+                   <h3 className="font-bold text-white text-sm uppercase tracking-wide">Nuestra Visión</h3>
+                 </div>
+                 <p className="text-gray-400 text-xs leading-relaxed">
+                   Ser el referente estudiantil en México y Latinoamérica en la divulgación y aplicación práctica de la Inteligencia Artificial, manteniendo a nuestra comunidad a la vanguardia tecnológica y científica.
+                 </p>
+               </div>
+            </div>
+
+            {/* Qué Hacemos (Viñetas Extraídas de la Web) */}
+            <div className="bg-[#111111] border border-gray-800 rounded-3xl p-6 mb-2 shadow-xl">
+               <h3 className="font-bold text-white mb-5 flex items-center gap-2 uppercase tracking-wide text-sm">
+                 <span className="w-2 h-2 rounded-full bg-[#00baff] animate-pulse"></span>
+                 ¿Qué hacemos en SIAFI?
+               </h3>
+               <ul className="space-y-5">
+                 <li className="flex items-start gap-4">
+                   <div className="mt-0.5 text-[#00baff] bg-[#00baff]/10 p-1.5 rounded-lg">👨‍💻</div>
+                   <div>
+                     <p className="text-sm font-bold text-gray-200 mb-1">Workshops y Capacitación</p>
+                     <p className="text-xs text-gray-500 leading-relaxed">Impartimos cursos prácticos, grupos de estudio y mentorías sobre Machine Learning, Deep Learning y visión computacional.</p>
+                   </div>
+                 </li>
+                 <li className="flex items-start gap-4">
+                   <div className="mt-0.5 text-[#00baff] bg-[#00baff]/10 p-1.5 rounded-lg">💡</div>
+                   <div>
+                     <p className="text-sm font-bold text-gray-200 mb-1">Proyectos Colaborativos</p>
+                     <p className="text-xs text-gray-500 leading-relaxed">Diseñamos soluciones tecnológicas y software propio como Prometeo, LISAM, F-Voice y Netmind.</p>
+                   </div>
+                 </li>
+                 <li className="flex items-start gap-4">
+                   <div className="mt-0.5 text-[#00baff] bg-[#00baff]/10 p-1.5 rounded-lg">🤝</div>
+                   <div>
+                     <p className="text-sm font-bold text-gray-200 mb-1">Eventos y Networking</p>
+                     <p className="text-xs text-gray-500 leading-relaxed">Organizamos conferencias, divulgación y vinculación con profesionales de la industria para el desarrollo integral.</p>
+                   </div>
+                 </li>
+               </ul>
             </div>
           </main>
         );
+
       case "proyectos":
         return (
           <main className="pt-24 pb-28 px-5 max-w-lg mx-auto min-h-screen animate-in fade-in duration-300">
@@ -235,6 +314,7 @@ export default function DashboardPostulante() {
             </div>
           </main>
         );
+
       case "eventos":
         return (
           <main className="pt-24 pb-28 px-5 max-w-lg mx-auto min-h-screen animate-in fade-in duration-300">
@@ -244,6 +324,7 @@ export default function DashboardPostulante() {
             </div>
           </main>
         );
+
       case "nucleos":
         return (
           <main className="pt-24 pb-28 px-5 max-w-lg mx-auto min-h-screen animate-in fade-in duration-300">
@@ -253,6 +334,7 @@ export default function DashboardPostulante() {
             </div>
           </main>
         );
+
       case "home":
       default:
         return renderHomeTab();
@@ -362,11 +444,9 @@ export default function DashboardPostulante() {
 
       {renderActiveContent()}
 
-      {/* ✅ NUEVOS BOTONES DEL CINTILLO INFERIOR */}
       <nav className="fixed bottom-0 w-full bg-[#111111]/90 backdrop-blur-md border-t border-gray-800 z-40 pb-safe">
         <div className="flex justify-between items-center h-16 px-6 relative max-w-lg mx-auto">
           
-          {/* 1. SIAFI (Cerebro) */}
           <button 
             onClick={() => setActiveTab("siafi")}
             className={`flex flex-col items-center justify-center w-12 transition-colors ${activeTab === "siafi" ? "text-[#00baff]" : "text-gray-400 hover:text-gray-200"}`}
@@ -377,7 +457,6 @@ export default function DashboardPostulante() {
             <span className="text-[9px] font-medium tracking-wide">SIAFI</span>
           </button>
           
-          {/* 2. PROYECTOS (Carpeta) */}
           <button 
             onClick={() => setActiveTab("proyectos")}
             className={`flex flex-col items-center justify-center w-12 mr-6 transition-colors ${activeTab === "proyectos" ? "text-[#00baff]" : "text-gray-400 hover:text-gray-200"}`}
@@ -388,7 +467,6 @@ export default function DashboardPostulante() {
             <span className="text-[9px] font-medium tracking-wide">Proyectos</span>
           </button>
 
-          {/* 3. HOME / ESTATUS (Botón Central) */}
           <div className="absolute left-1/2 -translate-x-1/2 -top-4">
             <button 
               onClick={() => setActiveTab("home")}
@@ -400,7 +478,6 @@ export default function DashboardPostulante() {
             </button>
           </div>
 
-          {/* 4. EVENTOS (Ícono Ticket) */}
           <button 
             onClick={() => setActiveTab("eventos")}
             className={`flex flex-col items-center justify-center w-12 ml-6 transition-colors ${activeTab === "eventos" ? "text-[#00baff]" : "text-gray-400 hover:text-gray-200"}`}
@@ -411,7 +488,6 @@ export default function DashboardPostulante() {
             <span className="text-[9px] font-medium tracking-wide">Eventos</span>
           </button>
 
-          {/* 5. NÚCLEOS (Usuarios/Equipo) */}
           <button 
             onClick={() => setActiveTab("nucleos")}
             className={`flex flex-col items-center justify-center w-12 transition-colors ${activeTab === "nucleos" ? "text-[#00baff]" : "text-gray-400 hover:text-gray-200"}`}

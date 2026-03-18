@@ -317,7 +317,6 @@ export default function DashboardPostulante() {
               
               {/* NETMIND */}
               <div className="bg-[#111111] border border-gray-800 rounded-3xl overflow-hidden shadow-xl group hover:border-[#00baff]/50 transition-colors">
-                {/* ✅ Contenedor optimizado y centrado */}
                 <div className="h-28 w-full overflow-hidden relative flex justify-center items-center">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src="/netmind.png" alt="NetMind" className="max-w-full max-h-full object-contain group-hover:scale-105 transition-transform duration-700" />
@@ -398,10 +397,8 @@ export default function DashboardPostulante() {
                 <div className="p-6 pt-2">
                   <div className="flex items-center justify-between mb-2">
                     <h3 className="text-lg font-bold text-white">LISAM</h3>
-                    {/* ✅ Etiqueta actualizada */}
                     <span className="text-[10px] px-2 py-1 bg-[#00baff]/10 text-[#00baff] rounded-md font-bold uppercase">Computer Vision / LSM</span>
                   </div>
-                  {/* ✅ Descripción actualizada */}
                   <p className="text-xs text-gray-400 leading-relaxed mb-4">
                     Modelo de IA enfocado en la detección de Lenguaje de Señas Mexicanas (LSM) en tiempo real mediante visión por computadora. Interpreta señas LSM, impulsando la comunicación inclusiva.
                   </p>
@@ -422,12 +419,112 @@ export default function DashboardPostulante() {
           </main>
         );
 
+      // ==========================
+      // ✅ NUEVA PESTAÑA: NÚCLEOS
+      // ==========================
       case "nucleos":
         return (
-          <main className="pt-24 pb-28 px-5 max-w-lg mx-auto min-h-screen animate-in fade-in duration-300">
-            <h2 className="text-xl font-bold mb-4">Los Núcleos</h2>
-            <div className="bg-[#111111] border border-gray-800 rounded-2xl p-6 text-center text-gray-500 text-sm">
-              <p>Conoce a los miembros, equipos de trabajo y áreas de especialidad.</p>
+          <main className="pt-24 pb-28 px-5 max-w-lg mx-auto min-h-screen animate-in fade-in duration-500">
+            
+            <div className="flex items-center gap-4 mb-6">
+              <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-[#0051ff]/20 to-[#00baff]/20 text-[#00baff] flex items-center justify-center text-3xl shadow-[0_0_20px_rgba(0,186,255,0.2)] border border-[#00baff]/10">
+                🧬
+              </div>
+              <div>
+                <h2 className="text-2xl font-black text-white tracking-tight">Los Núcleos</h2>
+                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-0.5">Estructura de SIAFI</p>
+              </div>
+            </div>
+
+            <div className="bg-[#111111] border border-gray-800 rounded-3xl p-6 mb-8 shadow-xl relative overflow-hidden">
+               <div className="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-[#0051ff] to-[#00baff]"></div>
+               <p className="text-gray-300 text-sm leading-relaxed">
+                 En SIAFI contamos con <strong className="text-white">cuatro grandes áreas</strong> que nos permiten observar el comportamiento de la IA desde diversos campos, tanto sociales como técnicos.
+               </p>
+            </div>
+
+            <div className="flex flex-col gap-6">
+              
+              {/* PROYECTOS */}
+              <div className="bg-[#111111] border border-gray-800 rounded-3xl overflow-hidden shadow-xl group hover:border-[#0051ff]/50 transition-colors">
+                <div className="h-32 w-full overflow-hidden relative">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src="/nucleo-proyectos.png" alt="Núcleo Proyectos" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#111111] to-transparent"></div>
+                </div>
+                <div className="p-6 pt-2">
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                      <span className="text-[#0051ff]">💻</span> Proyectos
+                    </h3>
+                    <span className="text-[9px] px-2 py-1 bg-[#0051ff]/10 text-[#00baff] rounded-md font-bold uppercase tracking-wider">Desarrollo Técnico</span>
+                  </div>
+                  <p className="text-xs text-gray-400 leading-relaxed">
+                    Es el núcleo donde se desarrolla principalmente el área técnica. Aquí, los miembros analizan las necesidades de la sociedad desde su experiencia personal para desarrollar soluciones tecnológicas que las satisfagan.
+                  </p>
+                </div>
+              </div>
+
+              {/* CAPACITACIÓN */}
+              <div className="bg-[#111111] border border-gray-800 rounded-3xl overflow-hidden shadow-xl group hover:border-yellow-500/50 transition-colors">
+                <div className="h-32 w-full overflow-hidden relative">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src="/nucleo-capacitacion.png" alt="Núcleo Capacitación" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#111111] to-transparent"></div>
+                </div>
+                <div className="p-6 pt-2">
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                      <span className="text-yellow-500">📚</span> Capacitación
+                    </h3>
+                    <span className="text-[9px] px-2 py-1 bg-yellow-500/10 text-yellow-500 rounded-md font-bold uppercase tracking-wider">Aprendizaje</span>
+                  </div>
+                  <p className="text-xs text-gray-400 leading-relaxed">
+                    Área encargada de la creación e impartición de cursos técnicos y talleres de habilidades blandas, fomentando el crecimiento constante de los conocimientos entre nuestros miembros.
+                  </p>
+                </div>
+              </div>
+
+              {/* ORGANIZACIÓN */}
+              <div className="bg-[#111111] border border-gray-800 rounded-3xl overflow-hidden shadow-xl group hover:border-green-500/50 transition-colors">
+                <div className="h-32 w-full overflow-hidden relative">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src="/nucleo-organizacion.png" alt="Núcleo Organización" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#111111] to-transparent"></div>
+                </div>
+                <div className="p-6 pt-2">
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                      <span className="text-green-500">📋</span> Organización
+                    </h3>
+                    <span className="text-[9px] px-2 py-1 bg-green-500/10 text-green-400 rounded-md font-bold uppercase tracking-wider">Logística</span>
+                  </div>
+                  <p className="text-xs text-gray-400 leading-relaxed">
+                    Área que se encarga de la gestión, coordinación y realización de eventos que dan a conocer la sociedad a la comunidad, así como los diversos proyectos de la sociedad y actividades de integración entre los miembros.
+                  </p>
+                </div>
+              </div>
+
+              {/* DIFUSIÓN */}
+              <div className="bg-[#111111] border border-gray-800 rounded-3xl overflow-hidden shadow-xl group hover:border-purple-500/50 transition-colors">
+                <div className="h-32 w-full overflow-hidden relative">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src="/nucleo-difusion.png" alt="Núcleo Difusión" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#111111] to-transparent"></div>
+                </div>
+                <div className="p-6 pt-2">
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                      <span className="text-purple-500">📢</span> Difusión
+                    </h3>
+                    <span className="text-[9px] px-2 py-1 bg-purple-500/10 text-purple-400 rounded-md font-bold uppercase tracking-wider">Marketing</span>
+                  </div>
+                  <p className="text-xs text-gray-400 leading-relaxed">
+                    Es el área responsable del marketing de los proyectos y del posicionamiento de la sociedad, asegurando que nuestro trabajo llegue a todo el público.
+                  </p>
+                </div>
+              </div>
+
             </div>
           </main>
         );

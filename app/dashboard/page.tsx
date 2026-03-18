@@ -230,7 +230,6 @@ export default function DashboardPostulante() {
             </div>
 
             <div className="w-full h-48 rounded-3xl overflow-hidden mb-6 shadow-2xl border border-gray-800 relative group">
-               {/* ✅ EXTENSIÓN CAMBIADA A .png */}
                {/* eslint-disable-next-line @next/next/no-img-element */}
                <img src="/siafi-banner.png" alt="Equipo SIAFI" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
                <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-black/40 to-transparent"></div>
@@ -302,10 +301,111 @@ export default function DashboardPostulante() {
 
       case "proyectos":
         return (
-          <main className="pt-24 pb-28 px-5 max-w-lg mx-auto min-h-screen animate-in fade-in duration-300">
-            <h2 className="text-xl font-bold mb-4">Proyectos Activos</h2>
-            <div className="bg-[#111111] border border-gray-800 rounded-2xl p-6 text-center text-gray-500 text-sm">
-              <p>Aquí mostraremos los laboratorios, investigaciones y software en desarrollo.</p>
+          <main className="pt-24 pb-28 px-5 max-w-lg mx-auto min-h-screen animate-in fade-in duration-500">
+            
+            <div className="flex items-center gap-4 mb-8">
+              <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-[#0051ff]/20 to-[#00baff]/20 text-[#00baff] flex items-center justify-center text-3xl shadow-[0_0_20px_rgba(0,186,255,0.2)] border border-[#00baff]/10">
+                🚀
+              </div>
+              <div>
+                <h2 className="text-2xl font-black text-white tracking-tight">Nuestros Proyectos</h2>
+                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-0.5">Innovación y Desarrollo</p>
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-6">
+              
+              {/* NETMIND */}
+              <div className="bg-[#111111] border border-gray-800 rounded-3xl overflow-hidden shadow-xl group hover:border-[#00baff]/50 transition-colors">
+                <div className="h-40 w-full overflow-hidden relative">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src="/netmind.png" alt="NetMind" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#111111] to-transparent"></div>
+                </div>
+                <div className="p-6 pt-2">
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="text-lg font-bold text-white">NetMind</h3>
+                    <span className="text-[10px] px-2 py-1 bg-[#00baff]/10 text-[#00baff] rounded-md font-bold uppercase">NLP / Salud Mental</span>
+                  </div>
+                  <p className="text-xs text-gray-400 leading-relaxed mb-4">
+                    Inteligencia Artificial para el Bienestar Emocional. Unimos psicología e IA para analizar patrones emocionales en los textos mediante NLP, brindando análisis detallados y actuando como enlace con especialistas de la salud mental.
+                  </p>
+                </div>
+              </div>
+
+              {/* PROFESOR VR */}
+              <div className="bg-[#111111] border border-gray-800 rounded-3xl overflow-hidden shadow-xl group hover:border-[#00baff]/50 transition-colors">
+                <div className="h-40 w-full overflow-hidden relative">
+                  {/* ✅ EXTENSIÓN CORREGIDA A .jpg */}
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src="/profesor-vr.jpg" alt="Profesor VR" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#111111] to-transparent"></div>
+                </div>
+                <div className="p-6 pt-2">
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="text-lg font-bold text-white">Profesor VR</h3>
+                    <span className="text-[10px] px-2 py-1 bg-purple-500/10 text-purple-400 rounded-md font-bold uppercase">Realidad Virtual / IA</span>
+                  </div>
+                  <p className="text-xs text-gray-400 leading-relaxed mb-4">
+                    Profesor Inteligente en Realidad Virtual. Proporciona una experiencia de enseñanza personalizada adaptando la pedagogía y la actitud del profesor virtual según las necesidades y el estilo de aprendizaje de cada estudiante.
+                  </p>
+                </div>
+              </div>
+
+              {/* KANJI-JI */}
+              <div className="bg-[#111111] border border-gray-800 rounded-3xl overflow-hidden shadow-xl group hover:border-[#00baff]/50 transition-colors">
+                <div className="h-40 w-full overflow-hidden relative">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src="/kanji-ji.png" alt="Kanji-ji" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#111111] to-transparent"></div>
+                </div>
+                <div className="p-6 pt-2">
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="text-lg font-bold text-white">Kanji-ji</h3>
+                    <span className="text-[10px] px-2 py-1 bg-red-500/10 text-red-400 rounded-md font-bold uppercase">Computer Vision / Idiomas</span>
+                  </div>
+                  <p className="text-xs text-gray-400 leading-relaxed mb-4">
+                    Aplicación de aprendizaje del idioma japonés. Impulsada por redes neuronales, incluye un avanzado sistema de detección de Kanjis para facilitar el aprendizaje de forma intuitiva tanto a principiantes como a nivel avanzado.
+                  </p>
+                </div>
+              </div>
+
+              {/* F-VOICE */}
+              <div className="bg-[#111111] border border-gray-800 rounded-3xl overflow-hidden shadow-xl group hover:border-[#00baff]/50 transition-colors">
+                <div className="h-40 w-full overflow-hidden relative">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src="/f-voice.png" alt="F-Voice" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#111111] to-transparent"></div>
+                </div>
+                <div className="p-6 pt-2">
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="text-lg font-bold text-white">F-Voice</h3>
+                    <span className="text-[10px] px-2 py-1 bg-green-500/10 text-green-400 rounded-md font-bold uppercase">Audio / TTS</span>
+                  </div>
+                  <p className="text-xs text-gray-400 leading-relaxed mb-4">
+                    Tecnología de voces sintéticas clave en asistentes virtuales y modelos de lenguaje. Busca potenciar la accesibilidad, la inclusión y crear experiencias más inmersivas y realistas mediante la generación avanzada de voz.
+                  </p>
+                </div>
+              </div>
+
+              {/* LISAM */}
+              <div className="bg-[#111111] border border-gray-800 rounded-3xl overflow-hidden shadow-xl group hover:border-[#00baff]/50 transition-colors">
+                <div className="h-40 w-full overflow-hidden relative">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src="/lisam.png" alt="LISAM" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#111111] to-transparent"></div>
+                </div>
+                <div className="p-6 pt-2">
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="text-lg font-bold text-white">LISAM</h3>
+                    <span className="text-[10px] px-2 py-1 bg-yellow-500/10 text-yellow-500 rounded-md font-bold uppercase">Investigación y Desarrollo</span>
+                  </div>
+                  <p className="text-xs text-gray-400 leading-relaxed mb-4">
+                    Proyecto colaborativo de investigación técnica del núcleo de proyectos de SIAFI, enfocado en estructurar y diseñar nuevas soluciones de inteligencia artificial para problemáticas del mundo real.
+                  </p>
+                </div>
+              </div>
+
             </div>
           </main>
         );

@@ -10,6 +10,7 @@ export default function DashboardPostulante() {
   const [isNotifMenuOpen, setIsNotifMenuOpen] = useState(false);
   const [notificaciones, setNotificaciones] = useState<any[]>([]);
   
+  // ✅ PESTAÑA ACTIVA: Las nuevas opciones son "siafi", "proyectos", "home", "eventos", "nucleo"
   const [activeTab, setActiveTab] = useState("home");
   
   const { data: session, status, update } = useSession();
@@ -109,10 +110,6 @@ export default function DashboardPostulante() {
 
   const renderHomeTab = () => {
     switch (userEstatus) {
-      
-      // ==========================
-      // PANTALLA: APROBADO PARA ENTREVISTA
-      // ==========================
       case "Aprobado para Entrevista":
         return (
           <main className="pt-24 pb-28 px-5 max-w-lg mx-auto min-h-screen flex flex-col items-center justify-center gap-6 animate-in zoom-in-95 fade-in duration-500">
@@ -121,17 +118,14 @@ export default function DashboardPostulante() {
                 🌟
               </div>
               <h2 className="text-3xl font-black mb-2 text-white tracking-tight">¡Aprobado!</h2>
-              {/* ✅ El texto sigue siendo amarillo brillante */}
               <p className="text-yellow-500 font-bold tracking-widest uppercase text-xs mb-8 drop-shadow-[0_0_8px_rgba(234,179,8,0.5)]">Siguiente Etapa: Entrevista</p>
             </div>
             
-            {/* ✅ Cuadro en tonalidad azul SIAFI */}
             <div className="bg-[#111111] border border-[#0051ff]/30 rounded-3xl p-8 text-center shadow-2xl relative overflow-hidden w-full">
               <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#0051ff] to-[#00baff]"></div>
               <p className="text-gray-300 text-sm leading-relaxed mb-8">
                 Felicidades <strong>{primerNombre}</strong>, tu perfil ha destacado entre los demás postulantes. Queremos conocerte mejor, platicar sobre tu visión y tu pasión por la tecnología.
               </p>
-              {/* ✅ Botón Verde */}
               <button className="w-full py-4 bg-green-500 hover:bg-green-600 text-white font-black text-sm uppercase tracking-wider rounded-xl transition-all shadow-lg shadow-green-500/20 active:scale-95">
                 Agendar Entrevista
               </button>
@@ -139,9 +133,6 @@ export default function DashboardPostulante() {
           </main>
         );
 
-      // ==========================
-      // PANTALLA: ACEPTADO FINAL
-      // ==========================
       case "Aceptado":
         return (
           <main className="pt-24 pb-28 px-5 max-w-lg mx-auto min-h-screen flex flex-col items-center justify-center gap-6 animate-in slide-in-from-bottom-10 fade-in duration-700">
@@ -150,7 +141,6 @@ export default function DashboardPostulante() {
                 🚀
               </div>
               <h2 className="text-4xl font-black mb-2 text-white tracking-tight">¡Eres SIAFI!</h2>
-              {/* ✅ Nuevo texto solicitado */}
               <p className="text-green-400 font-bold tracking-widest uppercase text-xs mb-8">¡Felicidades, has sido aceptad@!</p>
             </div>
             
@@ -158,9 +148,8 @@ export default function DashboardPostulante() {
               <div className="absolute inset-0 bg-green-500/5 backdrop-blur-3xl"></div>
               <div className="relative z-10">
                 <p className="text-gray-300 text-sm leading-relaxed mb-8">
-                  Nos emociona muchísimo informarte que has sido oficialmente <strong>Aceptado</strong> en la Sociedad de Inteligencia Artificial de la Facultad de Ingeniería. ¡Comienza una nueva etapa!
+                  Nos emociona muchísimo informarte que has sido oficialmente <strong>Aceptad@</strong> en la Sociedad de Inteligencia Artificial de la Facultad de Ingeniería. ¡Comienza una nueva etapa!
                 </p>
-                {/* ✅ Botón con el texto de WhatsApp */}
                 <button className="w-full py-4 bg-green-500 hover:bg-green-400 text-[#0a0a0a] font-black text-sm uppercase tracking-wider rounded-xl transition-all shadow-lg shadow-green-500/20 active:scale-95">
                   Unirse al grupo de WhatsApp
                 </button>
@@ -169,9 +158,6 @@ export default function DashboardPostulante() {
           </main>
         );
 
-      // ==========================
-      // PANTALLA: NO SELECCIONADO / RECHAZADO
-      // ==========================
       case "No Seleccionado":
       case "Rechazado":
         const esFiltro = userEstatus === "No Seleccionado";
@@ -200,9 +186,6 @@ export default function DashboardPostulante() {
           </main>
         );
 
-      // ==========================
-      // PANTALLA: REGISTRADO (DEFAULT)
-      // ==========================
       case "Registrado":
       default:
         return (
@@ -231,41 +214,42 @@ export default function DashboardPostulante() {
     }
   };
 
+  // ✅ NUEVAS FUNCIONES PARA RENDERIZAR LAS NUEVAS PESTAÑAS
   const renderActiveContent = () => {
     switch (activeTab) {
-      case "estatus":
+      case "siafi":
         return (
           <main className="pt-24 pb-28 px-5 max-w-lg mx-auto min-h-screen animate-in fade-in duration-300">
-            <h2 className="text-xl font-bold mb-4">Información de la Convocatoria</h2>
+            <h2 className="text-xl font-bold mb-4">Acerca de SIAFI</h2>
             <div className="bg-[#111111] border border-gray-800 rounded-2xl p-6 text-center text-gray-500 text-sm">
-              <p>Aquí irá el documento de la convocatoria y requisitos.</p>
+              <p>Aquí pondremos la misión, visión, directiva y qué hacemos en la sociedad.</p>
             </div>
           </main>
         );
-      case "perfil":
+      case "proyectos":
         return (
           <main className="pt-24 pb-28 px-5 max-w-lg mx-auto min-h-screen animate-in fade-in duration-300">
-            <h2 className="text-xl font-bold mb-4">Tu Perfil</h2>
+            <h2 className="text-xl font-bold mb-4">Proyectos Activos</h2>
             <div className="bg-[#111111] border border-gray-800 rounded-2xl p-6 text-center text-gray-500 text-sm">
-              <p>Aquí se mostrarán las respuestas y el CV que subiste en tu postulación.</p>
+              <p>Aquí mostraremos los laboratorios, investigaciones y software en desarrollo.</p>
             </div>
           </main>
         );
-      case "ayuda":
+      case "eventos":
         return (
           <main className="pt-24 pb-28 px-5 max-w-lg mx-auto min-h-screen animate-in fade-in duration-300">
-            <h2 className="text-xl font-bold mb-4">Centro de Ayuda</h2>
+            <h2 className="text-xl font-bold mb-4">Eventos y Calendario</h2>
             <div className="bg-[#111111] border border-gray-800 rounded-2xl p-6 text-center text-gray-500 text-sm">
-              <p>Preguntas frecuentes o chat de soporte técnico.</p>
+              <p>Aquí listaremos talleres, conferencias, fechas de entrevista y hackathons.</p>
             </div>
           </main>
         );
-      case "fechas":
+      case "nucleo":
         return (
           <main className="pt-24 pb-28 px-5 max-w-lg mx-auto min-h-screen animate-in fade-in duration-300">
-            <h2 className="text-xl font-bold mb-4">Fechas Importantes</h2>
+            <h2 className="text-xl font-bold mb-4">El Núcleo</h2>
             <div className="bg-[#111111] border border-gray-800 rounded-2xl p-6 text-center text-gray-500 text-sm">
-              <p>Calendario de resultados y entrevistas.</p>
+              <p>Conoce a los miembros, equipos de trabajo y áreas de especialidad.</p>
             </div>
           </main>
         );
@@ -378,25 +362,33 @@ export default function DashboardPostulante() {
 
       {renderActiveContent()}
 
+      {/* ✅ NUEVOS BOTONES DEL CINTILLO INFERIOR */}
       <nav className="fixed bottom-0 w-full bg-[#111111]/90 backdrop-blur-md border-t border-gray-800 z-40 pb-safe">
         <div className="flex justify-between items-center h-16 px-6 relative max-w-lg mx-auto">
           
+          {/* 1. SIAFI (Cerebro) */}
           <button 
-            onClick={() => setActiveTab("estatus")}
-            className={`flex flex-col items-center justify-center w-12 transition-colors ${activeTab === "estatus" ? "text-[#00baff]" : "text-gray-400 hover:text-gray-200"}`}
+            onClick={() => setActiveTab("siafi")}
+            className={`flex flex-col items-center justify-center w-12 transition-colors ${activeTab === "siafi" ? "text-[#00baff]" : "text-gray-400 hover:text-gray-200"}`}
           >
-            <svg className="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
-            <span className="text-[9px] font-medium tracking-wide">Estatus</span>
+            <svg className="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.5 2A2.5 2.5 0 0112 4.5v15a2.5 2.5 0 01-4.96.44 2.5 2.5 0 01-2.96-3.08 3 3 0 01-.34-5.58 2.5 2.5 0 011.32-4.24 2.5 2.5 0 011.98-3A2.5 2.5 0 019.5 2zM14.5 2A2.5 2.5 0 0012 4.5v15a2.5 2.5 0 004.96.44 2.5 2.5 0 002.96-3.08 3 3 0 00.34-5.58 2.5 2.5 0 00-1.32-4.24 2.5 2.5 0 00-1.98-3A2.5 2.5 0 0014.5 2z" />
+            </svg>
+            <span className="text-[9px] font-medium tracking-wide">SIAFI</span>
           </button>
           
+          {/* 2. PROYECTOS (Carpeta) */}
           <button 
-            onClick={() => setActiveTab("perfil")}
-            className={`flex flex-col items-center justify-center w-12 mr-6 transition-colors ${activeTab === "perfil" ? "text-[#00baff]" : "text-gray-400 hover:text-gray-200"}`}
+            onClick={() => setActiveTab("proyectos")}
+            className={`flex flex-col items-center justify-center w-12 mr-6 transition-colors ${activeTab === "proyectos" ? "text-[#00baff]" : "text-gray-400 hover:text-gray-200"}`}
           >
-            <svg className="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
-            <span className="text-[9px] font-medium tracking-wide">Perfil</span>
+            <svg className="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+            </svg>
+            <span className="text-[9px] font-medium tracking-wide">Proyectos</span>
           </button>
 
+          {/* 3. HOME / ESTATUS (Botón Central) */}
           <div className="absolute left-1/2 -translate-x-1/2 -top-4">
             <button 
               onClick={() => setActiveTab("home")}
@@ -408,20 +400,26 @@ export default function DashboardPostulante() {
             </button>
           </div>
 
+          {/* 4. EVENTOS (Calendario) */}
           <button 
-            onClick={() => setActiveTab("ayuda")}
-            className={`flex flex-col items-center justify-center w-12 ml-6 transition-colors ${activeTab === "ayuda" ? "text-[#00baff]" : "text-gray-400 hover:text-gray-200"}`}
+            onClick={() => setActiveTab("eventos")}
+            className={`flex flex-col items-center justify-center w-12 ml-6 transition-colors ${activeTab === "eventos" ? "text-[#00baff]" : "text-gray-400 hover:text-gray-200"}`}
           >
-            <svg className="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-            <span className="text-[9px] font-medium tracking-wide">Ayuda</span>
+            <svg className="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+            <span className="text-[9px] font-medium tracking-wide">Eventos</span>
           </button>
 
+          {/* 5. NÚCLEO (Usuarios/Equipo) */}
           <button 
-            onClick={() => setActiveTab("fechas")}
-            className={`flex flex-col items-center justify-center w-12 transition-colors ${activeTab === "fechas" ? "text-[#00baff]" : "text-gray-400 hover:text-gray-200"}`}
+            onClick={() => setActiveTab("nucleo")}
+            className={`flex flex-col items-center justify-center w-12 transition-colors ${activeTab === "nucleo" ? "text-[#00baff]" : "text-gray-400 hover:text-gray-200"}`}
           >
-            <svg className="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-            <span className="text-[9px] font-medium tracking-wide">Fechas</span>
+            <svg className="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+            </svg>
+            <span className="text-[9px] font-medium tracking-wide">Núcleo</span>
           </button>
           
         </div>

@@ -213,14 +213,12 @@ export default function DashboardPostulante() {
     }
   };
 
-  // ✅ AQUÍ INTEGRAMOS LA PANTALLA OFICIAL DE SIAFI
   const renderActiveContent = () => {
     switch (activeTab) {
       case "siafi":
         return (
           <main className="pt-24 pb-28 px-5 max-w-lg mx-auto min-h-screen animate-in fade-in duration-500">
             
-            {/* Header de la Pestaña */}
             <div className="flex items-center gap-4 mb-8">
               <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-[#0051ff]/20 to-[#00baff]/20 text-[#00baff] flex items-center justify-center text-3xl shadow-[0_0_20px_rgba(0,186,255,0.2)] border border-[#00baff]/10">
                 🧠
@@ -231,17 +229,16 @@ export default function DashboardPostulante() {
               </div>
             </div>
 
-            {/* Imagen Principal (Hero Image) */}
             <div className="w-full h-48 rounded-3xl overflow-hidden mb-6 shadow-2xl border border-gray-800 relative group">
+               {/* ✅ EXTENSIÓN CAMBIADA A .png */}
                {/* eslint-disable-next-line @next/next/no-img-element */}
-               <img src="https://images.unsplash.com/photo-1620712943543-bcc4688e7485?q=80&w=800&auto=format&fit=crop" alt="Red Neuronal Artificial" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+               <img src="/siafi-banner.png" alt="Equipo SIAFI" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
                <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-black/40 to-transparent"></div>
                <div className="absolute bottom-4 left-5 right-5">
                  <span className="inline-block px-2 py-1 bg-[#0051ff]/50 backdrop-blur-md rounded-md text-[9px] font-bold text-white uppercase tracking-widest border border-white/10">Tecnología de Vanguardia</span>
                </div>
             </div>
 
-            {/* Texto General (El que tú me proporcionaste) */}
             <div className="bg-[#111111] border border-gray-800 rounded-3xl p-6 mb-6 shadow-xl relative overflow-hidden">
                <div className="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-[#0051ff] to-[#00baff]"></div>
                <p className="text-gray-300 text-sm leading-relaxed">
@@ -249,7 +246,6 @@ export default function DashboardPostulante() {
                </p>
             </div>
 
-            {/* Enfoque / Objetivo y Visión (Grid) */}
             <div className="grid grid-cols-1 gap-4 mb-6">
                <div className="bg-gradient-to-br from-[#111111] to-[#1a1a1a] border border-gray-800 rounded-3xl p-6 shadow-xl hover:border-gray-700 transition-colors">
                  <div className="flex items-center gap-3 mb-3">
@@ -272,7 +268,6 @@ export default function DashboardPostulante() {
                </div>
             </div>
 
-            {/* Qué Hacemos (Viñetas Extraídas de la Web) */}
             <div className="bg-[#111111] border border-gray-800 rounded-3xl p-6 mb-2 shadow-xl">
                <h3 className="font-bold text-white mb-5 flex items-center gap-2 uppercase tracking-wide text-sm">
                  <span className="w-2 h-2 rounded-full bg-[#00baff] animate-pulse"></span>
@@ -282,8 +277,8 @@ export default function DashboardPostulante() {
                  <li className="flex items-start gap-4">
                    <div className="mt-0.5 text-[#00baff] bg-[#00baff]/10 p-1.5 rounded-lg">👨‍💻</div>
                    <div>
-                     <p className="text-sm font-bold text-gray-200 mb-1">Workshops y Capacitación</p>
-                     <p className="text-xs text-gray-500 leading-relaxed">Impartimos cursos prácticos, grupos de estudio y mentorías sobre Machine Learning, Deep Learning y visión computacional.</p>
+                     <p className="text-sm font-bold text-gray-200 mb-1">Capacitación constante</p>
+                     <p className="text-xs text-gray-500 leading-relaxed">Impartimos cursos prácticos, grupos de estudio y mentorías sobre diversos temas del área.</p>
                    </div>
                  </li>
                  <li className="flex items-start gap-4">
@@ -343,7 +338,6 @@ export default function DashboardPostulante() {
 
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white font-sans overflow-hidden">
-      
       <header className="fixed top-0 w-full h-16 bg-[#111111]/90 backdrop-blur-md border-b border-gray-800 z-40 flex items-center justify-between px-5">
         <button onClick={() => setIsNotifMenuOpen(true)} className="relative p-2 text-gray-400 hover:text-white transition-colors">
           <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">

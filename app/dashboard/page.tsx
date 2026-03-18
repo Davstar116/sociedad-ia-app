@@ -317,9 +317,10 @@ export default function DashboardPostulante() {
               
               {/* NETMIND */}
               <div className="bg-[#111111] border border-gray-800 rounded-3xl overflow-hidden shadow-xl group hover:border-[#00baff]/50 transition-colors">
-                <div className="h-40 w-full overflow-hidden relative">
+                {/* ✅ Contenedor optimizado y centrado */}
+                <div className="h-28 w-full overflow-hidden relative flex justify-center items-center">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src="/netmind.png" alt="NetMind" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                  <img src="/netmind.png" alt="NetMind" className="max-w-full max-h-full object-contain group-hover:scale-105 transition-transform duration-700" />
                   <div className="absolute inset-0 bg-gradient-to-t from-[#111111] to-transparent"></div>
                 </div>
                 <div className="p-6 pt-2">
@@ -335,10 +336,9 @@ export default function DashboardPostulante() {
 
               {/* PROFESOR VR */}
               <div className="bg-[#111111] border border-gray-800 rounded-3xl overflow-hidden shadow-xl group hover:border-[#00baff]/50 transition-colors">
-                <div className="h-40 w-full overflow-hidden relative">
-                  {/* ✅ EXTENSIÓN CORREGIDA A .jpg */}
+                <div className="h-28 w-full overflow-hidden relative flex justify-center items-center">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src="/profesor-vr.jpg" alt="Profesor VR" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                  <img src="/profesor-vr.jpg" alt="Profesor VR" className="max-w-full max-h-full object-contain group-hover:scale-105 transition-transform duration-700" />
                   <div className="absolute inset-0 bg-gradient-to-t from-[#111111] to-transparent"></div>
                 </div>
                 <div className="p-6 pt-2">
@@ -354,9 +354,9 @@ export default function DashboardPostulante() {
 
               {/* KANJI-JI */}
               <div className="bg-[#111111] border border-gray-800 rounded-3xl overflow-hidden shadow-xl group hover:border-[#00baff]/50 transition-colors">
-                <div className="h-40 w-full overflow-hidden relative">
+                <div className="h-28 w-full overflow-hidden relative flex justify-center items-center">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src="/kanji-ji.png" alt="Kanji-ji" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                  <img src="/kanji-ji.png" alt="Kanji-ji" className="max-w-full max-h-full object-contain group-hover:scale-105 transition-transform duration-700" />
                   <div className="absolute inset-0 bg-gradient-to-t from-[#111111] to-transparent"></div>
                 </div>
                 <div className="p-6 pt-2">
@@ -372,9 +372,9 @@ export default function DashboardPostulante() {
 
               {/* F-VOICE */}
               <div className="bg-[#111111] border border-gray-800 rounded-3xl overflow-hidden shadow-xl group hover:border-[#00baff]/50 transition-colors">
-                <div className="h-40 w-full overflow-hidden relative">
+                <div className="h-28 w-full overflow-hidden relative flex justify-center items-center">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src="/f-voice.png" alt="F-Voice" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                  <img src="/f-voice.png" alt="F-Voice" className="max-w-full max-h-full object-contain group-hover:scale-105 transition-transform duration-700" />
                   <div className="absolute inset-0 bg-gradient-to-t from-[#111111] to-transparent"></div>
                 </div>
                 <div className="p-6 pt-2">
@@ -390,18 +390,20 @@ export default function DashboardPostulante() {
 
               {/* LISAM */}
               <div className="bg-[#111111] border border-gray-800 rounded-3xl overflow-hidden shadow-xl group hover:border-[#00baff]/50 transition-colors">
-                <div className="h-40 w-full overflow-hidden relative">
+                <div className="h-28 w-full overflow-hidden relative flex justify-center items-center">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src="/lisam.png" alt="LISAM" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                  <img src="/lisam.png" alt="LISAM" className="max-w-full max-h-full object-contain group-hover:scale-105 transition-transform duration-700" />
                   <div className="absolute inset-0 bg-gradient-to-t from-[#111111] to-transparent"></div>
                 </div>
                 <div className="p-6 pt-2">
                   <div className="flex items-center justify-between mb-2">
                     <h3 className="text-lg font-bold text-white">LISAM</h3>
-                    <span className="text-[10px] px-2 py-1 bg-yellow-500/10 text-yellow-500 rounded-md font-bold uppercase">Investigación y Desarrollo</span>
+                    {/* ✅ Etiqueta actualizada */}
+                    <span className="text-[10px] px-2 py-1 bg-[#00baff]/10 text-[#00baff] rounded-md font-bold uppercase">Computer Vision / LSM</span>
                   </div>
+                  {/* ✅ Descripción actualizada */}
                   <p className="text-xs text-gray-400 leading-relaxed mb-4">
-                    Proyecto colaborativo de investigación técnica del núcleo de proyectos de SIAFI, enfocado en estructurar y diseñar nuevas soluciones de inteligencia artificial para problemáticas del mundo real.
+                    Modelo de IA enfocado en la detección de Lenguaje de Señas Mexicanas (LSM) en tiempo real mediante visión por computadora. Interpreta señas LSM, impulsando la comunicación inclusiva.
                   </p>
                 </div>
               </div>

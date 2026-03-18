@@ -10,7 +10,7 @@ export default function DashboardPostulante() {
   const [isNotifMenuOpen, setIsNotifMenuOpen] = useState(false);
   const [notificaciones, setNotificaciones] = useState<any[]>([]);
   
-  // ✅ PESTAÑA ACTIVA: Las nuevas opciones son "siafi", "proyectos", "home", "eventos", "nucleo"
+  // ✅ PESTAÑA ACTIVA: Las opciones son "siafi", "proyectos", "home", "eventos", "nucleos"
   const [activeTab, setActiveTab] = useState("home");
   
   const { data: session, status, update } = useSession();
@@ -244,10 +244,10 @@ export default function DashboardPostulante() {
             </div>
           </main>
         );
-      case "nucleo":
+      case "nucleos":
         return (
           <main className="pt-24 pb-28 px-5 max-w-lg mx-auto min-h-screen animate-in fade-in duration-300">
-            <h2 className="text-xl font-bold mb-4">El Núcleo</h2>
+            <h2 className="text-xl font-bold mb-4">Los Núcleos</h2>
             <div className="bg-[#111111] border border-gray-800 rounded-2xl p-6 text-center text-gray-500 text-sm">
               <p>Conoce a los miembros, equipos de trabajo y áreas de especialidad.</p>
             </div>
@@ -400,26 +400,26 @@ export default function DashboardPostulante() {
             </button>
           </div>
 
-          {/* 4. EVENTOS (Calendario) */}
+          {/* 4. EVENTOS (Ícono Ticket) */}
           <button 
             onClick={() => setActiveTab("eventos")}
             className={`flex flex-col items-center justify-center w-12 ml-6 transition-colors ${activeTab === "eventos" ? "text-[#00baff]" : "text-gray-400 hover:text-gray-200"}`}
           >
             <svg className="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z" />
             </svg>
             <span className="text-[9px] font-medium tracking-wide">Eventos</span>
           </button>
 
-          {/* 5. NÚCLEO (Usuarios/Equipo) */}
+          {/* 5. NÚCLEOS (Usuarios/Equipo) */}
           <button 
-            onClick={() => setActiveTab("nucleo")}
-            className={`flex flex-col items-center justify-center w-12 transition-colors ${activeTab === "nucleo" ? "text-[#00baff]" : "text-gray-400 hover:text-gray-200"}`}
+            onClick={() => setActiveTab("nucleos")}
+            className={`flex flex-col items-center justify-center w-12 transition-colors ${activeTab === "nucleos" ? "text-[#00baff]" : "text-gray-400 hover:text-gray-200"}`}
           >
             <svg className="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
             </svg>
-            <span className="text-[9px] font-medium tracking-wide">Núcleo</span>
+            <span className="text-[9px] font-medium tracking-wide">Núcleos</span>
           </button>
           
         </div>

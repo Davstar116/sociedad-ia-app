@@ -1,11 +1,10 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useSession, signOut } from "next-auth/react"; 
 import Link from "next/link"; 
 import OneSignal from 'react-onesignal';
 
-// ✅ NUEVA CONFIGURACIÓN DEL CALENDARIO (15 MINUTOS, 7 DÍAS, 2 SEMANAS)
 const DIAS_SEMANA = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
 const FECHAS_S1 = [6, 7, 8, 9, 10, 11, 12];
 const FECHAS_S2 = [13, 14, 15, 16, 17, 18, 19];
@@ -17,15 +16,17 @@ export default function DashboardEntrevistador() {
   
   const [activeTab, setActiveTab] = useState("panel");
   
-  // ✅ ESTADOS PARA EL HORARIO
+  // ✅ ESTADOS DEL HORARIO Y BLOQUEO
   const [semana, setSemana] = useState(1);
   const [disponibilidad, setDisponibilidad] = useState<string[]>([]);
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
-
+  const [isLoadingSchedule, setIsLoadingSchedule] = useState(true);
+  const [isLocked, setIsLocked] = useState(false);
+  
+  const hasLoadedSchedule = useRef(false);
   const { data: session, status } = useSession();
 
-  // Generamos las horas en intervalos de 15 min (09:00 a 20:45)
   const HORAS = useMemo(() => {
     const h = [];
     for (let i = 9; i < 21; i++) {
@@ -53,9 +54,33 @@ export default function DashboardEntrevistador() {
     }
   };
 
+  // ✅ NUEVA FUNCIÓN: CARGAR HORARIO DESDE NOTION AL INICIAR
+  const cargarHorario = async () => {
+    if (!session?.user?.email || hasLoadedSchedule.current) return;
+    setIsLoadingSchedule(true);
+    try {
+      const res = await fetch(`/api/availability?email=${session.user.email}`);
+      if (res.ok) {
+        const data = await res.json();
+        if (data.horarios && data.horarios.length > 0) {
+          setDisponibilidad(data.horarios);
+          setIsLocked(true); // Bloquear si ya hay datos
+        }
+      }
+      hasLoadedSchedule.current = true;
+    } catch (error) {
+      console.error("Error cargando horario", error);
+    } finally {
+      setIsLoadingSchedule(false);
+    }
+  };
+
   useEffect(() => {
-    fetchNotificaciones();
-  }, [session]);
+    if (status === "authenticated") {
+      fetchNotificaciones();
+      cargarHorario();
+    }
+  }, [status, session]);
 
   useEffect(() => {
     const initOneSignal = async () => {
@@ -65,15 +90,13 @@ export default function DashboardEntrevistador() {
             appId: process.env.NEXT_PUBLIC_ONESIGNAL_APP_ID || "",
             allowLocalhostAsSecureOrigin: true, 
           });
-
           OneSignal.Slidedown.promptPush();
           OneSignal.login(session.user.email);
         } catch (error) {
-          console.error("Error inicializando OneSignal:", error);
+          console.error("Error OneSignal:", error);
         }
       }
     };
-
     initOneSignal();
   }, [session]);
 
@@ -94,11 +117,20 @@ export default function DashboardEntrevistador() {
     await fetch(`/api/notifications?id=${id}`, { method: "DELETE" });
   };
 
-  // ✅ FUNCIÓN DE SELECCIÓN POR CLIC (Sin drag)
+  // ✅ SOLO DEJA MARCAR SI NO ESTÁ BLOQUEADO
   const toggleSlot = (slotId: string) => {
+    if (isLocked) return;
     setDisponibilidad((prev) => 
       prev.includes(slotId) ? prev.filter(id => id !== slotId) : [...prev, slotId]
     );
+  };
+
+  // ✅ GUARDAR CON CONFIRMACIÓN
+  const confirmarYGuardar = () => {
+    const confirmar = window.confirm("¿Estás seguro de que deseas guardar estos cambios en tu disponibilidad?");
+    if (confirmar) {
+      guardarHorario();
+    }
   };
 
   const guardarHorario = async () => {
@@ -114,12 +146,13 @@ export default function DashboardEntrevistador() {
           nombre: session.user.name,
           email: session.user.email,
           horarios: disponibilidad,
-          horasTotales: disponibilidad.length * 0.25, // 15 min = 0.25 horas
+          horasTotales: disponibilidad.length * 0.25,
         }),
       });
 
       if (res.ok) {
         setSaveSuccess(true);
+        setIsLocked(true); // Bloquea la vista automáticamente al guardar con éxito
         setTimeout(() => setSaveSuccess(false), 3000);
       }
     } catch (error) {
@@ -157,7 +190,7 @@ export default function DashboardEntrevistador() {
   const renderActiveContent = () => {
     switch (activeTab) {
       // ==========================
-      // ✅ PESTAÑA: HORARIOS
+      // ✅ PESTAÑA: HORARIOS (CON BLOQUEO Y CARGA)
       // ==========================
       case "mi-horario":
         const fechasActivas = semana === 1 ? FECHAS_S1 : FECHAS_S2;
@@ -165,7 +198,10 @@ export default function DashboardEntrevistador() {
         return (
           <main className="pt-24 pb-28 px-3 max-w-2xl mx-auto min-h-screen animate-in fade-in duration-300 select-none">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-black text-white tracking-tight">Mi Disponibilidad</h2>
+              <div>
+                <h2 className="text-xl font-black text-white tracking-tight">Mi Disponibilidad</h2>
+                {isLocked && <p className="text-[10px] text-green-400 font-bold uppercase tracking-widest mt-0.5 flex items-center gap-1"><span>🔒</span> Registrado</p>}
+              </div>
               <div className="text-right">
                 <p className="text-2xl font-black text-[#00baff]">
                   {disponibilidad.length * 0.25}
@@ -174,7 +210,6 @@ export default function DashboardEntrevistador() {
               </div>
             </div>
 
-            {/* Botones de Selección de Semana */}
             <div className="flex gap-2 mb-4 bg-[#111111] p-1.5 rounded-xl border border-gray-800">
               <button 
                 onClick={() => setSemana(1)}
@@ -190,66 +225,76 @@ export default function DashboardEntrevistador() {
               </button>
             </div>
 
-            <div className="bg-[#111111] border border-gray-800 rounded-3xl p-3 sm:p-5 shadow-2xl overflow-hidden relative">
-              <p className="text-[10px] text-gray-500 mb-4 text-center italic">Selecciona los bloques de 15 minutos en los que estás disponible.</p>
+            <div className={`bg-[#111111] border rounded-3xl p-3 sm:p-5 shadow-2xl overflow-hidden relative transition-all ${isLocked ? 'border-green-500/30' : 'border-gray-800'}`}>
               
-              <div className="w-full">
-                {/* Cabecera de Días y Fechas */}
-                <div className="grid grid-cols-[35px_repeat(7,_1fr)] gap-[2px] sm:gap-1 mb-2">
-                  <div className="col-span-1"></div> {/* Espacio vacío esquina */}
-                  {DIAS_SEMANA.map((dia, idx) => (
-                    <div key={dia} className="text-center flex flex-col items-center">
-                      <span className="text-[8px] sm:text-[10px] uppercase tracking-wider text-gray-500 font-bold">{dia.slice(0,3)}</span>
-                      <span className="text-[11px] sm:text-xs text-white font-black">{fechasActivas[idx]}</span>
-                    </div>
-                  ))}
+              {isLoadingSchedule ? (
+                <div className="flex flex-col items-center justify-center py-10 opacity-50">
+                  <div className="w-8 h-8 border-2 border-[#00baff] border-t-transparent rounded-full animate-spin mb-3"></div>
+                  <p className="text-xs text-gray-400">Cargando horario...</p>
                 </div>
-
-                {/* Cuadrícula de Horas */}
-                <div className="flex flex-col gap-[2px]">
-                  {HORAS.map(hora => (
-                    <div key={hora} className="grid grid-cols-[35px_repeat(7,_1fr)] gap-[2px] sm:gap-1 items-center">
-                      
-                      {/* Columna de la Hora (Solo mostramos la hora en punto para no saturar) */}
-                      <div className="col-span-1 text-right pr-1 sm:pr-2 text-[9px] font-medium text-gray-500">
-                        {hora.endsWith("00") ? hora : ""}
+              ) : (
+                <div className="w-full">
+                  <div className="grid grid-cols-[35px_repeat(7,_1fr)] gap-[2px] sm:gap-1 mb-2">
+                    <div className="col-span-1"></div>
+                    {DIAS_SEMANA.map((dia, idx) => (
+                      <div key={dia} className="text-center flex flex-col items-center">
+                        <span className="text-[8px] sm:text-[10px] uppercase tracking-wider text-gray-500 font-bold">{dia.slice(0,3)}</span>
+                        <span className="text-[11px] sm:text-xs text-white font-black">{fechasActivas[idx]}</span>
                       </div>
-                      
-                      {/* Celdas de 15 minutos */}
-                      {DIAS_SEMANA.map((dia, idx) => {
-                        const slotId = `S${semana}-${dia}-${fechasActivas[idx]}-${hora}`;
-                        const isSelected = disponibilidad.includes(slotId);
-                        return (
-                          <div 
-                            key={slotId}
-                            onClick={() => toggleSlot(slotId)}
-                            className={`h-4 sm:h-5 rounded-[2px] cursor-pointer transition-colors border-[0.5px] ${
-                              isSelected 
-                                ? 'bg-[#00baff] border-[#00baff] shadow-[0_0_8px_rgba(0,186,255,0.4)]' 
-                                : 'bg-[#1a1a1a] border-gray-800 hover:bg-gray-800/80'
-                            }`}
-                          ></div>
-                        );
-                      })}
-                    </div>
-                  ))}
+                    ))}
+                  </div>
+
+                  <div className="flex flex-col gap-[2px]">
+                    {HORAS.map(hora => (
+                      <div key={hora} className="grid grid-cols-[35px_repeat(7,_1fr)] gap-[2px] sm:gap-1 items-center">
+                        <div className="col-span-1 text-right pr-1 sm:pr-2 text-[9px] font-medium text-gray-500">
+                          {hora.endsWith("00") ? hora : ""}
+                        </div>
+                        
+                        {DIAS_SEMANA.map((dia, idx) => {
+                          const slotId = `S${semana}-${dia}-${fechasActivas[idx]}-${hora}`;
+                          const isSelected = disponibilidad.includes(slotId);
+                          return (
+                            <div 
+                              key={slotId}
+                              onClick={() => toggleSlot(slotId)}
+                              className={`h-4 sm:h-5 rounded-[2px] transition-all border-[0.5px] ${
+                                isLocked 
+                                  ? (isSelected ? 'bg-green-500 border-green-400 opacity-90 cursor-default shadow-[0_0_8px_rgba(34,197,94,0.3)]' : 'bg-[#151515] border-gray-800 opacity-30 cursor-default')
+                                  : (isSelected ? 'bg-[#00baff] border-[#00baff] shadow-[0_0_8px_rgba(0,186,255,0.4)] cursor-pointer' : 'bg-[#1a1a1a] border-gray-800 hover:bg-gray-800/80 cursor-pointer')
+                              }`}
+                            ></div>
+                          );
+                        })}
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
 
-            {/* Botón de Guardar */}
+            {/* ✅ LÓGICA DE BOTONES (Desbloquear o Guardar) */}
             <div className="mt-6 flex justify-center">
-              <button 
-                onClick={guardarHorario}
-                disabled={isSaving}
-                className={`w-full max-w-xs py-4 font-black text-sm uppercase tracking-wider rounded-xl transition-all shadow-lg active:scale-95 ${
-                  saveSuccess 
-                    ? 'bg-green-500 text-[#0a0a0a] shadow-green-500/20'
-                    : 'bg-gradient-to-r from-[#0051ff] to-[#00baff] text-white shadow-[#0051ff]/20 hover:from-[#00baff] hover:to-[#0051ff]'
-                }`}
-              >
-                {isSaving ? 'Guardando...' : saveSuccess ? '¡Guardado Exitoso!' : 'Guardar Horario'}
-              </button>
+              {isLocked ? (
+                <button 
+                  onClick={() => setIsLocked(false)}
+                  className="w-full max-w-xs py-4 font-black text-sm uppercase tracking-wider rounded-xl transition-all shadow-lg active:scale-95 bg-gray-800 text-gray-300 hover:bg-gray-700 hover:text-white"
+                >
+                  Realizar Cambios
+                </button>
+              ) : (
+                <button 
+                  onClick={confirmarYGuardar}
+                  disabled={isSaving || isLoadingSchedule}
+                  className={`w-full max-w-xs py-4 font-black text-sm uppercase tracking-wider rounded-xl transition-all shadow-lg active:scale-95 ${
+                    saveSuccess 
+                      ? 'bg-green-500 text-[#0a0a0a] shadow-green-500/20'
+                      : 'bg-gradient-to-r from-[#0051ff] to-[#00baff] text-white shadow-[#0051ff]/20 hover:from-[#00baff] hover:to-[#0051ff]'
+                  }`}
+                >
+                  {isSaving ? 'Guardando...' : saveSuccess ? '¡Guardado Exitoso!' : 'Guardar Horario'}
+                </button>
+              )}
             </div>
           </main>
         );

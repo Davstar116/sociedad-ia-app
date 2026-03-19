@@ -70,3 +70,43 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Error interno del servidor" }, { status: 500 });
   }
 }
+
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url);
+  const email = searchParams.get('email');
+
+  if (!email || !process.env.NOTION_AVAILABILITY_DB_ID) {
+    return NextResponse.json({ error: "Datos incompletos" }, { status: 400 });
+  }
+
+  try {
+    const queryRes = await fetch(`https://api.notion.com/v1/databases/${process.env.NOTION_AVAILABILITY_DB_ID}/query`, {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${process.env.NOTION_TOKEN}`,
+        "Notion-Version": "2022-06-28",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        filter: {
+          property: "Email",
+          email: { equals: email },
+        },
+      }),
+      cache: 'no-store'
+    });
+
+    const queryData = await queryRes.json();
+    
+    if (queryData.results?.length > 0) {
+      const page = queryData.results[0];
+      const horariosGuardados = page.properties["HorariosJSON"]?.rich_text[0]?.plain_text || "[]";
+      return NextResponse.json({ horarios: JSON.parse(horariosGuardados) });
+    }
+
+    return NextResponse.json({ horarios: [] });
+  } catch (error) {
+    console.error("Error leyendo availability:", error);
+    return NextResponse.json({ error: "Error en el servidor" }, { status: 500 });
+  }
+}

@@ -5,7 +5,7 @@ import { useSession, signOut } from "next-auth/react";
 import Link from "next/link"; 
 import OneSignal from 'react-onesignal';
 
-// ✅ CONFIGURACIÓN DEL CALENDARIO
+// ✅ CONFIGURACIÓN DEL CALENDARIO (El when2meet)
 const DIAS = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes"];
 const HORAS = ["09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00"];
 
@@ -14,16 +14,17 @@ export default function DashboardEntrevistador() {
   const [isNotifMenuOpen, setIsNotifMenuOpen] = useState(false);
   const [notificaciones, setNotificaciones] = useState<any[]>([]);
   
+  // ✅ PESTAÑAS DEL ENTREVISTADOR
   const [activeTab, setActiveTab] = useState("panel");
   
-  const { data: session, status } = useSession();
-
   // ✅ ESTADOS PARA EL WHEN2MEET
   const [disponibilidad, setDisponibilidad] = useState<string[]>([]);
   const [isDragging, setIsDragging] = useState(false);
   const [dragMode, setDragMode] = useState(true); // true = agregando, false = quitando
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
+
+  const { data: session, status } = useSession();
 
   useEffect(() => {
     // @ts-ignore
@@ -45,6 +46,43 @@ export default function DashboardEntrevistador() {
   useEffect(() => {
     fetchNotificaciones();
   }, [session]);
+
+  useEffect(() => {
+    const initOneSignal = async () => {
+      if (typeof window !== "undefined" && session?.user?.email) {
+        try {
+          await OneSignal.init({
+            appId: process.env.NEXT_PUBLIC_ONESIGNAL_APP_ID || "",
+            allowLocalhostAsSecureOrigin: true, 
+          });
+
+          OneSignal.Slidedown.promptPush();
+          OneSignal.login(session.user.email);
+        } catch (error) {
+          console.error("Error inicializando OneSignal:", error);
+        }
+      }
+    };
+
+    initOneSignal();
+  }, [session]);
+
+  const unreadCount = notificaciones.filter(n => !n.leida).length;
+
+  const marcarComoLeida = async (id: string, leidaActual: boolean) => {
+    if (leidaActual) return; 
+    setNotificaciones(prev => prev.map(n => n.id === id ? { ...n, leida: true } : n));
+    await fetch("/api/notifications", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id, leida: true })
+    });
+  };
+
+  const borrarNotificacion = async (id: string) => {
+    setNotificaciones(prev => prev.filter(n => n.id !== id));
+    await fetch(`/api/notifications?id=${id}`, { method: "DELETE" });
+  };
 
   // ✅ FUNCIONES DEL WHEN2MEET
   const toggleSlot = (slotId: string, forceAdd?: boolean) => {
@@ -88,7 +126,7 @@ export default function DashboardEntrevistador() {
           nombre: session.user.name,
           email: session.user.email,
           horarios: disponibilidad,
-          horasTotales: disponibilidad.length, // Asumiendo bloques de 1 hora
+          horasTotales: disponibilidad.length,
         }),
       });
 
@@ -128,11 +166,9 @@ export default function DashboardEntrevistador() {
     </div>
   );
 
+  // ✅ RENDERIZADOR DE PANTALLAS PARA ENTREVISTADOR
   const renderActiveContent = () => {
     switch (activeTab) {
-      // ==========================
-      // ✅ NUEVA PESTAÑA: HORARIOS (WHEN2MEET)
-      // ==========================
       case "mi-horario":
         return (
           <main 
@@ -156,7 +192,7 @@ export default function DashboardEntrevistador() {
               <div className="min-w-[400px]">
                 {/* Cabecera de Días */}
                 <div className="grid grid-cols-6 gap-1 mb-2">
-                  <div className="col-span-1"></div> {/* Espacio vacío esquina */}
+                  <div className="col-span-1"></div>
                   {DIAS.map(dia => (
                     <div key={dia} className="text-center font-bold text-[10px] uppercase tracking-wider text-gray-400">
                       {dia.slice(0,3)}
@@ -179,7 +215,6 @@ export default function DashboardEntrevistador() {
                             key={slotId}
                             onMouseDown={() => handleMouseDown(slotId)}
                             onMouseEnter={() => handleMouseEnter(slotId)}
-                            // Soporte básico para pantallas táctiles (móviles)
                             onTouchStart={() => handleMouseDown(slotId)}
                             className={`h-10 rounded-md cursor-pointer transition-all duration-200 border ${
                               isSelected 
@@ -195,7 +230,6 @@ export default function DashboardEntrevistador() {
               </div>
             </div>
 
-            {/* Botón de Guardar */}
             <div className="mt-8 flex justify-center">
               <button 
                 onClick={guardarHorario}
@@ -269,6 +303,7 @@ export default function DashboardEntrevistador() {
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white font-sans overflow-hidden">
       
+      {/* HEADER SUPERIOR */}
       <header className="fixed top-0 w-full h-16 bg-[#111111]/90 backdrop-blur-md border-b border-gray-800 z-40 flex items-center justify-between px-5">
         <button onClick={() => setIsNotifMenuOpen(true)} className="relative p-2 text-gray-400 hover:text-white transition-colors">
           <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -287,10 +322,12 @@ export default function DashboardEntrevistador() {
         </button>
       </header>
 
+      {/* OVERLAYS */}
       {(isMenuOpen || isNotifMenuOpen) && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 transition-opacity" onClick={() => { setIsMenuOpen(false); setIsNotifMenuOpen(false); }} />
       )}
       
+      {/* MENÚ PERFIL (DERECHO) */}
       <div className={`fixed top-0 right-0 h-full w-72 bg-[#111111] border-l border-gray-800 z-50 transform transition-transform duration-300 ease-in-out flex flex-col ${isMenuOpen ? 'translate-x-0' : 'translate-x-full'}`}>
         <div className="p-6 border-b border-gray-800 flex justify-between items-start">
           <div className="flex items-center gap-4 pr-4">
@@ -319,6 +356,7 @@ export default function DashboardEntrevistador() {
         </div>
       </div>
 
+      {/* MENÚ NOTIFICACIONES (IZQUIERDO) */}
       <div className={`fixed top-0 left-0 h-full w-80 bg-[#111111] border-r border-gray-800 z-50 transform transition-transform duration-300 ease-in-out flex flex-col ${isNotifMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         <div className="p-5 border-b border-gray-800 flex justify-between items-center bg-[#0a0a0a]">
           <h2 className="text-lg font-bold text-white flex items-center gap-2">
@@ -366,6 +404,8 @@ export default function DashboardEntrevistador() {
           )}
         </div>
       </div>
+
+      {renderActiveContent()}
 
       {/* ✅ CINTILLO INFERIOR DE ENTREVISTADOR */}
       <nav className="fixed bottom-0 w-full bg-[#111111]/90 backdrop-blur-md border-t border-gray-800 z-40 pb-safe">

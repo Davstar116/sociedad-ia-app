@@ -1,30 +1,40 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useSession, signOut } from "next-auth/react"; 
 import Link from "next/link"; 
 import OneSignal from 'react-onesignal';
 
-// ✅ CONFIGURACIÓN DEL CALENDARIO (El when2meet)
-const DIAS = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes"];
-const HORAS = ["09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00"];
+// ✅ NUEVA CONFIGURACIÓN DEL CALENDARIO (15 MINUTOS, 7 DÍAS, 2 SEMANAS)
+const DIAS_SEMANA = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
+const FECHAS_S1 = [6, 7, 8, 9, 10, 11, 12];
+const FECHAS_S2 = [13, 14, 15, 16, 17, 18, 19];
 
 export default function DashboardEntrevistador() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isNotifMenuOpen, setIsNotifMenuOpen] = useState(false);
   const [notificaciones, setNotificaciones] = useState<any[]>([]);
   
-  // ✅ PESTAÑAS DEL ENTREVISTADOR
   const [activeTab, setActiveTab] = useState("panel");
   
-  // ✅ ESTADOS PARA EL WHEN2MEET
+  // ✅ ESTADOS PARA EL HORARIO
+  const [semana, setSemana] = useState(1);
   const [disponibilidad, setDisponibilidad] = useState<string[]>([]);
-  const [isDragging, setIsDragging] = useState(false);
-  const [dragMode, setDragMode] = useState(true); // true = agregando, false = quitando
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
 
   const { data: session, status } = useSession();
+
+  // Generamos las horas en intervalos de 15 min (09:00 a 20:45)
+  const HORAS = useMemo(() => {
+    const h = [];
+    for (let i = 9; i < 21; i++) {
+      for (let m of ["00", "15", "30", "45"]) {
+        h.push(`${i.toString().padStart(2, '0')}:${m}`);
+      }
+    }
+    return h;
+  }, []);
 
   useEffect(() => {
     // @ts-ignore
@@ -84,33 +94,11 @@ export default function DashboardEntrevistador() {
     await fetch(`/api/notifications?id=${id}`, { method: "DELETE" });
   };
 
-  // ✅ FUNCIONES DEL WHEN2MEET
-  const toggleSlot = (slotId: string, forceAdd?: boolean) => {
-    setDisponibilidad((prev) => {
-      const isSelected = prev.includes(slotId);
-      const shouldAdd = forceAdd !== undefined ? forceAdd : !isSelected;
-      
-      if (shouldAdd && !isSelected) return [...prev, slotId];
-      if (!shouldAdd && isSelected) return prev.filter(id => id !== slotId);
-      return prev;
-    });
-  };
-
-  const handleMouseDown = (slotId: string) => {
-    setIsDragging(true);
-    const isCurrentlySelected = disponibilidad.includes(slotId);
-    setDragMode(!isCurrentlySelected);
-    toggleSlot(slotId, !isCurrentlySelected);
-  };
-
-  const handleMouseEnter = (slotId: string) => {
-    if (isDragging) {
-      toggleSlot(slotId, dragMode);
-    }
-  };
-
-  const handleMouseUp = () => {
-    setIsDragging(false);
+  // ✅ FUNCIÓN DE SELECCIÓN POR CLIC (Sin drag)
+  const toggleSlot = (slotId: string) => {
+    setDisponibilidad((prev) => 
+      prev.includes(slotId) ? prev.filter(id => id !== slotId) : [...prev, slotId]
+    );
   };
 
   const guardarHorario = async () => {
@@ -126,7 +114,7 @@ export default function DashboardEntrevistador() {
           nombre: session.user.name,
           email: session.user.email,
           horarios: disponibilidad,
-          horasTotales: disponibilidad.length,
+          horasTotales: disponibilidad.length * 0.25, // 15 min = 0.25 horas
         }),
       });
 
@@ -166,60 +154,79 @@ export default function DashboardEntrevistador() {
     </div>
   );
 
-  // ✅ RENDERIZADOR DE PANTALLAS PARA ENTREVISTADOR
   const renderActiveContent = () => {
     switch (activeTab) {
+      // ==========================
+      // ✅ PESTAÑA: HORARIOS
+      // ==========================
       case "mi-horario":
+        const fechasActivas = semana === 1 ? FECHAS_S1 : FECHAS_S2;
+        
         return (
-          <main 
-            className="pt-24 pb-28 px-4 max-w-2xl mx-auto min-h-screen animate-in fade-in duration-300 select-none"
-            onMouseUp={handleMouseUp}
-            onMouseLeave={handleMouseUp}
-          >
-            <div className="flex items-center justify-between mb-6">
-              <div>
-                <h2 className="text-xl font-black text-white tracking-tight">Mi Disponibilidad</h2>
-                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-0.5">Generador de bloques</p>
-              </div>
+          <main className="pt-24 pb-28 px-3 max-w-2xl mx-auto min-h-screen animate-in fade-in duration-300 select-none">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-black text-white tracking-tight">Mi Disponibilidad</h2>
               <div className="text-right">
-                <p className="text-2xl font-black text-[#00baff]">{disponibilidad.length}<span className="text-sm text-gray-500 font-medium"> hrs</span></p>
+                <p className="text-2xl font-black text-[#00baff]">
+                  {disponibilidad.length * 0.25}
+                  <span className="text-sm text-gray-500 font-medium"> hrs</span>
+                </p>
               </div>
             </div>
 
-            <div className="bg-[#111111] border border-gray-800 rounded-3xl p-5 shadow-2xl overflow-x-auto relative">
-              <p className="text-xs text-gray-400 mb-4 italic">Toca o arrastra sobre las celdas para marcar tus horas libres.</p>
+            {/* Botones de Selección de Semana */}
+            <div className="flex gap-2 mb-4 bg-[#111111] p-1.5 rounded-xl border border-gray-800">
+              <button 
+                onClick={() => setSemana(1)}
+                className={`flex-1 py-2 text-[11px] font-bold rounded-lg transition-colors ${semana === 1 ? 'bg-gradient-to-r from-[#0051ff] to-[#00baff] text-white shadow-lg' : 'text-gray-400 hover:text-white'}`}
+              >
+                Semana 1 (6-12 Abr)
+              </button>
+              <button 
+                onClick={() => setSemana(2)}
+                className={`flex-1 py-2 text-[11px] font-bold rounded-lg transition-colors ${semana === 2 ? 'bg-gradient-to-r from-[#0051ff] to-[#00baff] text-white shadow-lg' : 'text-gray-400 hover:text-white'}`}
+              >
+                Semana 2 (13-19 Abr)
+              </button>
+            </div>
+
+            <div className="bg-[#111111] border border-gray-800 rounded-3xl p-3 sm:p-5 shadow-2xl overflow-hidden relative">
+              <p className="text-[10px] text-gray-500 mb-4 text-center italic">Selecciona los bloques de 15 minutos en los que estás disponible.</p>
               
-              <div className="min-w-[400px]">
-                {/* Cabecera de Días */}
-                <div className="grid grid-cols-6 gap-1 mb-2">
-                  <div className="col-span-1"></div>
-                  {DIAS.map(dia => (
-                    <div key={dia} className="text-center font-bold text-[10px] uppercase tracking-wider text-gray-400">
-                      {dia.slice(0,3)}
+              <div className="w-full">
+                {/* Cabecera de Días y Fechas */}
+                <div className="grid grid-cols-[35px_repeat(7,_1fr)] gap-[2px] sm:gap-1 mb-2">
+                  <div className="col-span-1"></div> {/* Espacio vacío esquina */}
+                  {DIAS_SEMANA.map((dia, idx) => (
+                    <div key={dia} className="text-center flex flex-col items-center">
+                      <span className="text-[8px] sm:text-[10px] uppercase tracking-wider text-gray-500 font-bold">{dia.slice(0,3)}</span>
+                      <span className="text-[11px] sm:text-xs text-white font-black">{fechasActivas[idx]}</span>
                     </div>
                   ))}
                 </div>
 
                 {/* Cuadrícula de Horas */}
-                <div className="flex flex-col gap-1">
+                <div className="flex flex-col gap-[2px]">
                   {HORAS.map(hora => (
-                    <div key={hora} className="grid grid-cols-6 gap-1 items-center">
-                      <div className="col-span-1 text-right pr-2 text-[10px] font-medium text-gray-500">
-                        {hora}
+                    <div key={hora} className="grid grid-cols-[35px_repeat(7,_1fr)] gap-[2px] sm:gap-1 items-center">
+                      
+                      {/* Columna de la Hora (Solo mostramos la hora en punto para no saturar) */}
+                      <div className="col-span-1 text-right pr-1 sm:pr-2 text-[9px] font-medium text-gray-500">
+                        {hora.endsWith("00") ? hora : ""}
                       </div>
-                      {DIAS.map(dia => {
-                        const slotId = `${dia}-${hora}`;
+                      
+                      {/* Celdas de 15 minutos */}
+                      {DIAS_SEMANA.map((dia, idx) => {
+                        const slotId = `S${semana}-${dia}-${fechasActivas[idx]}-${hora}`;
                         const isSelected = disponibilidad.includes(slotId);
                         return (
                           <div 
                             key={slotId}
-                            onMouseDown={() => handleMouseDown(slotId)}
-                            onMouseEnter={() => handleMouseEnter(slotId)}
-                            onTouchStart={() => handleMouseDown(slotId)}
-                            className={`h-10 rounded-md cursor-pointer transition-all duration-200 border ${
+                            onClick={() => toggleSlot(slotId)}
+                            className={`h-4 sm:h-5 rounded-[2px] cursor-pointer transition-colors border-[0.5px] ${
                               isSelected 
-                                ? 'bg-gradient-to-br from-[#0051ff] to-[#00baff] border-[#00baff] shadow-[0_0_10px_rgba(0,186,255,0.3)]' 
-                                : 'bg-[#0a0a0a] border-gray-800 hover:border-gray-600'
+                                ? 'bg-[#00baff] border-[#00baff] shadow-[0_0_8px_rgba(0,186,255,0.4)]' 
+                                : 'bg-[#1a1a1a] border-gray-800 hover:bg-gray-800/80'
                             }`}
                           ></div>
                         );
@@ -230,7 +237,8 @@ export default function DashboardEntrevistador() {
               </div>
             </div>
 
-            <div className="mt-8 flex justify-center">
+            {/* Botón de Guardar */}
+            <div className="mt-6 flex justify-center">
               <button 
                 onClick={guardarHorario}
                 disabled={isSaving}

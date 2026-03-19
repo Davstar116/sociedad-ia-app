@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useSession, signOut } from "next-auth/react"; 
 import Link from "next/link"; 
 import OneSignal from 'react-onesignal';
@@ -12,15 +12,8 @@ export default function DashboardPostulante() {
   
   const [activeTab, setActiveTab] = useState("home");
   
-  const { data: session, status, update } = useSession();
-  const hasRefreshed = useRef(false);
-
-  useEffect(() => {
-    if (status === "authenticated" && !hasRefreshed.current) {
-      update(); 
-      hasRefreshed.current = true;
-    }
-  }, [status, update]);
+  // ✅ ELIMINADO EL LOOP: Ahora solo leemos la sesión, no la forzamos a recargar aquí
+  const { data: session, status } = useSession();
 
   useEffect(() => {
     // @ts-ignore
@@ -423,9 +416,7 @@ export default function DashboardPostulante() {
               </div>
             </div>
 
-            {/* FOTO HERO (Reemplaza por header-eventos.jpeg en public) */}
             <div className="w-full h-44 rounded-3xl overflow-hidden mb-8 shadow-2xl border border-gray-800 relative group">
-               {/* ✅ EXTENSIÓN ACTUALIZADA A .jpeg */}
                {/* eslint-disable-next-line @next/next/no-img-element */}
                <img src="/header-eventos.jpeg" alt="Comunidad SIAFI" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
                <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-black/40 to-transparent"></div>

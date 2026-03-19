@@ -411,17 +411,83 @@ export default function DashboardPostulante() {
 
       case "eventos":
         return (
-          <main className="pt-24 pb-28 px-5 max-w-lg mx-auto min-h-screen animate-in fade-in duration-300">
-            <h2 className="text-xl font-bold mb-4">Eventos y Calendario</h2>
-            <div className="bg-[#111111] border border-gray-800 rounded-2xl p-6 text-center text-gray-500 text-sm">
-              <p>Aquí listaremos talleres, conferencias, fechas de entrevista y hackathons.</p>
+          <main className="pt-24 pb-28 px-5 max-w-lg mx-auto min-h-screen animate-in fade-in duration-500">
+            
+            <div className="flex items-center gap-4 mb-8">
+              <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-[#0051ff]/20 to-[#00baff]/20 text-[#00baff] flex items-center justify-center text-3xl shadow-[0_0_20px_rgba(0,186,255,0.2)] border border-[#00baff]/10">
+                🗓️
+              </div>
+              <div>
+                <h2 className="text-2xl font-black text-white tracking-tight">Eventos y Comunidad</h2>
+                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-0.5">SIAFI en Acción</p>
+              </div>
+            </div>
+
+            {/* FOTO HERO (Reemplaza por header-eventos.jpeg en public) */}
+            <div className="w-full h-44 rounded-3xl overflow-hidden mb-8 shadow-2xl border border-gray-800 relative group">
+               {/* ✅ EXTENSIÓN ACTUALIZADA A .jpeg */}
+               {/* eslint-disable-next-line @next/next/no-img-element */}
+               <img src="/header-eventos.jpeg" alt="Comunidad SIAFI" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+               <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-black/40 to-transparent"></div>
+               <div className="absolute bottom-4 left-5 right-5">
+                 <span className="inline-block px-2 py-1 bg-[#0051ff]/50 backdrop-blur-md rounded-md text-[9px] font-bold text-white uppercase tracking-widest border border-white/10">Más que código, somos comunidad</span>
+               </div>
+            </div>
+
+            <div className="flex flex-col gap-6">
+              
+              {/* CONVIVENCIA INTERNA */}
+              <div className="bg-[#111111] border border-gray-800 rounded-3xl p-6 shadow-xl relative overflow-hidden group hover:border-[#00baff]/40 transition-colors">
+                <div className="absolute -right-6 -bottom-6 text-7xl opacity-10 group-hover:scale-110 group-hover:opacity-15 transition-all">🤝</div>
+                <div className="flex items-center gap-3 mb-3 relative z-10">
+                  <div className="w-8 h-8 rounded-full bg-[#0051ff]/10 flex items-center justify-center text-[#00baff] text-xl">✨</div>
+                  <h3 className="font-bold text-white text-sm uppercase tracking-wide">Convivencia y Team Building</h3>
+                </div>
+                <p className="text-gray-400 text-xs leading-relaxed relative z-10">
+                  Fortalecemos nuestros lazos como equipo fuera del entorno académico. Organizamos integraciones, dinámicas y eventos sociales internos para fomentar la colaboración, la amistad y un ambiente de apoyo mutuo entre todos los miembros de la sociedad.
+                </p>
+              </div>
+
+              {/* PLÁTICAS DE RELEVANCIA */}
+              <div className="bg-[#111111] border border-gray-800 rounded-3xl p-6 shadow-xl relative overflow-hidden group hover:border-[#00baff]/40 transition-colors">
+                <div className="absolute -right-6 -bottom-6 text-7xl opacity-10 group-hover:scale-110 group-hover:opacity-15 transition-all">🎤</div>
+                <div className="flex items-center gap-3 mb-3 relative z-10">
+                  <div className="w-8 h-8 rounded-full bg-[#0051ff]/10 flex items-center justify-center text-[#00baff] text-xl">💡</div>
+                  <h3 className="font-bold text-white text-sm uppercase tracking-wide">Charlas y Paneles de Vanguardia</h3>
+                </div>
+                <p className="text-gray-400 text-xs leading-relaxed relative z-10">
+                  Espacios de aprendizaje y discusión donde invitamos a expertos de la industria y academia. Abordamos temas de alta relevancia en Inteligencia Artificial, ética, futuro tecnológico y desarrollo profesional, manteniendo a nuestra comunidad siempre actualizada.
+                </p>
+              </div>
+
+              {/* CIENCIA CON NIÑOS */}
+              <div className="bg-[#111111] border border-gray-800 rounded-3xl p-6 shadow-xl relative overflow-hidden group hover:border-[#00baff]/40 transition-colors">
+                <div className="absolute -right-6 -bottom-6 text-7xl opacity-10 group-hover:scale-110 group-hover:opacity-15 transition-all">🧒</div>
+                <div className="flex items-center gap-3 mb-3 relative z-10">
+                  <div className="w-8 h-8 rounded-full bg-[#0051ff]/10 flex items-center justify-center text-[#00baff] text-xl">🚀</div>
+                  <h3 className="font-bold text-white text-sm uppercase tracking-wide">Fomento a la Cultura Científica</h3>
+                </div>
+                <p className="text-gray-400 text-xs leading-relaxed relative z-10">
+                  Creemos en inspirar a las siguientes generaciones. Realizamos talleres interactivos y eventos lúdicos diseñados especialmente para niños, acercándoles la ciencia y la tecnología de forma divertida para despertar su curiosidad y vocación científica.
+				</p>
+              </div>
+
+              {/* STANDS EN FERIAS */}
+              <div className="bg-[#111111] border border-gray-800 rounded-3xl p-6 shadow-xl relative overflow-hidden group hover:border-[#00baff]/40 transition-colors">
+                <div className="absolute -right-6 -bottom-6 text-7xl opacity-10 group-hover:scale-110 group-hover:opacity-15 transition-all">⛺</div>
+                <div className="flex items-center gap-3 mb-3 relative z-10">
+                  <div className="w-8 h-8 rounded-full bg-[#0051ff]/10 flex items-center justify-center text-[#00baff] text-xl">🛠️</div>
+                  <h3 className="font-bold text-white text-sm uppercase tracking-wide">Divulgación en Ferias y Exposiciones</h3>
+                </div>
+                <p className="text-gray-400 text-xs leading-relaxed relative z-10">
+                  Llevamos el trabajo de SIAFI fuera de la Facultad. Participamos con stands en ferias tecnológicas y académicas para presentar nuestros proyectos de IA y dar a conocer el impacto y las actividades de la sociedad a un público más amplio.
+                </p>
+              </div>
+
             </div>
           </main>
         );
 
-      // ==========================
-      // ✅ NUEVA PESTAÑA: NÚCLEOS
-      // ==========================
       case "nucleos":
         return (
           <main className="pt-24 pb-28 px-5 max-w-lg mx-auto min-h-screen animate-in fade-in duration-500">

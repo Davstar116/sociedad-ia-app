@@ -135,6 +135,7 @@ function LoginContent() {
       {/* Link de Registro Minimalista */}
       <div className="mt-6 text-center text-sm text-gray-500 w-full">
         ¿No tienes cuenta?{" "}
+        {/* ✅ CAMBIO APLICADO: Vuelve a redirigir a /register para cuentas estándar */}
         <Link href="/register" className="text-[#00baff] hover:text-[#009ac9] font-semibold transition-colors">
           Crear cuenta
         </Link>

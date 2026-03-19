@@ -5,15 +5,25 @@ import { useSession, signOut } from "next-auth/react";
 import Link from "next/link"; 
 import OneSignal from 'react-onesignal';
 
+// ✅ CONFIGURACIÓN DEL CALENDARIO
+const DIAS = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes"];
+const HORAS = ["09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00"];
+
 export default function DashboardEntrevistador() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isNotifMenuOpen, setIsNotifMenuOpen] = useState(false);
   const [notificaciones, setNotificaciones] = useState<any[]>([]);
   
-  // ✅ PESTAÑAS DEL ENTREVISTADOR
   const [activeTab, setActiveTab] = useState("panel");
   
   const { data: session, status } = useSession();
+
+  // ✅ ESTADOS PARA EL WHEN2MEET
+  const [disponibilidad, setDisponibilidad] = useState<string[]>([]);
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragMode, setDragMode] = useState(true); // true = agregando, false = quitando
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveSuccess, setSaveSuccess] = useState(false);
 
   useEffect(() => {
     // @ts-ignore
@@ -36,41 +46,61 @@ export default function DashboardEntrevistador() {
     fetchNotificaciones();
   }, [session]);
 
-  useEffect(() => {
-    const initOneSignal = async () => {
-      if (typeof window !== "undefined" && session?.user?.email) {
-        try {
-          await OneSignal.init({
-            appId: process.env.NEXT_PUBLIC_ONESIGNAL_APP_ID || "",
-            allowLocalhostAsSecureOrigin: true, 
-          });
-
-          OneSignal.Slidedown.promptPush();
-          OneSignal.login(session.user.email);
-        } catch (error) {
-          console.error("Error inicializando OneSignal:", error);
-        }
-      }
-    };
-
-    initOneSignal();
-  }, [session]);
-
-  const unreadCount = notificaciones.filter(n => !n.leida).length;
-
-  const marcarComoLeida = async (id: string, leidaActual: boolean) => {
-    if (leidaActual) return; 
-    setNotificaciones(prev => prev.map(n => n.id === id ? { ...n, leida: true } : n));
-    await fetch("/api/notifications", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id, leida: true })
+  // ✅ FUNCIONES DEL WHEN2MEET
+  const toggleSlot = (slotId: string, forceAdd?: boolean) => {
+    setDisponibilidad((prev) => {
+      const isSelected = prev.includes(slotId);
+      const shouldAdd = forceAdd !== undefined ? forceAdd : !isSelected;
+      
+      if (shouldAdd && !isSelected) return [...prev, slotId];
+      if (!shouldAdd && isSelected) return prev.filter(id => id !== slotId);
+      return prev;
     });
   };
 
-  const borrarNotificacion = async (id: string) => {
-    setNotificaciones(prev => prev.filter(n => n.id !== id));
-    await fetch(`/api/notifications?id=${id}`, { method: "DELETE" });
+  const handleMouseDown = (slotId: string) => {
+    setIsDragging(true);
+    const isCurrentlySelected = disponibilidad.includes(slotId);
+    setDragMode(!isCurrentlySelected);
+    toggleSlot(slotId, !isCurrentlySelected);
+  };
+
+  const handleMouseEnter = (slotId: string) => {
+    if (isDragging) {
+      toggleSlot(slotId, dragMode);
+    }
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+
+  const guardarHorario = async () => {
+    if (!session?.user?.email) return;
+    setIsSaving(true);
+    setSaveSuccess(false);
+
+    try {
+      const res = await fetch("/api/availability", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          nombre: session.user.name,
+          email: session.user.email,
+          horarios: disponibilidad,
+          horasTotales: disponibilidad.length, // Asumiendo bloques de 1 hora
+        }),
+      });
+
+      if (res.ok) {
+        setSaveSuccess(true);
+        setTimeout(() => setSaveSuccess(false), 3000);
+      }
+    } catch (error) {
+      console.error("Error guardando horario:", error);
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   if (status === "loading") {
@@ -98,15 +128,86 @@ export default function DashboardEntrevistador() {
     </div>
   );
 
-  // ✅ RENDERIZADOR DE PANTALLAS PARA ENTREVISTADOR
   const renderActiveContent = () => {
     switch (activeTab) {
+      // ==========================
+      // ✅ NUEVA PESTAÑA: HORARIOS (WHEN2MEET)
+      // ==========================
       case "mi-horario":
         return (
-          <main className="pt-24 pb-28 px-5 max-w-lg mx-auto min-h-screen animate-in fade-in duration-300">
-            <h2 className="text-xl font-bold mb-4">Mi Horario de Entrevistas</h2>
-            <div className="bg-[#111111] border border-gray-800 rounded-2xl p-6 text-center text-gray-500 text-sm">
-              <p>Aquí mostraremos la lista de postulantes asignados a ti para el día de hoy.</p>
+          <main 
+            className="pt-24 pb-28 px-4 max-w-2xl mx-auto min-h-screen animate-in fade-in duration-300 select-none"
+            onMouseUp={handleMouseUp}
+            onMouseLeave={handleMouseUp}
+          >
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h2 className="text-xl font-black text-white tracking-tight">Mi Disponibilidad</h2>
+                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-0.5">Generador de bloques</p>
+              </div>
+              <div className="text-right">
+                <p className="text-2xl font-black text-[#00baff]">{disponibilidad.length}<span className="text-sm text-gray-500 font-medium"> hrs</span></p>
+              </div>
+            </div>
+
+            <div className="bg-[#111111] border border-gray-800 rounded-3xl p-5 shadow-2xl overflow-x-auto relative">
+              <p className="text-xs text-gray-400 mb-4 italic">Toca o arrastra sobre las celdas para marcar tus horas libres.</p>
+              
+              <div className="min-w-[400px]">
+                {/* Cabecera de Días */}
+                <div className="grid grid-cols-6 gap-1 mb-2">
+                  <div className="col-span-1"></div> {/* Espacio vacío esquina */}
+                  {DIAS.map(dia => (
+                    <div key={dia} className="text-center font-bold text-[10px] uppercase tracking-wider text-gray-400">
+                      {dia.slice(0,3)}
+                    </div>
+                  ))}
+                </div>
+
+                {/* Cuadrícula de Horas */}
+                <div className="flex flex-col gap-1">
+                  {HORAS.map(hora => (
+                    <div key={hora} className="grid grid-cols-6 gap-1 items-center">
+                      <div className="col-span-1 text-right pr-2 text-[10px] font-medium text-gray-500">
+                        {hora}
+                      </div>
+                      {DIAS.map(dia => {
+                        const slotId = `${dia}-${hora}`;
+                        const isSelected = disponibilidad.includes(slotId);
+                        return (
+                          <div 
+                            key={slotId}
+                            onMouseDown={() => handleMouseDown(slotId)}
+                            onMouseEnter={() => handleMouseEnter(slotId)}
+                            // Soporte básico para pantallas táctiles (móviles)
+                            onTouchStart={() => handleMouseDown(slotId)}
+                            className={`h-10 rounded-md cursor-pointer transition-all duration-200 border ${
+                              isSelected 
+                                ? 'bg-gradient-to-br from-[#0051ff] to-[#00baff] border-[#00baff] shadow-[0_0_10px_rgba(0,186,255,0.3)]' 
+                                : 'bg-[#0a0a0a] border-gray-800 hover:border-gray-600'
+                            }`}
+                          ></div>
+                        );
+                      })}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Botón de Guardar */}
+            <div className="mt-8 flex justify-center">
+              <button 
+                onClick={guardarHorario}
+                disabled={isSaving}
+                className={`w-full max-w-xs py-4 font-black text-sm uppercase tracking-wider rounded-xl transition-all shadow-lg active:scale-95 ${
+                  saveSuccess 
+                    ? 'bg-green-500 text-[#0a0a0a] shadow-green-500/20'
+                    : 'bg-gradient-to-r from-[#0051ff] to-[#00baff] text-white shadow-[#0051ff]/20 hover:from-[#00baff] hover:to-[#0051ff]'
+                }`}
+              >
+                {isSaving ? 'Guardando...' : saveSuccess ? '¡Guardado Exitoso!' : 'Guardar Horario'}
+              </button>
             </div>
           </main>
         );
@@ -168,7 +269,6 @@ export default function DashboardEntrevistador() {
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white font-sans overflow-hidden">
       
-      {/* HEADER SUPERIOR */}
       <header className="fixed top-0 w-full h-16 bg-[#111111]/90 backdrop-blur-md border-b border-gray-800 z-40 flex items-center justify-between px-5">
         <button onClick={() => setIsNotifMenuOpen(true)} className="relative p-2 text-gray-400 hover:text-white transition-colors">
           <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -187,12 +287,10 @@ export default function DashboardEntrevistador() {
         </button>
       </header>
 
-      {/* OVERLAYS */}
       {(isMenuOpen || isNotifMenuOpen) && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 transition-opacity" onClick={() => { setIsMenuOpen(false); setIsNotifMenuOpen(false); }} />
       )}
       
-      {/* MENÚ PERFIL (DERECHO) */}
       <div className={`fixed top-0 right-0 h-full w-72 bg-[#111111] border-l border-gray-800 z-50 transform transition-transform duration-300 ease-in-out flex flex-col ${isMenuOpen ? 'translate-x-0' : 'translate-x-full'}`}>
         <div className="p-6 border-b border-gray-800 flex justify-between items-start">
           <div className="flex items-center gap-4 pr-4">
@@ -201,7 +299,6 @@ export default function DashboardEntrevistador() {
               <p className="font-bold text-white text-lg leading-tight truncate">{primerNombre}</p>
               <p className="text-xs text-gray-400 truncate mt-1">{userEmail}</p>
               <div className="mt-2 inline-block px-2 py-1 bg-[#00baff]/20 border border-[#00baff]/30 rounded-md">
-                  {/* ✅ Etiqueta cambiada a Entrevistador */}
                   <p className="text-[10px] uppercase tracking-wider font-bold text-[#00baff]">Entrevistador</p>
               </div>
             </div>
@@ -222,7 +319,6 @@ export default function DashboardEntrevistador() {
         </div>
       </div>
 
-      {/* MENÚ NOTIFICACIONES (IZQUIERDO) */}
       <div className={`fixed top-0 left-0 h-full w-80 bg-[#111111] border-r border-gray-800 z-50 transform transition-transform duration-300 ease-in-out flex flex-col ${isNotifMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         <div className="p-5 border-b border-gray-800 flex justify-between items-center bg-[#0a0a0a]">
           <h2 className="text-lg font-bold text-white flex items-center gap-2">
@@ -271,13 +367,10 @@ export default function DashboardEntrevistador() {
         </div>
       </div>
 
-      {renderActiveContent()}
-
       {/* ✅ CINTILLO INFERIOR DE ENTREVISTADOR */}
       <nav className="fixed bottom-0 w-full bg-[#111111]/90 backdrop-blur-md border-t border-gray-800 z-40 pb-safe">
         <div className="flex justify-between items-center h-16 px-6 relative max-w-lg mx-auto">
           
-          {/* 1. Mi Horario */}
           <button 
             onClick={() => setActiveTab("mi-horario")}
             className={`flex flex-col items-center justify-center w-12 transition-colors ${activeTab === "mi-horario" ? "text-[#00baff]" : "text-gray-400 hover:text-gray-200"}`}
@@ -288,7 +381,6 @@ export default function DashboardEntrevistador() {
             <span className="text-[9px] font-medium tracking-wide">Horario</span>
           </button>
           
-          {/* 2. Material */}
           <button 
             onClick={() => setActiveTab("material")}
             className={`flex flex-col items-center justify-center w-12 mr-6 transition-colors ${activeTab === "material" ? "text-[#00baff]" : "text-gray-400 hover:text-gray-200"}`}
@@ -299,7 +391,6 @@ export default function DashboardEntrevistador() {
             <span className="text-[9px] font-medium tracking-wide">Material</span>
           </button>
 
-          {/* 3. Panel (Botón Central) */}
           <div className="absolute left-1/2 -translate-x-1/2 -top-4">
             <button 
               onClick={() => setActiveTab("panel")}
@@ -311,7 +402,6 @@ export default function DashboardEntrevistador() {
             </button>
           </div>
 
-          {/* 4. Capacitación */}
           <button 
             onClick={() => setActiveTab("capacitacion")}
             className={`flex flex-col items-center justify-center w-12 ml-6 transition-colors ${activeTab === "capacitacion" ? "text-[#00baff]" : "text-gray-400 hover:text-gray-200"}`}
@@ -322,7 +412,6 @@ export default function DashboardEntrevistador() {
             <span className="text-[9px] font-medium tracking-wide">Capacita</span>
           </button>
 
-          {/* 5. Calendario */}
           <button 
             onClick={() => setActiveTab("calendario")}
             className={`flex flex-col items-center justify-center w-12 transition-colors ${activeTab === "calendario" ? "text-[#00baff]" : "text-gray-400 hover:text-gray-200"}`}

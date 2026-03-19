@@ -8,7 +8,8 @@ import Image from "next/image";
 
 export default function RegisterPage() {
   const router = useRouter();
-  const [form, setForm] = useState({ nombre: "", email: "", password: "", confirmPassword: "" });
+  // ✅ Añadimos "telefono" al estado inicial
+  const [form, setForm] = useState({ nombre: "", email: "", telefono: "", password: "", confirmPassword: "" });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -24,21 +25,19 @@ export default function RegisterPage() {
     }
 
     try {
-      // 🟢 NOTA: Aquí debes apuntar a tu API real de registro de usuarios estándar.
-      // Si tu API se llama distinto (ej. /api/users/create), cámbialo aquí.
       const res = await fetch("/api/register-standard", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           nombre: form.nombre,
           email: form.email,
+          celular: form.telefono, // ✅ Lo enviamos a la API
           password: form.password,
-          role: "Estándar" // Asignamos un rol por defecto
+          role: "Estándar" 
         }),
       });
 
       if (res.ok) {
-        // Si sale bien, lo mandamos al login con un mensaje de éxito
         router.push("/login?registered=true");
       } else {
         const dataRes = await res.json();
@@ -124,6 +123,19 @@ export default function RegisterPage() {
               placeholder="tu.correo@ejemplo.com"
               value={form.email}
               onChange={(e) => setForm({ ...form, email: e.target.value })}
+            />
+          </div>
+          {/* ✅ Nuevo input para Celular */}
+          <div>
+            <input
+              type="tel"
+              required
+              pattern="[0-9]{10}"
+              title="Debe contener 10 dígitos numéricos"
+              className="w-full bg-[#0a0a0a] border border-gray-800 rounded-xl p-3.5 text-white text-sm focus:border-[#0051ff] focus:ring-1 focus:ring-[#0051ff]/50 focus:outline-none transition-all placeholder-gray-600"
+              placeholder="Celular (10 dígitos)"
+              value={form.telefono}
+              onChange={(e) => setForm({ ...form, telefono: e.target.value })}
             />
           </div>
           <div>

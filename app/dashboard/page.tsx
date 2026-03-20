@@ -4,13 +4,13 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import DashboardPostulante from "./DashboardPostulante";
 import DashboardEntrevistador from "./DashboardEntrevistador";
+import DashboardMiembro from "./DashboardMiembro"; // ✅ Importamos el nuevo dashboard
 import { useEffect, useState } from "react";
 
 export default function DashboardSelector() {
   const { data: session, status, update } = useSession();
   const router = useRouter();
   
-  // Estados para controlar el bucle
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [hasChecked, setHasChecked] = useState(false);
 
@@ -20,12 +20,11 @@ export default function DashboardSelector() {
     }
   }, [status, router]);
 
-  // ✅ AQUÍ ESTÁ LA MAGIA: Refrescamos la sesión UNA SOLA VEZ
   useEffect(() => {
     const refreshSession = async () => {
       if (status === "authenticated" && !hasChecked) {
         setIsRefreshing(true);
-        await update(); // Trae el rol más nuevo de Notion
+        await update(); 
         setHasChecked(true);
         setIsRefreshing(false);
       }
@@ -47,11 +46,17 @@ export default function DashboardSelector() {
   if (status === "unauthenticated") return null;
 
   // @ts-ignore
-  const userRole = session?.user?.role || "Postulante";
+  const userRole = session?.user?.role || "Estándar";
 
+  // ✅ LOGICA DE ENRUTAMIENTO POR ROLES
   if (userRole === "Entrevistador" || userRole === "Admin Maestro") {
     return <DashboardEntrevistador />;
   }
+  
+  if (userRole === "Miembro" || userRole === "Estándar") {
+    return <DashboardMiembro />;
+  }
 
+  // Por defecto, si el rol es explícitamente "Postulante"
   return <DashboardPostulante />;
 }

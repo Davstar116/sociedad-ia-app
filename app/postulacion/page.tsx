@@ -78,7 +78,6 @@ export default function PostulacionPage() {
     }
   });
 
-  // ✅ AQUI: Eliminamos "Proyectos" de las opciones
   const opcionesNucleos = ["Organización", "Difusión", "Capacitación"];
 
   const handleChange = (f: string, v: any) => setFormData(p => ({ ...p, [f]: v }));
@@ -249,7 +248,8 @@ export default function PostulacionPage() {
 
               <div className="mt-8">
                 <label className="block text-xs text-gray-400 mb-3 font-bold uppercase tracking-widest">Núcleos de Interés (Selecciona al menos uno)</label>
-                <div className="grid grid-cols-2 gap-3">
+                {/* ✅ AQUI: Ajuste de cuadrícula proporcional para 3 elementos (cols-1 en móvil, cols-3 en escritorio) */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                   {opcionesNucleos.map(op => (
                     <div 
                         key={op} 
@@ -310,7 +310,7 @@ export default function PostulacionPage() {
             <div className="space-y-6 animate-in fade-in slide-in-from-right-8 h-[500px] overflow-y-auto pr-2 custom-scrollbar">
               <div className="sticky top-0 bg-[#111111] pt-2 pb-4 z-10 border-b border-gray-800 mb-4">
                   <h2 className="text-2xl font-bold text-white mb-1">Preguntas de Núcleo</h2>
-                  <p className="text-xs text-gray-500 uppercase tracking-widest">Paso 3 de {TOTAL_STEPS} · Has seleccionado {formData.nucleos.length} núcleo(s)</p>
+                  <p className="text-xs text-gray-500 uppercase tracking-widest">Paso 3 de {TOTAL_STEPS} · Sé honesto con tu nivel (0 Básico - 5 Experto)</p>
               </div>
 
               {formData.nucleos.length === 0 ? (

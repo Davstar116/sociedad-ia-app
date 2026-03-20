@@ -16,12 +16,6 @@ const PREGUNTAS_NUCLEOS: Record<string, string[]> = {
     "¿Cómo adaptarías el tono y el vocabulario de una publicación si va dirigida a estudiantes de primer ingreso frente a una publicación dirigida a profesores o alumnos de últimos semestres?",
     "¿Qué métricas o indicadores utilizarías para saber si una campaña de difusión sobre un evento fue realmente exitosa?"
   ],
-  "Proyectos": [
-    "Cuéntanos sobre algún proyecto técnico, de desarrollo de software o de ingeniería en el que hayas participado. ¿Cuál fue tu rol específico y qué tecnologías utilizaste?",
-    "¿Cómo abordas un problema técnico cuando te quedas atascado, por ejemplo, cuando un código no compila o un circuito no funciona como esperabas?",
-    "¿Qué áreas de la tecnología o del desarrollo de software te interesan más explorar y cómo crees que podrías aplicarlas en un proyecto real dentro de la sociedad?",
-    "¿Qué importancia le das a las buenas prácticas, como la documentación de tu trabajo o el código limpio, cuando estás colaborando en un repositorio o proyecto conjunto?"
-  ],
   "Capacitación": [
     "¿Qué metodología utilizarías para enseñarle un concepto técnico complejo (como un algoritmo o el uso de una nueva herramienta) a un miembro de nuevo ingreso que no tiene experiencia previa?",
     "Como capacitador, es vital estar en constante aprendizaje. ¿Qué métodos utilizas para mantenerte actualizado de forma autodidacta con las nuevas tecnologías y tendencias?",
@@ -40,7 +34,6 @@ const StarRating = ({ label, value, onChange }: { label: string, value: number, 
           <button
             key={star}
             type="button"
-            // ✅ AQUI: Si hacen clic en la estrella que ya está seleccionada, se regresa a 0
             onClick={() => onChange(value === star ? 0 : star)}
             className={`text-xl transition-all ${
               star <= value 
@@ -76,10 +69,8 @@ export default function PostulacionPage() {
     respuestasNucleos: {
       "Organización": ["", "", "", ""],
       "Difusión": ["", "", "", ""],
-      "Proyectos": ["", "", "", ""],
       "Capacitación": ["", "", "", ""]
     },
-    // ✅ AQUI: Iniciamos todos los valores técnicos en 0
     skills: {
       lenguajes: { "C#": 0, "C": 0, "C++": 0, "Java": 0, "JavaScript": 0, "Python": 0 },
       tecnologias: { "TensorFlow/Keras": 0, "PyTorch": 0, "Scikit-learn": 0, "OpenCV": 0, "Linux": 0, "ROS/Docker": 0 },
@@ -87,7 +78,8 @@ export default function PostulacionPage() {
     }
   });
 
-  const opcionesNucleos = ["Organización", "Difusión", "Proyectos", "Capacitación"];
+  // ✅ AQUI: Eliminamos "Proyectos" de las opciones
+  const opcionesNucleos = ["Organización", "Difusión", "Capacitación"];
 
   const handleChange = (f: string, v: any) => setFormData(p => ({ ...p, [f]: v }));
   const handleRespuesta = (f: string, v: string) => setFormData(p => ({ ...p, respuestas: { ...p.respuestas, [f]: v } }));
@@ -300,9 +292,8 @@ export default function PostulacionPage() {
                       motivo: "¿Por qué te gustaría unirte a SIAFI?",
                       fuente: "¿Cómo te enteraste de nuestra convocatoria?",
                       expectativas: "¿Qué expectativas tienes al ingresar?"
-                      // ✅ ELIMINAMOS la pregunta de áreas de interés de aquí
                   };
-                  // ✅ ACTUALIZAMOS esta línea para que solo 'fuente' sea input corto
+                  
                   const isShort = key === 'fuente';
                   return isShort ? (
                       <input required key={key} type="text" placeholder={placeholders[key]} className="w-full bg-[#0a0a0a] border border-gray-800 rounded-xl p-4 text-sm focus:border-[#0051ff] focus:ring-1 focus:ring-[#0051ff]/30 outline-none transition-all placeholder:text-gray-600"
@@ -360,7 +351,6 @@ export default function PostulacionPage() {
             <div className="space-y-6 animate-in fade-in slide-in-from-right-8 h-[500px] overflow-y-auto pr-2 custom-scrollbar">
               <div className="sticky top-0 bg-[#111111] pt-2 pb-4 z-10 border-b border-gray-800 mb-4">
                   <h2 className="text-2xl font-bold text-white mb-1">Evaluación Técnica</h2>
-                  {/* ✅ AQUI: Texto actualizado a "0 Nulo" */}
                   <p className="text-xs text-gray-500 uppercase tracking-widest">Paso 4 de {TOTAL_STEPS} · Sé honesto con tu nivel (0 Nulo - 5 Experto)</p>
               </div>
               

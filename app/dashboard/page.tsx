@@ -4,7 +4,8 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import DashboardPostulante from "./DashboardPostulante";
 import DashboardEntrevistador from "./DashboardEntrevistador";
-import DashboardMiembro from "./DashboardMiembro"; // ✅ Importamos el nuevo dashboard
+import DashboardMiembro from "./DashboardMiembro";
+import DashboardAdminMaestro from "./DashboardAdminMaestro"; // ✅ IMPORTAMOS EL NUEVO
 import { useEffect, useState } from "react";
 
 export default function DashboardSelector() {
@@ -48,8 +49,12 @@ export default function DashboardSelector() {
   // @ts-ignore
   const userRole = session?.user?.role || "Estándar";
 
-  // ✅ LOGICA DE ENRUTAMIENTO POR ROLES
-  if (userRole === "Entrevistador" || userRole === "Admin Maestro") {
+  // ✅ LOGICA DE ENRUTAMIENTO ACTUALIZADA
+  if (userRole === "Admin Maestro") {
+    return <DashboardAdminMaestro />;
+  }
+
+  if (userRole === "Entrevistador") {
     return <DashboardEntrevistador />;
   }
   
@@ -57,6 +62,6 @@ export default function DashboardSelector() {
     return <DashboardMiembro />;
   }
 
-  // Por defecto, si el rol es explícitamente "Postulante"
+  // Postulante por defecto
   return <DashboardPostulante />;
 }

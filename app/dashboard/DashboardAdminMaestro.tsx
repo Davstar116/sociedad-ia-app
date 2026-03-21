@@ -10,8 +10,14 @@ export default function DashboardAdminMaestro() {
   const [isNotifMenuOpen, setIsNotifMenuOpen] = useState(false);
   const [notificaciones, setNotificaciones] = useState<any[]>([]);
   
-  // ✅ PESTAÑAS PLACEHOLDER PARA EL ADMIN
-  const [activeTab, setActiveTab] = useState("panel");
+  // ✅ Pestaña por defecto: control (la de más a la izquierda)
+  const [activeTab, setActiveTab] = useState("control");
+
+  // ✅ Estados para la funcionalidad de Purga
+  const [showPurgeModal, setShowPurgeModal] = useState(false);
+  const [purgeConfirmText, setPurgeConfirmText] = useState("");
+  const [isPurging, setIsPurging] = useState(false);
+  const [purgeResult, setPurgeResult] = useState<{success?: boolean, message?: string} | null>(null);
   
   const { data: session, status } = useSession();
 
@@ -44,17 +50,38 @@ export default function DashboardAdminMaestro() {
             appId: process.env.NEXT_PUBLIC_ONESIGNAL_APP_ID || "",
             allowLocalhostAsSecureOrigin: true, 
           });
-
           OneSignal.Slidedown.promptPush();
           OneSignal.login(session.user.email);
         } catch (error) {
-          console.error("Error inicializando OneSignal:", error);
+          console.error("Error OneSignal:", error);
         }
       }
     };
-
     initOneSignal();
   }, [session]);
+
+  // ✅ Función que llama a la API de purga
+  const ejecutarPurga = async () => {
+    if (purgeConfirmText !== "PURGAR") return;
+    setIsPurging(true);
+    setPurgeResult(null);
+
+    try {
+      const res = await fetch("/api/admin/purge-miembros", { method: "POST" });
+      const data = await res.json();
+      
+      if (res.ok) {
+        setPurgeResult({ success: true, message: data.message });
+      } else {
+        setPurgeResult({ success: false, message: data.error || "Ocurrió un error." });
+      }
+    } catch (error) {
+      setPurgeResult({ success: false, message: "Fallo de conexión con el servidor." });
+    } finally {
+      setIsPurging(false);
+      setPurgeConfirmText(""); // Limpiamos el input por seguridad
+    }
+  };
 
   const unreadCount = notificaciones.filter(n => !n.leida).length;
 
@@ -85,7 +112,6 @@ export default function DashboardAdminMaestro() {
   const primerNombre = userName.split(" ")[0];
   const iniciales = userName.split(" ").map(n => n[0]).slice(0, 2).join("").toUpperCase();
 
-  // ✅ Borde dorado/amarillo para distinguir al Admin visualmente
   const AvatarCircle = ({ size }: { size: string }) => (
     <div className={`${size} rounded-full bg-gradient-to-tr from-yellow-600 to-yellow-400 p-[2px] shrink-0 shadow-[0_0_15px_rgba(234,179,8,0.3)]`}>
       <div className="w-full h-full rounded-full bg-[#111111] overflow-hidden flex items-center justify-center">
@@ -101,12 +127,58 @@ export default function DashboardAdminMaestro() {
 
   const renderActiveContent = () => {
     switch (activeTab) {
-      case "usuarios":
+      
+      // ==========================
+      // ✅ PESTAÑA: CONTROL
+      // ==========================
+      case "control":
         return (
-          <main className="pt-24 pb-28 px-5 max-w-lg mx-auto min-h-screen animate-in fade-in duration-300">
-            <h2 className="text-xl font-bold mb-4">Gestión de Usuarios</h2>
-            <div className="bg-[#111111] border border-gray-800 rounded-2xl p-6 text-center text-gray-500 text-sm">
-              <p>Aquí controlaremos los roles (ascender a entrevistadores) y las cuentas.</p>
+          <main className="pt-24 pb-28 px-5 max-w-4xl mx-auto min-h-screen animate-in fade-in duration-300">
+            <div className="mb-8">
+              <h2 className="text-2xl font-black text-white tracking-tight flex items-center gap-2">
+                <span className="text-yellow-500">⚙️</span> Panel de Control
+              </h2>
+              <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-1">Acciones Administrativas</p>
+            </div>
+
+            {/* Cuadrícula de 2 columnas */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              
+              {/* Botón de Acción 1: Purga de Miembros */}
+              <div className="bg-[#111111] border border-red-500/30 rounded-2xl p-6 shadow-xl flex flex-col justify-between group hover:border-red-500/60 transition-all">
+                <div>
+                  <div className="w-10 h-10 rounded-full bg-red-500/10 text-red-500 flex items-center justify-center text-xl mb-4">
+                    🧹
+                  </div>
+                  <h3 className="text-lg font-bold text-white mb-2">Purga de "Miembros"</h3>
+                  <p className="text-xs text-gray-400 leading-relaxed mb-4">
+                    Busca todas las cuentas registradas erróneamente con el rol <span className="text-white font-mono bg-gray-800 px-1 rounded">Miembro</span>. Les enviará un correo con las instrucciones correctas y el enlace de postulación, y posteriormente las <strong>eliminará</strong> de la base de datos para evitar conflictos.
+                  </p>
+                </div>
+                <button 
+                  onClick={() => { setShowPurgeModal(true); setPurgeResult(null); setPurgeConfirmText(""); }}
+                  className="w-full py-3 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white font-bold text-sm uppercase tracking-wider rounded-xl transition-all border border-red-500/30 hover:border-red-500"
+                >
+                  Configurar Purga
+                </button>
+              </div>
+
+              {/* Botón Placeholder 2 */}
+              <div className="bg-[#111111] border border-gray-800 rounded-2xl p-6 shadow-xl flex flex-col justify-between opacity-50">
+                <div>
+                  <div className="w-10 h-10 rounded-full bg-gray-800 text-gray-400 flex items-center justify-center text-xl mb-4">
+                    🚧
+                  </div>
+                  <h3 className="text-lg font-bold text-white mb-2">Siguiente Acción</h3>
+                  <p className="text-xs text-gray-500 leading-relaxed mb-4">
+                    Espacio reservado para la siguiente herramienta administrativa.
+                  </p>
+                </div>
+                <button disabled className="w-full py-3 bg-gray-900 text-gray-600 font-bold text-sm uppercase tracking-wider rounded-xl cursor-not-allowed">
+                  Próximamente
+                </button>
+              </div>
+
             </div>
           </main>
         );
@@ -117,6 +189,27 @@ export default function DashboardAdminMaestro() {
             <h2 className="text-xl font-bold mb-4">Base de Postulantes</h2>
             <div className="bg-[#111111] border border-gray-800 rounded-2xl p-6 text-center text-gray-500 text-sm">
               <p>Tabla maestra con todos los CVs, respuestas y estatus de los candidatos.</p>
+            </div>
+          </main>
+        );
+
+      case "panel":
+        return (
+          <main className="pt-24 pb-28 px-5 max-w-lg mx-auto min-h-screen flex flex-col gap-6 animate-in fade-in duration-500">
+            <div className="bg-[#111111] border border-gray-800 rounded-2xl p-6 shadow-xl relative overflow-hidden">
+              <div className="absolute top-0 left-0 w-1 h-full bg-yellow-500"></div>
+              <h2 className="text-xl font-bold mb-1">Hola Maestro, {primerNombre} 👑</h2>
+              <p className="text-sm text-gray-400 mb-5">Tienes el control absoluto de SIAFI.</p>
+              
+              <div className="bg-[#0a0a0a] border border-gray-800 rounded-xl p-4 flex items-center justify-between">
+                <div>
+                  <p className="text-xs text-gray-500 uppercase tracking-widest font-bold mb-1">Estatus del Sistema</p>
+                  <p className="text-sm font-semibold text-green-400">Sistemas operativos</p>
+                </div>
+                <div className="w-10 h-10 rounded-full bg-green-500/10 flex items-center justify-center text-xl shadow-[0_0_15px_rgba(34,197,94,0.2)]">
+                  🟢
+                </div>
+              </div>
             </div>
           </main>
         );
@@ -141,34 +234,14 @@ export default function DashboardAdminMaestro() {
           </main>
         );
 
-      case "panel":
       default:
-        return (
-          <main className="pt-24 pb-28 px-5 max-w-lg mx-auto min-h-screen flex flex-col gap-6 animate-in fade-in duration-500">
-            <div className="bg-[#111111] border border-gray-800 rounded-2xl p-6 shadow-xl relative overflow-hidden">
-              <div className="absolute top-0 left-0 w-1 h-full bg-yellow-500"></div>
-              <h2 className="text-xl font-bold mb-1">Hola Maestro, {primerNombre} 👑</h2>
-              <p className="text-sm text-gray-400 mb-5">Tienes el control absoluto de SIAFI.</p>
-              
-              <div className="bg-[#0a0a0a] border border-gray-800 rounded-xl p-4 flex items-center justify-between">
-                <div>
-                  <p className="text-xs text-gray-500 uppercase tracking-widest font-bold mb-1">Estatus del Sistema</p>
-                  <p className="text-sm font-semibold text-green-400">Todos los sistemas operativos</p>
-                </div>
-                <div className="w-10 h-10 rounded-full bg-green-500/10 flex items-center justify-center text-xl shadow-[0_0_15px_rgba(34,197,94,0.2)]">
-                  🟢
-                </div>
-              </div>
-            </div>
-          </main>
-        );
+        return null;
     }
   };
 
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white font-sans overflow-hidden">
       
-      {/* HEADER SUPERIOR */}
       <header className="fixed top-0 w-full h-16 bg-[#111111]/90 backdrop-blur-md border-b border-gray-800 z-40 flex items-center justify-between px-5">
         <button onClick={() => setIsNotifMenuOpen(true)} className="relative p-2 text-gray-400 hover:text-white transition-colors">
           <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -188,11 +261,100 @@ export default function DashboardAdminMaestro() {
       </header>
 
       {/* OVERLAYS */}
-      {(isMenuOpen || isNotifMenuOpen) && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 transition-opacity" onClick={() => { setIsMenuOpen(false); setIsNotifMenuOpen(false); }} />
+      {(isMenuOpen || isNotifMenuOpen || showPurgeModal) && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-40 transition-opacity" onClick={() => { setIsMenuOpen(false); setIsNotifMenuOpen(false); if(!isPurging) setShowPurgeModal(false); }} />
+      )}
+
+      {/* ✅ MODAL DE PURGA (VISTA PREVIA Y CONFIRMACIÓN) */}
+      {showPurgeModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
+          <div className="bg-[#111111] border border-gray-800 rounded-3xl w-full max-w-lg shadow-2xl flex flex-col pointer-events-auto max-h-[90vh]">
+            
+            {/* Header del Modal */}
+            <div className="p-5 border-b border-gray-800 flex justify-between items-center bg-[#0a0a0a] rounded-t-3xl">
+              <h3 className="text-white font-bold text-lg flex items-center gap-2">
+                <span className="text-red-500">⚠️</span> Confirmar Purga
+              </h3>
+              <button disabled={isPurging} onClick={() => setShowPurgeModal(false)} className="text-gray-500 hover:text-white">✕</button>
+            </div>
+
+            {/* Contenido scrolleable */}
+            <div className="p-6 overflow-y-auto custom-scrollbar flex-1">
+              
+              {!purgeResult ? (
+                <>
+                  <p className="text-sm text-gray-400 mb-4">
+                    Estás a punto de eliminar todas las cuentas de tipo "Miembro" y enviarles el siguiente correo automático. <strong>Revisa la previsualización:</strong>
+                  </p>
+
+                  {/* Previsualización del correo */}
+                  <div className="bg-white rounded-xl p-4 mb-6 shadow-inner text-black font-sans text-sm border border-gray-300">
+                    <p className="mb-2"><span className="font-bold text-gray-500">Asunto:</span> ⚠️ Error en tu registro de SIAFI - Acción Requerida</p>
+                    <hr className="mb-4 border-gray-200" />
+                    <div className="bg-[#111111] text-white p-4 rounded-lg">
+                      <h2 className="text-red-500 text-center mb-4">Aviso Importante sobre tu registro en SIAFI</h2>
+                      <p>Hola <strong>[Nombre del Usuario]</strong>,</p>
+                      <p className="mt-2 text-gray-300">Nos comunicamos contigo porque hemos detectado que creaste una cuenta estándar en la plataforma de SophIA en lugar de llenar el formulario oficial de postulación para el Reclutamiento 2026-2.</p>
+                      <p className="mt-2 text-gray-300">Para evitar conflictos técnicos en nuestro sistema y asegurar que tu perfil sea evaluado correctamente, <strong>la cuenta que creaste ha sido eliminada.</strong></p>
+                      <p className="mt-2 text-gray-300">Por favor, realiza tu registro de forma correcta ingresando al siguiente enlace:</p>
+                      <div className="text-center my-6">
+                        <span className="bg-[#0051ff] text-white px-4 py-2 rounded-md font-bold">Ir al Formulario de Postulación</span>
+                      </div>
+                      <p className="mt-2 text-gray-300">Una vez que llenes tu registro correctamente, el sistema creará automáticamente una cuenta para ti.</p>
+                    </div>
+                  </div>
+
+                  {/* Verificación de seguridad */}
+                  <div className="bg-red-950/20 border border-red-500/30 rounded-xl p-4">
+                    <label className="block text-xs text-red-400 uppercase tracking-widest font-bold mb-2">Para confirmar, escribe "PURGAR"</label>
+                    <input 
+                      type="text" 
+                      value={purgeConfirmText}
+                      onChange={(e) => setPurgeConfirmText(e.target.value)}
+                      placeholder="PURGAR"
+                      className="w-full bg-[#0a0a0a] border border-red-500/50 rounded-lg p-3 text-white text-center font-mono tracking-widest focus:outline-none focus:border-red-500"
+                    />
+                  </div>
+                </>
+              ) : (
+                /* Resultado de la operación */
+                <div className="text-center py-8">
+                  <div className={`text-6xl mb-4 ${purgeResult.success ? 'text-green-500' : 'text-red-500'}`}>
+                    {purgeResult.success ? '✅' : '❌'}
+                  </div>
+                  <h3 className="text-xl font-bold text-white mb-2">
+                    {purgeResult.success ? 'Purga Completada' : 'Error en la Purga'}
+                  </h3>
+                  <p className="text-gray-400">{purgeResult.message}</p>
+                </div>
+              )}
+
+            </div>
+
+            {/* Footer del Modal (Botones) */}
+            <div className="p-5 border-t border-gray-800 bg-[#0a0a0a] rounded-b-3xl">
+              {!purgeResult ? (
+                <button 
+                  onClick={ejecutarPurga}
+                  disabled={purgeConfirmText !== "PURGAR" || isPurging}
+                  className="w-full py-4 bg-red-600 hover:bg-red-500 text-white font-black text-sm uppercase tracking-wider rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isPurging ? "Procesando eliminación..." : "Confirmar y Ejecutar"}
+                </button>
+              ) : (
+                <button 
+                  onClick={() => setShowPurgeModal(false)}
+                  className="w-full py-4 bg-gray-800 hover:bg-gray-700 text-white font-black text-sm uppercase tracking-wider rounded-xl transition-all"
+                >
+                  Cerrar
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
       )}
       
-      {/* MENÚ PERFIL (DERECHO) */}
+      {/* MENÚ PERFIL Y NOTIFICACIONES OMITIDOS POR BREVEDAD, SON IGUALES... */}
       <div className={`fixed top-0 right-0 h-full w-72 bg-[#111111] border-l border-gray-800 z-50 transform transition-transform duration-300 ease-in-out flex flex-col ${isMenuOpen ? 'translate-x-0' : 'translate-x-full'}`}>
         <div className="p-6 border-b border-gray-800 flex justify-between items-start">
           <div className="flex items-center gap-4 pr-4">
@@ -221,7 +383,6 @@ export default function DashboardAdminMaestro() {
         </div>
       </div>
 
-      {/* MENÚ NOTIFICACIONES (IZQUIERDO) */}
       <div className={`fixed top-0 left-0 h-full w-80 bg-[#111111] border-r border-gray-800 z-50 transform transition-transform duration-300 ease-in-out flex flex-col ${isNotifMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         <div className="p-5 border-b border-gray-800 flex justify-between items-center bg-[#0a0a0a]">
           <h2 className="text-lg font-bold text-white flex items-center gap-2">
@@ -277,13 +438,13 @@ export default function DashboardAdminMaestro() {
         <div className="flex justify-between items-center h-16 px-6 relative max-w-lg mx-auto">
           
           <button 
-            onClick={() => setActiveTab("usuarios")}
-            className={`flex flex-col items-center justify-center w-12 transition-colors ${activeTab === "usuarios" ? "text-yellow-500" : "text-gray-400 hover:text-gray-200"}`}
+            onClick={() => setActiveTab("control")}
+            className={`flex flex-col items-center justify-center w-12 transition-colors ${activeTab === "control" ? "text-yellow-500" : "text-gray-400 hover:text-gray-200"}`}
           >
             <svg className="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
             </svg>
-            <span className="text-[9px] font-medium tracking-wide">Usuarios</span>
+            <span className="text-[9px] font-medium tracking-wide">Control</span>
           </button>
           
           <button 

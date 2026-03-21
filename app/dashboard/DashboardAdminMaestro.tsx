@@ -288,19 +288,41 @@ export default function DashboardAdminMaestro() {
                   </p>
 
                   {/* Previsualización del correo */}
-                  <div className="bg-white rounded-xl p-4 mb-6 shadow-inner text-black font-sans text-sm border border-gray-300">
-                    <p className="mb-2"><span className="font-bold text-gray-500">Asunto:</span> ⚠️ Error en tu registro de SIAFI - Acción Requerida</p>
-                    <hr className="mb-4 border-gray-200" />
-                    <div className="bg-[#111111] text-white p-4 rounded-lg">
-                      <h2 className="text-red-500 text-center mb-4">Aviso Importante sobre tu registro en SIAFI</h2>
-                      <p>Hola <strong>[Nombre del Usuario]</strong>,</p>
-                      <p className="mt-2 text-gray-300">Nos comunicamos contigo porque hemos detectado que creaste una cuenta estándar en la plataforma de SophIA en lugar de llenar el formulario oficial de postulación para el Reclutamiento 2026-2.</p>
-                      <p className="mt-2 text-gray-300">Para evitar conflictos técnicos en nuestro sistema y asegurar que tu perfil sea evaluado correctamente, <strong>la cuenta que creaste ha sido eliminada.</strong></p>
-                      <p className="mt-2 text-gray-300">Por favor, realiza tu registro de forma correcta ingresando al siguiente enlace:</p>
-                      <div className="text-center my-6">
-                        <span className="bg-[#0051ff] text-white px-4 py-2 rounded-md font-bold">Ir al Formulario de Postulación</span>
+                  <div className="bg-[#050505] rounded-2xl mb-6 text-white font-sans text-sm border border-[#1f2937] overflow-hidden">
+                    <div className="bg-[#1f2937] px-4 py-2 border-b border-[#374151]">
+                      <p className="text-gray-300 text-xs"><span className="font-bold text-gray-400">De:</span> Soporte SIAFI &lt;siafi.reclutamiento@gmail.com&gt;</p>
+                      <p className="text-gray-300 text-xs"><span className="font-bold text-gray-400">Asunto:</span> ⚠️ Error en tu registro de SIAFI - Acción Requerida</p>
+                    </div>
+                    
+                    <div className="p-4 bg-[#111111]">
+                      {/* Simulación del header del correo */}
+                      <div className="h-1 bg-[#0051ff] w-full mb-0 rounded-t-md"></div>
+                      <div className="bg-black p-3 border-b border-[#1f2937] flex justify-between items-center">
+                        <span className="w-6 h-6 bg-gray-800 rounded-full inline-block"></span> {/* Placeholder escudo */}
+                        <span className="w-16 h-4 bg-gray-800 rounded inline-block"></span> {/* Placeholder logo texto */}
                       </div>
-                      <p className="mt-2 text-gray-300">Una vez que llenes tu registro correctamente, el sistema creará automáticamente una cuenta para ti.</p>
+                      
+                      {/* Cuerpo del correo */}
+                      <div className="p-5">
+                        <h2 className="text-[#ef4444] text-lg mb-3">Aviso de Sistema ⚠️</h2>
+                        <p className="mb-3">Hola <strong>[Nombre]</strong>,</p>
+                        <p className="text-gray-400 text-xs mb-3 leading-relaxed">Nos comunicamos contigo porque hemos detectado que creaste una cuenta estándar en la plataforma de SophIA en lugar de llenar el formulario oficial de postulación para el Reclutamiento 2026-2.</p>
+                        
+                        <div className="bg-[#ef44441a] border-l-2 border-[#ef4444] p-3 mb-4">
+                          <p className="font-bold text-sm mb-1 text-white">Acción Tomada</p>
+                          <p className="text-[#fca5a5] text-xs">Para evitar conflictos técnicos en nuestro sistema y asegurar que tu perfil sea evaluado correctamente, <strong>la cuenta que creaste ha sido eliminada.</strong></p>
+                        </div>
+                        
+                        <p className="text-gray-400 text-xs mb-4 leading-relaxed">Por favor, realiza tu registro de forma correcta ingresando al siguiente enlace y completando las preguntas de evaluación:</p>
+                        
+                        <div className="text-center my-4">
+                          <span className="bg-[#0051ff] text-white px-4 py-2 rounded-lg font-bold text-xs uppercase">Ir al Formulario Correcto</span>
+                        </div>
+                        
+                        <p className="text-gray-400 text-xs mb-4 leading-relaxed">Una vez que llenes tu registro correctamente, el sistema creará automáticamente una cuenta para ti y recibirás un nuevo correo con tus credenciales y otra información.</p>
+                        
+                        <p className="text-gray-400 text-xs leading-relaxed">Atentamente,<br/><strong className="text-white">Mesa Directiva & SophIA</strong><br/>SIAFI - UNAM</p>
+                      </div>
                     </div>
                   </div>
 

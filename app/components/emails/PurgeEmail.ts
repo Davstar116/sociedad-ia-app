@@ -60,7 +60,7 @@ export function PurgeEmailTemplate({ nombre, baseUrl }: PurgeEmailProps) {
                     <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom: 30px;">
                     <tr>
                         <td align="center">
-                        <a href="${cleanBaseUrl}/postulacion" target="_blank" rel="noopener noreferrer" style="display: inline-block; background-color: #0051ff; color: #ffffff; font-size: 14px; font-weight: bold; text-decoration: none; padding: 14px 28px; border-radius: 10px; text-transform: uppercase; letter-spacing: 1px;">Ir al Formulario Correcto</a>
+                        <a href="${cleanBaseUrl}/postulacion" target="_blank" rel="noopener noreferrer" style="display: inline-block; background-color: #0051ff; color: #ffffff; font-size: 14px; font-weight: bold; text-decoration: none; padding: 14px 28px; border-radius: 10px; text-transform: uppercase; letter-spacing: 1px;">Ir al Formulario</a>
                         </td>
                     </tr>
                     </table>

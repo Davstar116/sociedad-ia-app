@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import nodemailer from "nodemailer";
-import { PurgeEmailTemplate } from "../../../../components/emails/PurgeEmail";
+import { PurgeEmailTemplate } from "../../../components/emails/PurgeEmail";
 
 const NOTION_TOKEN = process.env.NOTION_TOKEN;
 const USERS_DB_ID = process.env.NOTION_USERS_DB_ID; 

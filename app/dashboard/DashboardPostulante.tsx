@@ -197,7 +197,7 @@ export default function DashboardPostulante() {
               </p>
               <div className="p-4 bg-gray-900/50 rounded-xl border border-gray-800/50">
                 <p className="text-gray-500 text-[11px] leading-relaxed italic">
-                  Te enviaremos una notificación por este medio y directamente a tu celular en cuanto haya una actualización sobre tu proceso. ¡Mantente al pendiente!
+                  Te enviaremos una notificación por este medio y directamente a tu celular en cuanto haya una actualización sobre tu proceso. ¡Mantente atent@!
                 </p>
               </div>
             </div>

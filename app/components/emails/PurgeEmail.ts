@@ -54,7 +54,7 @@ export function PurgeEmailTemplate({ nombre, baseUrl }: PurgeEmailProps) {
                     </div>
 
                     <p style="margin: 0 0 20px 0; font-size: 15px; color: #00baff; font-weight: bold; line-height: 1.6;">
-                      Por favor, realiza tu registro de forma correcta ingresando al siguiente enlace y completando las preguntas de evaluación:
+                      Por favor, realiza tu registro de forma correcta ingresando al siguiente enlace y completando las preguntas de evaluación. Es muy importante que llenes los campos con datos completos y reales, sobre todo tu nombre completo:
                     </p>
                     
                     <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom: 30px;">

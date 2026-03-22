@@ -314,7 +314,7 @@ export default function DashboardAdminMaestro() {
                         </div>
                         
                         {/* ✅ Letras en azul en el preview */}
-                        <p className="text-[#00baff] font-bold text-xs mb-4 leading-relaxed">Por favor, realiza tu registro de forma correcta ingresando al siguiente enlace y completando las preguntas de evaluación:</p>
+                        <p className="text-[#00baff] font-bold text-xs mb-4 leading-relaxed">Por favor, realiza tu registro de forma correcta ingresando al siguiente enlace y completando las preguntas de evaluación. Es muy importante que llenes los campos con datos completos y reales, sobre todo tu nombre completo:</p>
                         
                         <div className="text-center my-4">
                           <span className="bg-[#0051ff] text-white px-4 py-2 rounded-lg font-bold text-xs uppercase">Ir al Formulario Correcto</span>

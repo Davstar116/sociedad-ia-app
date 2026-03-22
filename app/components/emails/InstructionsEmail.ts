@@ -66,11 +66,28 @@ export function InstructionsEmailTemplate({ nombre, baseUrl, youtubeLink }: Inst
                         </a>
                     </div>
 
-                    <div style="background-color: #3b0707; border-left: 4px solid #ef4444; padding: 20px; margin-bottom: 30px;">
+                    <div style="margin-bottom: 30px; padding-bottom: 20px; border-bottom: 1px solid #1f2937;">
+                        <h3 style="margin: 0 0 10px 0; font-size: 16px; color: #ffffff;">Sobre tu Postulación 📋</h3>
+                        <p style="margin: 0; font-size: 15px; color: #9ca3af; line-height: 1.6;">
+                            En los próximos días, nuestro equipo analizará detenidamente tu perfil. <strong>Nosotros te informaremos por este medio y a través de notificaciones en la app</strong> en el momento en que tu estado de postulación cambie.
+                        </p>
+                    </div>
+
+                    <div style="background-color: #3b0707; border-left: 4px solid #ef4444; padding: 20px; margin-bottom: 20px;">
                         <p style="margin: 0 0 8px 0; font-size: 15px; color: #fca5a5; font-weight: bold;">⚠️ Acción Requerida por Seguridad</p>
                         <p style="margin: 0; font-size: 14px; color: #fecaca; line-height: 1.5;">
                             Por motivos de seguridad, es <strong>sumamente importante</strong> que la primera vez que ingreses al sistema cambies tu contraseña temporal por una personalizada.
                         </p>
+                    </div>
+
+                    <div style="background-color: #0a0a0a; border-radius: 12px; padding: 20px; margin-bottom: 30px;">
+                        <p style="margin: 0 0 10px 0; font-size: 14px; color: #ffffff; font-weight: bold;">¿Cómo cambiar tu contraseña temporal?</p>
+                        <ol style="margin: 0; padding-left: 20px; font-size: 14px; color: #9ca3af; line-height: 1.6;">
+                            <li style="margin-bottom: 8px;">Inicia sesión en el portal con tu correo y la contraseña que te enviamos.</li>
+                            <li style="margin-bottom: 8px;">Haz clic en el <strong>círculo de perfil</strong> ubicado en la esquina superior derecha de la pantalla.</li>
+                            <li style="margin-bottom: 8px;">En el menú lateral que se despliega, selecciona la opción <strong>"Configuración"</strong>.</li>
+                            <li>Dirígete al apartado de <strong>"Cambiar Contraseña"</strong>, ingresa tu nueva clave segura y guarda los cambios.</li>
+                        </ol>
                     </div>
                     
                     <p style="margin: 0 0 30px 0; color: #9ca3af; font-size: 14px; line-height: 1.6;">

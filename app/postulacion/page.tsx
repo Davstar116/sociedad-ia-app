@@ -16,6 +16,13 @@ const PREGUNTAS_NUCLEOS: Record<string, string[]> = {
     "¿Cómo adaptarías el tono y el vocabulario de una publicación si va dirigida a estudiantes de primer ingreso frente a una publicación dirigida a profesores o alumnos de últimos semestres?",
     "¿Qué métricas o indicadores utilizarías para saber si una campaña de difusión sobre un evento fue realmente exitosa?"
   ],
+  // ✅ NÚCLEO REINCORPORADO
+  "Proyectos": [
+    "Cuéntanos sobre algún proyecto técnico, de desarrollo de software o de ingeniería en el que hayas participado. ¿Cuál fue tu rol específico y qué tecnologías utilizaste?",
+    "¿Cómo abordas un problema técnico cuando te quedas atascado, por ejemplo, cuando un código no compila o un circuito no funciona como esperabas?",
+    "¿Qué áreas de la tecnología o del desarrollo de software te interesan más explorar y cómo crees que podrías aplicarlas en un proyecto real dentro de la sociedad?",
+    "¿Qué importancia le das a las buenas prácticas, como la documentación de tu trabajo o el código limpio, cuando estás colaborando en un repositorio o proyecto conjunto?"
+  ],
   "Capacitación": [
     "¿Qué metodología utilizarías para enseñarle un concepto técnico complejo (como un algoritmo o el uso de una nueva herramienta) a un miembro de nuevo ingreso que no tiene experiencia previa?",
     "Como capacitador, es vital estar en constante aprendizaje. ¿Qué métodos utilizas para mantenerte actualizado de forma autodidacta con las nuevas tecnologías y tendencias?",
@@ -24,7 +31,7 @@ const PREGUNTAS_NUCLEOS: Record<string, string[]> = {
   ]
 };
 
-// Componente StarRating Actualizado (Permite regresar a 0)
+// Componente StarRating (Permite regresar a 0)
 const StarRating = ({ label, value, onChange }: { label: string, value: number, onChange: (v: number) => void }) => {
   return (
     <div className="flex justify-between items-center mb-2 bg-[#0a0a0a] p-3 rounded-xl border border-gray-800 hover:border-[#0051ff]/30 transition-colors">
@@ -69,6 +76,7 @@ export default function PostulacionPage() {
     respuestasNucleos: {
       "Organización": ["", "", "", ""],
       "Difusión": ["", "", "", ""],
+      "Proyectos": ["", "", "", ""], // ✅ INICIALIZADO DE NUEVO
       "Capacitación": ["", "", "", ""]
     },
     skills: {
@@ -78,7 +86,7 @@ export default function PostulacionPage() {
     }
   });
 
-  const opcionesNucleos = ["Organización", "Difusión", "Capacitación"];
+  const opcionesNucleos = ["Organización", "Difusión", "Proyectos", "Capacitación"]; // ✅ OPCIÓN AÑADIDA
 
   const handleChange = (f: string, v: any) => setFormData(p => ({ ...p, [f]: v }));
   const handleRespuesta = (f: string, v: string) => setFormData(p => ({ ...p, respuestas: { ...p.respuestas, [f]: v } }));
@@ -248,8 +256,8 @@ export default function PostulacionPage() {
 
               <div className="mt-8">
                 <label className="block text-xs text-gray-400 mb-3 font-bold uppercase tracking-widest">Núcleos de Interés (Selecciona al menos uno)</label>
-                {/* ✅ AQUI: Ajuste de cuadrícula proporcional para 3 elementos (cols-1 en móvil, cols-3 en escritorio) */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                {/* ✅ AQUI: Modificado a grid-cols-2 para que los 4 queden simétricos */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   {opcionesNucleos.map(op => (
                     <div 
                         key={op} 
@@ -310,7 +318,7 @@ export default function PostulacionPage() {
             <div className="space-y-6 animate-in fade-in slide-in-from-right-8 h-[500px] overflow-y-auto pr-2 custom-scrollbar">
               <div className="sticky top-0 bg-[#111111] pt-2 pb-4 z-10 border-b border-gray-800 mb-4">
                   <h2 className="text-2xl font-bold text-white mb-1">Preguntas de Núcleo</h2>
-                  <p className="text-xs text-gray-500 uppercase tracking-widest">Paso 3 de {TOTAL_STEPS} · Sé honesto con tu nivel (0 Básico - 5 Experto)</p>
+                  <p className="text-xs text-gray-500 uppercase tracking-widest">Paso 3 de {TOTAL_STEPS} · Has seleccionado {formData.nucleos.length} núcleo(s)</p>
               </div>
 
               {formData.nucleos.length === 0 ? (

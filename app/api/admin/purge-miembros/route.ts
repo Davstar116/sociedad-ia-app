@@ -16,7 +16,7 @@ const transporter = nodemailer.createTransport({
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS,
-  },
+  }
 });
 
 export async function POST(request: Request) {
@@ -94,3 +94,4 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Fallo interno en el servidor." }, { status: 500 });
   }
 }
+   

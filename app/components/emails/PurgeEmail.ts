@@ -53,7 +53,7 @@ export function PurgeEmailTemplate({ nombre, baseUrl }: PurgeEmailProps) {
                       <p style="margin: 0; font-size: 14px; color: #fca5a5; line-height: 1.5;">Para evitar conflictos técnicos en nuestro sistema y asegurar que tu perfil sea evaluado correctamente, <strong>la cuenta que creaste ha sido eliminada.</strong></p>
                     </div>
 
-                    <p style="margin: 0 0 20px 0; font-size: 15px; color: #9ca3af; line-height: 1.6;">
+                    <p style="margin: 0 0 20px 0; font-size: 15px; color: #00baff; font-weight: bold; line-height: 1.6;">
                       Por favor, realiza tu registro de forma correcta ingresando al siguiente enlace y completando las preguntas de evaluación:
                     </p>
                     

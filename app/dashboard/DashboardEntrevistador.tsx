@@ -24,6 +24,9 @@ export default function DashboardEntrevistador() {
   const [isLoadingSchedule, setIsLoadingSchedule] = useState(true);
   const [isLocked, setIsLocked] = useState(false);
   
+  // ✅ ESTADO PARA EL MODAL DE CONFIRMACIÓN
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  
   const hasLoadedSchedule = useRef(false);
   const { data: session, status } = useSession();
 
@@ -54,7 +57,6 @@ export default function DashboardEntrevistador() {
     }
   };
 
-  // ✅ NUEVA FUNCIÓN: CARGAR HORARIO DESDE NOTION AL INICIAR
   const cargarHorario = async () => {
     if (!session?.user?.email || hasLoadedSchedule.current) return;
     setIsLoadingSchedule(true);
@@ -64,7 +66,7 @@ export default function DashboardEntrevistador() {
         const data = await res.json();
         if (data.horarios && data.horarios.length > 0) {
           setDisponibilidad(data.horarios);
-          setIsLocked(true); // Bloquear si ya hay datos
+          setIsLocked(true); 
         }
       }
       hasLoadedSchedule.current = true;
@@ -117,7 +119,6 @@ export default function DashboardEntrevistador() {
     await fetch(`/api/notifications?id=${id}`, { method: "DELETE" });
   };
 
-  // ✅ SOLO DEJA MARCAR SI NO ESTÁ BLOQUEADO
   const toggleSlot = (slotId: string) => {
     if (isLocked) return;
     setDisponibilidad((prev) => 
@@ -125,15 +126,13 @@ export default function DashboardEntrevistador() {
     );
   };
 
-  // ✅ GUARDAR CON CONFIRMACIÓN
+  // ✅ AHORA ABRE EL MODAL EN VEZ DE USAR window.confirm
   const confirmarYGuardar = () => {
-    const confirmar = window.confirm("¿Estás seguro de que deseas guardar estos cambios en tu disponibilidad?");
-    if (confirmar) {
-      guardarHorario();
-    }
+    setShowConfirmModal(true);
   };
 
   const guardarHorario = async () => {
+    setShowConfirmModal(false); // Cerramos el modal primero
     if (!session?.user?.email) return;
     setIsSaving(true);
     setSaveSuccess(false);
@@ -152,7 +151,7 @@ export default function DashboardEntrevistador() {
 
       if (res.ok) {
         setSaveSuccess(true);
-        setIsLocked(true); // Bloquea la vista automáticamente al guardar con éxito
+        setIsLocked(true); 
         setTimeout(() => setSaveSuccess(false), 3000);
       }
     } catch (error) {
@@ -189,9 +188,6 @@ export default function DashboardEntrevistador() {
 
   const renderActiveContent = () => {
     switch (activeTab) {
-      // ==========================
-      // ✅ PESTAÑA: HORARIOS (CON BLOQUEO Y CARGA)
-      // ==========================
       case "mi-horario":
         const fechasActivas = semana === 1 ? FECHAS_S1 : FECHAS_S2;
         
@@ -273,7 +269,6 @@ export default function DashboardEntrevistador() {
               )}
             </div>
 
-            {/* ✅ LÓGICA DE BOTONES (Desbloquear o Guardar) */}
             <div className="mt-6 flex justify-center">
               {isLocked ? (
                 <button 
@@ -376,10 +371,51 @@ export default function DashboardEntrevistador() {
       </header>
 
       {/* OVERLAYS */}
-      {(isMenuOpen || isNotifMenuOpen) && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 transition-opacity" onClick={() => { setIsMenuOpen(false); setIsNotifMenuOpen(false); }} />
+      {(isMenuOpen || isNotifMenuOpen || showConfirmModal) && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-40 transition-opacity" onClick={() => { setIsMenuOpen(false); setIsNotifMenuOpen(false); setShowConfirmModal(false); }} />
       )}
       
+      {/* ✅ MODAL DE CONFIRMACIÓN DE HORARIO */}
+      {showConfirmModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
+          <div className="bg-[#111111] border border-[#0051ff]/30 rounded-3xl w-full max-w-sm shadow-2xl flex flex-col pointer-events-auto overflow-hidden animate-in zoom-in-95 duration-200">
+            
+            <div className="p-5 border-b border-gray-800 bg-[#0a0a0a] text-center">
+              <h3 className="text-white font-bold text-lg flex items-center justify-center gap-2">
+                <span className="text-[#00baff]">⚠️</span> Confirmar Horario
+              </h3>
+            </div>
+            
+            <div className="p-6">
+              <p className="text-sm text-gray-300 leading-relaxed text-center mb-5">
+                ¿Estás seguro de que deseas guardar estos cambios en tu disponibilidad? Una vez guardado, tu horario quedará registrado en el sistema.
+              </p>
+              
+              <div className="bg-[#00baff]/10 border border-[#00baff]/30 rounded-2xl p-4 text-center shadow-inner">
+                <p className="text-[#00baff] font-black text-2xl">{disponibilidad.length * 0.25} hrs</p>
+                <p className="text-[10px] text-gray-400 uppercase tracking-widest mt-1 font-bold">Total de Disponibilidad</p>
+              </div>
+            </div>
+            
+            <div className="p-4 border-t border-gray-800 bg-[#0a0a0a] flex gap-3">
+              <button 
+                onClick={() => setShowConfirmModal(false)}
+                className="flex-1 py-3.5 bg-gray-800 hover:bg-gray-700 text-white font-bold text-sm uppercase tracking-wider rounded-xl transition-all"
+              >
+                Cancelar
+              </button>
+              <button 
+                onClick={guardarHorario}
+                className="flex-1 py-3.5 bg-gradient-to-r from-[#0051ff] to-[#00baff] hover:from-[#00baff] hover:to-[#0051ff] text-white font-bold text-sm uppercase tracking-wider rounded-xl transition-all shadow-lg shadow-[#0051ff]/20 active:scale-95"
+              >
+                Guardar
+              </button>
+            </div>
+
+          </div>
+        </div>
+      )}
+
       {/* MENÚ PERFIL (DERECHO) */}
       <div className={`fixed top-0 right-0 h-full w-72 bg-[#111111] border-l border-gray-800 z-50 transform transition-transform duration-300 ease-in-out flex flex-col ${isMenuOpen ? 'translate-x-0' : 'translate-x-full'}`}>
         <div className="p-6 border-b border-gray-800 flex justify-between items-start">

@@ -1,10 +1,10 @@
 interface InstructionsProps {
   nombre: string;
   baseUrl: string;
-  youtubeLink: string;
+  youtubeLink?: string; // Lo dejamos opcional para que no marque error en tu API
 }
 
-export function InstructionsEmailTemplate({ nombre, baseUrl, youtubeLink }: InstructionsProps) {
+export function InstructionsEmailTemplate({ nombre, baseUrl }: InstructionsProps) {
   const primerNombre = nombre ? nombre.split(" ")[0] : "Candidato";
   const cleanBaseUrl = baseUrl ? baseUrl.replace(/\/$/, "") : "";
 
@@ -51,7 +51,7 @@ export function InstructionsEmailTemplate({ nombre, baseUrl, youtubeLink }: Inst
                         <p style="margin: 0 0 15px 0; font-size: 14px; color: #9ca3af; line-height: 1.5;">
                             Para una mejor experiencia y un acceso más rápido, te recomendamos instalar la aplicación en tu dispositivo. Hemos preparado un breve tutorial para guiarte en el proceso.
                         </p>
-                        <a href="${youtubeLink}" target="_blank" style="display: inline-block; background-color: #0051ff; color: #ffffff; font-size: 13px; font-weight: bold; text-decoration: none; padding: 10px 20px; border-radius: 8px;">
+                        <a href="https://youtube.com/shorts/_fVEBnqtMWw?feature=share" target="_blank" style="display: inline-block; background-color: #0051ff; color: #ffffff; font-size: 13px; font-weight: bold; text-decoration: none; padding: 10px 20px; border-radius: 8px;">
                             ▶️ Ver Tutorial de Instalación
                         </a>
                     </div>

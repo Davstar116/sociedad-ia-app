@@ -56,6 +56,11 @@ export function PurgeEmailTemplate({ nombre, baseUrl }: PurgeEmailProps) {
                     <p style="margin: 0 0 20px 0; font-size: 15px; color: #00baff; font-weight: bold; line-height: 1.6;">
                       Por favor, realiza tu registro de forma correcta ingresando al siguiente enlace y completando las preguntas de evaluación. Es muy importante que llenes los campos con datos completos y reales, sobre todo tu nombre completo:
                     </p>
+
+                    <div style="background-color: #0051ff1a; border-left: 4px solid #00baff; padding: 20px; margin-bottom: 30px;">
+                      <p style="margin: 0 0 5px 0; font-size: 15px; color: #00baff; font-weight: bold;">🌟 ¡Excelentes noticias!</p>
+                      <p style="margin: 0; font-size: 14px; color: #e5e7eb; line-height: 1.5;">Nos complace informarte que <strong>ahora también estará abierto el reclutamiento para el núcleo de Proyectos</strong>. Si te apasiona la tecnología y el desarrollo, te invitamos a postularte a esta área al llenar tu formulario.</p>
+                    </div>
                     
                     <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom: 30px;">
                     <tr>

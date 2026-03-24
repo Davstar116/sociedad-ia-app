@@ -11,7 +11,6 @@ const notionHeaders = {
 };
 
 // Generamos un arreglo cronológico de todas las horas posibles
-// ["09:00", "09:15", "09:30", "09:45", "10:00", ... "20:45"]
 const HORAS_CHRONO: string[] = [];
 for (let i = 9; i < 21; i++) {
   for (let m of ["00", "15", "30", "45"]) {
@@ -31,13 +30,14 @@ export async function POST() {
     const queryData = await queryRes.json();
     
     // Diccionario para agrupar entrevistadores por DÍA y sus sets de horas
-    // Ej: "S1-Lunes-6" -> { "Davo": Set("09:00", "09:15"...), "Mon": Set("09:15", "09:30"...) }
     const dayInterviewerSlots: Record<string, Record<string, Set<string>>> = {};
 
     // 2. Extraer datos y llenar el diccionario
     for (const page of queryData.results) {
       const nombre = page.properties["Nombre"]?.title[0]?.plain_text || "Entrevistador";
-      const horariosRaw = page.properties["Horarios"]?.rich_text[0]?.plain_text || "[]";
+      
+      // ✅ AQUÍ ESTÁ EL CAMBIO: Ahora lee "HorarioJSON"
+      const horariosRaw = page.properties["HorarioJSON"]?.rich_text[0]?.plain_text || "[]";
       
       let horariosArray: string[] = [];
       try { horariosArray = JSON.parse(horariosRaw); } catch { horariosArray = horariosRaw.split(","); }
@@ -86,15 +86,14 @@ export async function POST() {
           const e1 = availableInterviewers[idx];
           const e2 = availableInterviewers[idx+1];
 
-          // ✅ CRÍTICO: "Consumimos" estos bloques borrándolos de su disponibilidad
-          // para que no se superpongan con el siguiente análisis
+          // "Consumimos" estos bloques borrándolos de su disponibilidad
           interviewersMap[e1].delete(t1); interviewersMap[e1].delete(t2); 
           interviewersMap[e1].delete(t3); interviewersMap[e1].delete(t4);
           
           interviewersMap[e2].delete(t1); interviewersMap[e2].delete(t2); 
           interviewersMap[e2].delete(t3); interviewersMap[e2].delete(t4);
 
-          // Calculamos la hora de fin (sumando 1 hora exacta a t1)
+          // Calculamos la hora de fin
           const [startH, startM] = t1.split(":");
           const endH = (parseInt(startH) + 1).toString().padStart(2, '0');
           const horarioTexto = `${t1} - ${endH}:${startM}`;

@@ -28,7 +28,9 @@ export default function DashboardAdminMaestro() {
   const [isSavingCurso, setIsSavingCurso] = useState(false);
 
   // ✅ ESTADOS GENERACIÓN DE BLOQUES
+  const [showGenerateModal, setShowGenerateModal] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [generateResult, setGenerateResult] = useState<{success?: boolean, message?: string} | null>(null);
 
   // ESTADOS HORARIO
   const [semana, setSemana] = useState(1);
@@ -118,16 +120,11 @@ export default function DashboardAdminMaestro() {
     if (purgeConfirmText !== "PURGAR") return;
     setIsPurging(true);
     setPurgeResult(null);
-
     try {
       const res = await fetch("/api/admin/purge-miembros", { method: "POST" });
       const data = await res.json();
-      
-      if (res.ok) {
-        setPurgeResult({ success: true, message: data.message });
-      } else {
-        setPurgeResult({ success: false, message: data.error || "Ocurrió un error." });
-      }
+      if (res.ok) { setPurgeResult({ success: true, message: data.message }); } 
+      else { setPurgeResult({ success: false, message: data.error || "Ocurrió un error." }); }
     } catch (error) {
       setPurgeResult({ success: false, message: "Fallo de conexión con el servidor." });
     } finally {
@@ -159,22 +156,20 @@ export default function DashboardAdminMaestro() {
     }
   };
 
-  // ✅ NUEVA FUNCIÓN PARA GENERAR BLOQUES
+  // ✅ NUEVA FUNCIÓN PARA GENERAR BLOQUES CON MODAL
   const generarBloques = async () => {
-    const confirmar = window.confirm("¿Estás seguro de generar los bloques? Esto cruzará la disponibilidad actual de TODOS los entrevistadores y publicará los bloques en Notion.");
-    if (!confirmar) return;
-
     setIsGenerating(true);
+    setGenerateResult(null);
     try {
       const res = await fetch("/api/admin/generate-blocks", { method: "POST" });
       const data = await res.json();
       if (res.ok) {
-        alert(data.message);
+        setGenerateResult({ success: true, message: data.message });
       } else {
-        alert("Error: " + data.error);
+        setGenerateResult({ success: false, message: data.error || "Ocurrió un error." });
       }
     } catch (error) {
-      alert("Error de red al intentar generar bloques.");
+      setGenerateResult({ success: false, message: "Error de red al intentar generar bloques." });
     } finally {
       setIsGenerating(false);
     }
@@ -196,7 +191,6 @@ export default function DashboardAdminMaestro() {
     if (!session?.user?.email) return;
     setIsSavingHorario(true);
     setSaveSuccessHorario(false);
-
     try {
       const res = await fetch("/api/availability", {
         method: "POST",
@@ -208,7 +202,6 @@ export default function DashboardAdminMaestro() {
           horasTotales: disponibilidad.length * 0.25,
         }),
       });
-
       if (res.ok) {
         setSaveSuccessHorario(true);
         setIsLockedHorario(true); 
@@ -310,7 +303,7 @@ export default function DashboardAdminMaestro() {
                 </button>
               </div>
 
-              {/* ✅ NUEVO BOTÓN: GENERAR BLOQUES */}
+              {/* BOTÓN: GENERAR BLOQUES */}
               <div className="bg-[#111111] border border-green-500/30 rounded-2xl p-6 shadow-xl flex flex-col justify-between group hover:border-green-500/60 transition-all md:col-span-2 lg:col-span-1">
                 <div>
                   <div className="w-10 h-10 rounded-full bg-green-500/10 text-green-500 flex items-center justify-center text-xl mb-4">🧩</div>
@@ -320,11 +313,10 @@ export default function DashboardAdminMaestro() {
                   </p>
                 </div>
                 <button 
-                  onClick={generarBloques}
-                  disabled={isGenerating}
-                  className="w-full py-3 bg-green-500/10 hover:bg-green-500 text-green-500 hover:text-[#0a0a0a] font-bold text-sm uppercase tracking-wider rounded-xl transition-all border border-green-500/30 hover:border-green-500 disabled:opacity-50"
+                  onClick={() => { setShowGenerateModal(true); setGenerateResult(null); }}
+                  className="w-full py-3 bg-green-500/10 hover:bg-green-500 text-green-500 hover:text-[#0a0a0a] font-bold text-sm uppercase tracking-wider rounded-xl transition-all border border-green-500/30 hover:border-green-500"
                 >
-                  {isGenerating ? "Procesando Algoritmo..." : "Construir Horarios"}
+                  Construir Horarios
                 </button>
               </div>
 
@@ -504,8 +496,55 @@ export default function DashboardAdminMaestro() {
       </header>
 
       {/* OVERLAYS GLOBALES */}
-      {(isMenuOpen || isNotifMenuOpen || showPurgeModal || showCursoModal || showConfirmHorarioModal) && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-40 transition-opacity" onClick={() => { setIsMenuOpen(false); setIsNotifMenuOpen(false); if(!isPurging) setShowPurgeModal(false); if(!isSavingCurso) setShowCursoModal(false); setShowConfirmHorarioModal(false); }} />
+      {(isMenuOpen || isNotifMenuOpen || showPurgeModal || showCursoModal || showConfirmHorarioModal || showGenerateModal) && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-40 transition-opacity" onClick={() => { setIsMenuOpen(false); setIsNotifMenuOpen(false); if(!isPurging) setShowPurgeModal(false); if(!isSavingCurso) setShowCursoModal(false); setShowConfirmHorarioModal(false); if(!isGenerating) setShowGenerateModal(false); }} />
+      )}
+
+      {/* ✅ MODAL DE CONFIRMACIÓN DE GENERACIÓN DE BLOQUES */}
+      {showGenerateModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
+          <div className="bg-[#111111] border border-green-500/30 rounded-3xl w-full max-w-sm shadow-2xl flex flex-col pointer-events-auto overflow-hidden animate-in zoom-in-95 duration-200">
+            <div className="p-5 border-b border-gray-800 bg-[#0a0a0a] text-center">
+              <h3 className="text-white font-bold text-lg flex items-center justify-center gap-2">
+                <span className="text-green-500">🧩</span> Generar Entrevistas
+              </h3>
+            </div>
+            
+            <div className="p-6">
+              {!generateResult ? (
+                <>
+                  <p className="text-sm text-gray-300 leading-relaxed text-center mb-5">
+                    ¿Estás seguro de que deseas construir los horarios? El sistema cruzará la disponibilidad actual de TODOS los entrevistadores y publicará los bloques resultantes en la base de datos para que los postulantes puedan verlos.
+                  </p>
+                  <div className="bg-green-500/10 border border-green-500/30 rounded-2xl p-4 text-center shadow-inner">
+                    <p className="text-green-500 font-black text-xl">SIAFI Match</p>
+                    <p className="text-[10px] text-gray-400 uppercase tracking-widest mt-1 font-bold">Proceso Automatizado</p>
+                  </div>
+                </>
+              ) : (
+                <div className="text-center py-4">
+                  <div className={`text-5xl mb-4 ${generateResult.success ? 'text-green-500' : 'text-red-500'}`}>
+                    {generateResult.success ? '✅' : '❌'}
+                  </div>
+                  <p className="text-sm text-gray-300 leading-relaxed">{generateResult.message}</p>
+                </div>
+              )}
+            </div>
+            
+            <div className="p-4 border-t border-gray-800 bg-[#0a0a0a] flex gap-3">
+              {!generateResult ? (
+                <>
+                  <button onClick={() => setShowGenerateModal(false)} className="flex-1 py-3.5 bg-gray-800 hover:bg-gray-700 text-white font-bold text-sm uppercase tracking-wider rounded-xl transition-all">Cancelar</button>
+                  <button onClick={generarBloques} disabled={isGenerating} className="flex-1 py-3.5 bg-green-500 hover:bg-green-400 text-[#0a0a0a] font-bold text-sm uppercase tracking-wider rounded-xl transition-all shadow-lg shadow-green-500/20 active:scale-95 disabled:opacity-50">
+                    {isGenerating ? "Generando..." : "Confirmar"}
+                  </button>
+                </>
+              ) : (
+                <button onClick={() => setShowGenerateModal(false)} className="w-full py-3.5 bg-gray-800 hover:bg-gray-700 text-white font-bold text-sm uppercase tracking-wider rounded-xl transition-all">Cerrar</button>
+              )}
+            </div>
+          </div>
+        </div>
       )}
 
       {/* MODAL HORARIO */}
@@ -631,7 +670,7 @@ export default function DashboardAdminMaestro() {
         </div>
       )}
 
-      {/* MENÚ PERFIL */}
+      {/* MENÚ PERFIL Y NOTIFICACIONES */}
       <div className={`fixed top-0 right-0 h-full w-72 bg-[#111111] border-l border-gray-800 z-50 transform transition-transform duration-300 ease-in-out flex flex-col ${isMenuOpen ? 'translate-x-0' : 'translate-x-full'}`}>
         <div className="p-6 border-b border-gray-800 flex justify-between items-start">
           <div className="flex items-center gap-4 pr-4">

@@ -19,7 +19,6 @@ for (let i = 9; i < 21; i++) {
 
 export async function POST() {
   try {
-    // 1. Obtener la disponibilidad
     const queryRes = await fetch(`https://api.notion.com/v1/databases/${AVAILABILITY_DB_ID}/query`, {
       method: "POST",
       headers: notionHeaders,
@@ -28,31 +27,17 @@ export async function POST() {
     if (!queryRes.ok) throw new Error("Error leyendo disponibilidad de Notion");
     const queryData = await queryRes.json();
     
-    // ✅ DIAGNÓSTICO 1: ¿Notion nos está ocultando la tabla por falta de permisos?
     if (!queryData.results || queryData.results.length === 0) {
-        return NextResponse.json({ 
-            success: true, 
-            message: "0 perfiles leídos. CAUSA: Notion no devolvió ninguna fila. Verifica que la Integración/Bot de Notion esté conectada a la Base de Datos de Disponibilidad.",
-            bloques: []
-        });
+        return NextResponse.json({ success: false, error: "No se encontraron registros de disponibilidad." });
     }
 
     const dayInterviewerSlots: Record<string, Record<string, Set<string>>> = {};
-    let entrevistadoresLeidos = 0;
-    
-    // Guardamos las columnas que detecta para el diagnóstico
-    const columnasDetectadas = Object.keys(queryData.results[0].properties).join(", ");
 
-    // 2. Extraer datos 
     for (const page of queryData.results) {
-      // Búsqueda flexible del nombre (por si se llama Name, Nombre, etc.)
       const propNombre = page.properties["Nombre"] || page.properties["Name"];
       const nombre = propNombre?.title?.[0]?.plain_text || "Entrevistador";
       
-      // ✅ BÚSQUEDA DINÁMICA: Busca cualquier columna que se parezca a la del horario
       let propiedadHorario = page.properties["HorarioJSON"] || page.properties["Horarios"] || page.properties["Disponibilidad"];
-      
-      // Si no encuentra ninguna de esas 3, busca la primera columna de tipo "rich_text" que contenga "S1"
       if (!propiedadHorario) {
          for (const key of Object.keys(page.properties)) {
              if (page.properties[key].type === "rich_text" && page.properties[key].rich_text?.[0]?.plain_text?.includes("S1")) {
@@ -75,8 +60,6 @@ export async function POST() {
           }
       }
 
-      if (horariosArray.length > 0) entrevistadoresLeidos++;
-
       for (const slot of horariosArray) {
         const lastDash = slot.lastIndexOf('-');
         if (lastDash === -1) continue;
@@ -91,18 +74,8 @@ export async function POST() {
       }
     }
 
-    // ✅ DIAGNÓSTICO 2: Si encontró filas, pero no pudo leer las horas
-    if (entrevistadoresLeidos === 0) {
-        return NextResponse.json({ 
-            success: true, 
-            message: `0 perfiles leídos. CAUSA: Las filas existen, pero la columna de horario está vacía o se llama diferente. Columnas que tu app ve en Notion: [${columnasDetectadas}].`,
-            bloques: []
-        });
-    }
-
     const bloquesCreados = [];
 
-    // 3. Emparejamiento usando Ventana Deslizante
     for (const [dayPrefix, interviewersMap] of Object.entries(dayInterviewerSlots)) {
       const partes = dayPrefix.split("-");
       const dia = partes[1];
@@ -138,7 +111,6 @@ export async function POST() {
           
           const blockId = `${dayPrefix}-${t1} - B${blockCount}`;
 
-          // 4. Guardar en la base de datos
           await fetch("https://api.notion.com/v1/pages", {
             method: "POST",
             headers: notionHeaders,
@@ -164,21 +136,16 @@ export async function POST() {
     }
 
     if (bloquesCreados.length === 0) {
-        return NextResponse.json({ 
-            success: true, 
-            message: `Se leyeron ${entrevistadoresLeidos} perfiles correctamente, pero NINGUNO coincidió en la misma hora (recuerda que se necesitan 4 bloques de 15 mins seguidos).`,
-            bloques: []
-        });
+        return NextResponse.json({ success: true, message: "Proceso completado, pero no se encontraron coincidencias suficientes para crear bloques nuevos." });
     }
 
     return NextResponse.json({ 
       success: true, 
-      message: `¡Éxito! Se generaron ${bloquesCreados.length} bloques a partir de ${entrevistadoresLeidos} perfiles analizados.`,
-      bloques: bloquesCreados
+      message: `¡Éxito! Se generaron ${bloquesCreados.length} bloques de entrevistas.`
     });
 
   } catch (error: any) {
-    console.error("Error generando bloques:", error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error("Error:", error);
+    return NextResponse.json({ success: false, error: "Ocurrió un error interno en el servidor." }, { status: 500 });
   }
 }

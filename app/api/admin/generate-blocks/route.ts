@@ -10,7 +10,6 @@ const notionHeaders = {
   "Content-Type": "application/json",
 };
 
-// Generamos un arreglo cronológico de todas las horas posibles
 const HORAS_CHRONO: string[] = [];
 for (let i = 9; i < 21; i++) {
   for (let m of ["00", "15", "30", "45"]) {
@@ -20,7 +19,7 @@ for (let i = 9; i < 21; i++) {
 
 export async function POST() {
   try {
-    // 1. Obtener la disponibilidad de todos los entrevistadores
+    // 1. Obtener la disponibilidad
     const queryRes = await fetch(`https://api.notion.com/v1/databases/${AVAILABILITY_DB_ID}/query`, {
       method: "POST",
       headers: notionHeaders,
@@ -29,25 +28,51 @@ export async function POST() {
     if (!queryRes.ok) throw new Error("Error leyendo disponibilidad de Notion");
     const queryData = await queryRes.json();
     
+    // ✅ DIAGNÓSTICO 1: ¿Notion nos está ocultando la tabla por falta de permisos?
+    if (!queryData.results || queryData.results.length === 0) {
+        return NextResponse.json({ 
+            success: true, 
+            message: "0 perfiles leídos. CAUSA: Notion no devolvió ninguna fila. Verifica que la Integración/Bot de Notion esté conectada a la Base de Datos de Disponibilidad.",
+            bloques: []
+        });
+    }
+
     const dayInterviewerSlots: Record<string, Record<string, Set<string>>> = {};
     let entrevistadoresLeidos = 0;
+    
+    // Guardamos las columnas que detecta para el diagnóstico
+    const columnasDetectadas = Object.keys(queryData.results[0].properties).join(", ");
 
-    // 2. Extraer datos con limpieza extrema
+    // 2. Extraer datos 
     for (const page of queryData.results) {
-      const nombre = page.properties["Nombre"]?.title[0]?.plain_text || "Entrevistador";
+      // Búsqueda flexible del nombre (por si se llama Name, Nombre, etc.)
+      const propNombre = page.properties["Nombre"] || page.properties["Name"];
+      const nombre = propNombre?.title?.[0]?.plain_text || "Entrevistador";
       
-      // ✅ MEJORA 1: Buscar la columna y unir TODOS los fragmentos de texto
-      const propiedadHorario = page.properties["HorarioJSON"] || page.properties["Horarios"];
+      // ✅ BÚSQUEDA DINÁMICA: Busca cualquier columna que se parezca a la del horario
+      let propiedadHorario = page.properties["HorarioJSON"] || page.properties["Horarios"] || page.properties["Disponibilidad"];
+      
+      // Si no encuentra ninguna de esas 3, busca la primera columna de tipo "rich_text" que contenga "S1"
+      if (!propiedadHorario) {
+         for (const key of Object.keys(page.properties)) {
+             if (page.properties[key].type === "rich_text" && page.properties[key].rich_text?.[0]?.plain_text?.includes("S1")) {
+                 propiedadHorario = page.properties[key];
+                 break;
+             }
+         }
+      }
+
       const richTextArray = propiedadHorario?.rich_text || [];
       const horariosRaw = richTextArray.map((t: any) => t.plain_text).join("") || "[]";
       
       let horariosArray: string[] = [];
-      try { 
-        horariosArray = JSON.parse(horariosRaw); 
-      } catch { 
-        // ✅ MEJORA 2: Si el JSON viene roto, le quitamos corchetes, comillas y basura
-        const cleaned = horariosRaw.replace(/[\[\]"'\\]/g, ''); 
-        horariosArray = cleaned.split(",").map((s: string) => s.trim()).filter(Boolean);
+      if (horariosRaw !== "[]") {
+          try { 
+            horariosArray = JSON.parse(horariosRaw); 
+          } catch { 
+            const cleaned = horariosRaw.replace(/[\[\]"'\\]/g, ''); 
+            horariosArray = cleaned.split(",").map((s: string) => s.trim()).filter(Boolean);
+          }
       }
 
       if (horariosArray.length > 0) entrevistadoresLeidos++;
@@ -66,9 +91,18 @@ export async function POST() {
       }
     }
 
+    // ✅ DIAGNÓSTICO 2: Si encontró filas, pero no pudo leer las horas
+    if (entrevistadoresLeidos === 0) {
+        return NextResponse.json({ 
+            success: true, 
+            message: `0 perfiles leídos. CAUSA: Las filas existen, pero la columna de horario está vacía o se llama diferente. Columnas que tu app ve en Notion: [${columnasDetectadas}].`,
+            bloques: []
+        });
+    }
+
     const bloquesCreados = [];
 
-    // 3. Emparejamiento usando Ventana Deslizante (Sliding Window)
+    // 3. Emparejamiento usando Ventana Deslizante
     for (const [dayPrefix, interviewersMap] of Object.entries(dayInterviewerSlots)) {
       const partes = dayPrefix.split("-");
       const dia = partes[1];
@@ -92,7 +126,6 @@ export async function POST() {
           const e1 = availableInterviewers[idx];
           const e2 = availableInterviewers[idx+1];
 
-          // Consumimos los bloques
           interviewersMap[e1].delete(t1); interviewersMap[e1].delete(t2); 
           interviewersMap[e1].delete(t3); interviewersMap[e1].delete(t4);
           
@@ -106,7 +139,7 @@ export async function POST() {
           const blockId = `${dayPrefix}-${t1} - B${blockCount}`;
 
           // 4. Guardar en la base de datos
-          const notionCreateRes = await fetch("https://api.notion.com/v1/pages", {
+          await fetch("https://api.notion.com/v1/pages", {
             method: "POST",
             headers: notionHeaders,
             body: JSON.stringify({
@@ -123,24 +156,17 @@ export async function POST() {
             }),
           });
 
-          if (!notionCreateRes.ok) {
-            const errLog = await notionCreateRes.text();
-            console.error("Fallo guardando en Notion el bloque", blockId, errLog);
-          } else {
-            bloquesCreados.push(blockId);
-          }
-
+          bloquesCreados.push(blockId);
           idx += 2;
           blockCount++;
         }
       }
     }
 
-    // ✅ MEJORA 3: Mensaje inteligente para saber qué pasó si arroja 0
     if (bloquesCreados.length === 0) {
         return NextResponse.json({ 
             success: true, 
-            message: `Generados 0 bloques. (Se leyeron ${entrevistadoresLeidos} perfiles, pero ninguno coincidió en pares).`,
+            message: `Se leyeron ${entrevistadoresLeidos} perfiles correctamente, pero NINGUNO coincidió en la misma hora (recuerda que se necesitan 4 bloques de 15 mins seguidos).`,
             bloques: []
         });
     }

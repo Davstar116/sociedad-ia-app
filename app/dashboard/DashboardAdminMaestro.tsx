@@ -5,7 +5,6 @@ import { useSession, signOut } from "next-auth/react";
 import Link from "next/link"; 
 import OneSignal from 'react-onesignal';
 
-// ✅ CONSTANTES PARA EL HORARIO
 const DIAS_SEMANA = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
 const FECHAS_S1 = [6, 7, 8, 9, 10, 11, 12];
 const FECHAS_S2 = [13, 14, 15, 16, 17, 18, 19];
@@ -17,18 +16,21 @@ export default function DashboardAdminMaestro() {
   
   const [activeTab, setActiveTab] = useState("control");
 
-  // ✅ ESTADOS PARA LA PURGA
+  // ESTADOS PURGA
   const [showPurgeModal, setShowPurgeModal] = useState(false);
   const [purgeConfirmText, setPurgeConfirmText] = useState("");
   const [isPurging, setIsPurging] = useState(false);
   const [purgeResult, setPurgeResult] = useState<{success?: boolean, message?: string} | null>(null);
 
-  // ✅ ESTADOS PARA AGREGAR CURSOS
+  // ESTADOS CURSOS
   const [showCursoModal, setShowCursoModal] = useState(false);
   const [cursoForm, setCursoForm] = useState({ titulo: "", descripcion: "", url: "" });
   const [isSavingCurso, setIsSavingCurso] = useState(false);
 
-  // ✅ ESTADOS PARA EL HORARIO
+  // ✅ ESTADOS GENERACIÓN DE BLOQUES
+  const [isGenerating, setIsGenerating] = useState(false);
+
+  // ESTADOS HORARIO
   const [semana, setSemana] = useState(1);
   const [disponibilidad, setDisponibilidad] = useState<string[]>([]);
   const [isSavingHorario, setIsSavingHorario] = useState(false);
@@ -112,7 +114,6 @@ export default function DashboardAdminMaestro() {
     initOneSignal();
   }, [session]);
 
-  // ✅ FUNCIONES DE PURGA
   const ejecutarPurga = async () => {
     if (purgeConfirmText !== "PURGAR") return;
     setIsPurging(true);
@@ -135,7 +136,6 @@ export default function DashboardAdminMaestro() {
     }
   };
 
-  // ✅ FUNCIONES DE CURSO
   const guardarCurso = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSavingCurso(true);
@@ -159,7 +159,27 @@ export default function DashboardAdminMaestro() {
     }
   };
 
-  // ✅ FUNCIONES DE HORARIO
+  // ✅ NUEVA FUNCIÓN PARA GENERAR BLOQUES
+  const generarBloques = async () => {
+    const confirmar = window.confirm("¿Estás seguro de generar los bloques? Esto cruzará la disponibilidad actual de TODOS los entrevistadores y publicará los bloques en Notion.");
+    if (!confirmar) return;
+
+    setIsGenerating(true);
+    try {
+      const res = await fetch("/api/admin/generate-blocks", { method: "POST" });
+      const data = await res.json();
+      if (res.ok) {
+        alert(data.message);
+      } else {
+        alert("Error: " + data.error);
+      }
+    } catch (error) {
+      alert("Error de red al intentar generar bloques.");
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
   const toggleSlot = (slotId: string) => {
     if (isLockedHorario) return;
     setDisponibilidad((prev) => 
@@ -290,6 +310,24 @@ export default function DashboardAdminMaestro() {
                 </button>
               </div>
 
+              {/* ✅ NUEVO BOTÓN: GENERAR BLOQUES */}
+              <div className="bg-[#111111] border border-green-500/30 rounded-2xl p-6 shadow-xl flex flex-col justify-between group hover:border-green-500/60 transition-all md:col-span-2 lg:col-span-1">
+                <div>
+                  <div className="w-10 h-10 rounded-full bg-green-500/10 text-green-500 flex items-center justify-center text-xl mb-4">🧩</div>
+                  <h3 className="text-lg font-bold text-white mb-2">Generar Bloques</h3>
+                  <p className="text-xs text-gray-400 leading-relaxed mb-4">
+                    Cruza los horarios de todos los entrevistadores y genera automáticamente bloques de 1 hora (2 entrevistadores por bloque) listos para que los postulantes reserven.
+                  </p>
+                </div>
+                <button 
+                  onClick={generarBloques}
+                  disabled={isGenerating}
+                  className="w-full py-3 bg-green-500/10 hover:bg-green-500 text-green-500 hover:text-[#0a0a0a] font-bold text-sm uppercase tracking-wider rounded-xl transition-all border border-green-500/30 hover:border-green-500 disabled:opacity-50"
+                >
+                  {isGenerating ? "Procesando Algoritmo..." : "Construir Horarios"}
+                </button>
+              </div>
+
             </div>
           </main>
         );
@@ -304,7 +342,6 @@ export default function DashboardAdminMaestro() {
           </main>
         );
 
-      // ✅ NUEVA PESTAÑA: HORARIOS (CON TEMA DORADO DE ADMIN)
       case "mi-horario":
         const fechasActivas = semana === 1 ? FECHAS_S1 : FECHAS_S2;
         
@@ -448,7 +485,6 @@ export default function DashboardAdminMaestro() {
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white font-sans overflow-hidden">
       
-      {/* HEADER SUPERIOR */}
       <header className="fixed top-0 w-full h-16 bg-[#111111]/90 backdrop-blur-md border-b border-gray-800 z-40 flex items-center justify-between px-5">
         <button onClick={() => setIsNotifMenuOpen(true)} className="relative p-2 text-gray-400 hover:text-white transition-colors">
           <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -472,7 +508,7 @@ export default function DashboardAdminMaestro() {
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-40 transition-opacity" onClick={() => { setIsMenuOpen(false); setIsNotifMenuOpen(false); if(!isPurging) setShowPurgeModal(false); if(!isSavingCurso) setShowCursoModal(false); setShowConfirmHorarioModal(false); }} />
       )}
 
-      {/* ✅ MODAL DE CONFIRMACIÓN DE HORARIO */}
+      {/* MODAL HORARIO */}
       {showConfirmHorarioModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
           <div className="bg-[#111111] border border-yellow-500/30 rounded-3xl w-full max-w-sm shadow-2xl flex flex-col pointer-events-auto overflow-hidden animate-in zoom-in-95 duration-200">
@@ -498,7 +534,7 @@ export default function DashboardAdminMaestro() {
         </div>
       )}
 
-      {/* ✅ MODAL DE CURSO NUEVO */}
+      {/* MODAL CURSO */}
       {showCursoModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
           <div className="bg-[#111111] border border-gray-800 rounded-3xl w-full max-w-md shadow-2xl flex flex-col pointer-events-auto">
@@ -595,7 +631,7 @@ export default function DashboardAdminMaestro() {
         </div>
       )}
 
-      {/* MENÚ PERFIL Y NOTIFICACIONES */}
+      {/* MENÚ PERFIL */}
       <div className={`fixed top-0 right-0 h-full w-72 bg-[#111111] border-l border-gray-800 z-50 transform transition-transform duration-300 ease-in-out flex flex-col ${isMenuOpen ? 'translate-x-0' : 'translate-x-full'}`}>
         <div className="p-6 border-b border-gray-800 flex justify-between items-start">
           <div className="flex items-center gap-4 pr-4">
@@ -659,60 +695,32 @@ export default function DashboardAdminMaestro() {
 
       {renderActiveContent()}
 
-      {/* ✅ CINTILLO INFERIOR DE ADMIN MAESTRO (CON HORARIOS) */}
       <nav className="fixed bottom-0 w-full bg-[#111111]/90 backdrop-blur-md border-t border-gray-800 z-40 pb-safe">
         <div className="flex justify-between items-center h-16 px-6 relative max-w-lg mx-auto">
           
-          <button 
-            onClick={() => setActiveTab("control")}
-            className={`flex flex-col items-center justify-center w-12 transition-colors ${activeTab === "control" ? "text-yellow-500" : "text-gray-400 hover:text-gray-200"}`}
-          >
-            <svg className="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-            </svg>
+          <button onClick={() => setActiveTab("control")} className={`flex flex-col items-center justify-center w-12 transition-colors ${activeTab === "control" ? "text-yellow-500" : "text-gray-400 hover:text-gray-200"}`}>
+            <svg className="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
             <span className="text-[9px] font-medium tracking-wide">Control</span>
           </button>
           
-          <button 
-            onClick={() => setActiveTab("postulantes")}
-            className={`flex flex-col items-center justify-center w-12 mr-6 transition-colors ${activeTab === "postulantes" ? "text-yellow-500" : "text-gray-400 hover:text-gray-200"}`}
-          >
-            <svg className="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-            </svg>
+          <button onClick={() => setActiveTab("postulantes")} className={`flex flex-col items-center justify-center w-12 mr-6 transition-colors ${activeTab === "postulantes" ? "text-yellow-500" : "text-gray-400 hover:text-gray-200"}`}>
+            <svg className="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
             <span className="text-[9px] font-medium tracking-wide">Candidatos</span>
           </button>
 
           <div className="absolute left-1/2 -translate-x-1/2 -top-4">
-            <button 
-              onClick={() => setActiveTab("panel")}
-              className={`w-16 h-16 rounded-full flex items-center justify-center border-[6px] border-[#0a0a0a] transition-all duration-300 ${activeTab === "panel" ? "bg-gradient-to-tr from-yellow-600 to-yellow-400 shadow-[0_0_20px_rgba(234,179,8,0.4)] scale-105 text-[#0a0a0a]" : "bg-gray-800 text-gray-400 hover:bg-gray-700 hover:text-white"}`}
-            >
-              <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z" />
-              </svg>
+            <button onClick={() => setActiveTab("panel")} className={`w-16 h-16 rounded-full flex items-center justify-center border-[6px] border-[#0a0a0a] transition-all duration-300 ${activeTab === "panel" ? "bg-gradient-to-tr from-yellow-600 to-yellow-400 shadow-[0_0_20px_rgba(234,179,8,0.4)] scale-105 text-[#0a0a0a]" : "bg-gray-800 text-gray-400 hover:bg-gray-700 hover:text-white"}`}>
+              <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z" /></svg>
             </button>
           </div>
 
-          {/* ✅ PESTAÑA DE HORARIOS REEMPLAZA A FINANZAS */}
-          <button 
-            onClick={() => setActiveTab("mi-horario")}
-            className={`flex flex-col items-center justify-center w-12 ml-6 transition-colors ${activeTab === "mi-horario" ? "text-yellow-500" : "text-gray-400 hover:text-gray-200"}`}
-          >
-            <svg className="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
+          <button onClick={() => setActiveTab("mi-horario")} className={`flex flex-col items-center justify-center w-12 ml-6 transition-colors ${activeTab === "mi-horario" ? "text-yellow-500" : "text-gray-400 hover:text-gray-200"}`}>
+            <svg className="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
             <span className="text-[9px] font-medium tracking-wide">Horario</span>
           </button>
 
-          <button 
-            onClick={() => setActiveTab("ajustes")}
-            className={`flex flex-col items-center justify-center w-12 transition-colors ${activeTab === "ajustes" ? "text-yellow-500" : "text-gray-400 hover:text-gray-200"}`}
-          >
-            <svg className="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-            </svg>
+          <button onClick={() => setActiveTab("ajustes")} className={`flex flex-col items-center justify-center w-12 transition-colors ${activeTab === "ajustes" ? "text-yellow-500" : "text-gray-400 hover:text-gray-200"}`}>
+            <svg className="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
             <span className="text-[9px] font-medium tracking-wide">Ajustes</span>
           </button>
           

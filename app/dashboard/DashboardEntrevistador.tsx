@@ -26,6 +26,10 @@ export default function DashboardEntrevistador() {
   
   // ✅ ESTADO PARA EL MODAL DE CONFIRMACIÓN
   const [showConfirmModal, setShowConfirmModal] = useState(false);
+
+  // ✅ ESTADOS PARA CURSOS
+  const [cursos, setCursos] = useState<any[]>([]);
+  const [isLoadingCursos, setIsLoadingCursos] = useState(false);
   
   const hasLoadedSchedule = useRef(false);
   const { data: session, status } = useSession();
@@ -102,6 +106,34 @@ export default function DashboardEntrevistador() {
     initOneSignal();
   }, [session]);
 
+  // ✅ FUNCIONES PARA CURSOS
+  const getYouTubeEmbedUrl = (url: string) => {
+    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|shorts\/|watch\?v=|&v=)([^#&?]*).*/;
+    const match = url.match(regExp);
+    return (match && match[2].length === 11) ? `https://www.youtube.com/embed/${match[2]}` : null;
+  };
+
+  const fetchCursos = async () => {
+    setIsLoadingCursos(true);
+    try {
+      const res = await fetch("/api/cursos");
+      if (res.ok) {
+        const data = await res.json();
+        setCursos(data.cursos || []);
+      }
+    } catch (error) {
+      console.error("Error al cargar cursos:", error);
+    } finally {
+      setIsLoadingCursos(false);
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab === "cursos") {
+      fetchCursos();
+    }
+  }, [activeTab]);
+
   const unreadCount = notificaciones.filter(n => !n.leida).length;
 
   const marcarComoLeida = async (id: string, leidaActual: boolean) => {
@@ -126,13 +158,12 @@ export default function DashboardEntrevistador() {
     );
   };
 
-  // ✅ AHORA ABRE EL MODAL EN VEZ DE USAR window.confirm
   const confirmarYGuardar = () => {
     setShowConfirmModal(true);
   };
 
   const guardarHorario = async () => {
-    setShowConfirmModal(false); // Cerramos el modal primero
+    setShowConfirmModal(false); 
     if (!session?.user?.email) return;
     setIsSaving(true);
     setSaveSuccess(false);
@@ -304,13 +335,53 @@ export default function DashboardEntrevistador() {
           </main>
         );
 
-      case "capacitacion":
+      // ✅ NUEVA PESTAÑA DE CURSOS
+      case "cursos":
         return (
           <main className="pt-24 pb-28 px-5 max-w-lg mx-auto min-h-screen animate-in fade-in duration-300">
-            <h2 className="text-xl font-bold mb-4">Capacitación</h2>
-            <div className="bg-[#111111] border border-gray-800 rounded-2xl p-6 text-center text-gray-500 text-sm">
-              <p>Videos, tips y recursos para saber cómo llevar a cabo una excelente entrevista.</p>
-            </div>
+            <h2 className="text-2xl font-black text-white mb-6">Cursos de Capacitación</h2>
+            
+            {isLoadingCursos ? (
+              <div className="flex flex-col items-center justify-center py-20 opacity-50">
+                <div className="w-8 h-8 border-2 border-[#00baff] border-t-transparent rounded-full animate-spin mb-3"></div>
+                <p className="text-sm text-gray-400 font-bold uppercase tracking-widest">Cargando módulos...</p>
+              </div>
+            ) : cursos.length === 0 ? (
+              <div className="bg-[#111111] border border-gray-800 rounded-2xl p-8 text-center shadow-xl">
+                <div className="text-4xl mb-4">📹</div>
+                <p className="text-gray-400 text-sm">Pronto publicaremos los videos de capacitación aquí.</p>
+              </div>
+            ) : (
+              <div className="flex flex-col gap-6">
+                {cursos.map((curso) => {
+                  const embedUrl = getYouTubeEmbedUrl(curso.url);
+                  return (
+                    <div key={curso.id} className="bg-[#111111] border border-gray-800 rounded-2xl overflow-hidden shadow-xl group hover:border-[#0051ff]/50 transition-colors">
+                      {embedUrl ? (
+                        <div className="aspect-video w-full bg-black relative">
+                          <iframe 
+                            src={embedUrl} 
+                            title={curso.titulo} 
+                            className="absolute top-0 left-0 w-full h-full"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                            allowFullScreen
+                          ></iframe>
+                        </div>
+                      ) : (
+                        <div className="aspect-video w-full bg-gray-900 flex items-center justify-center text-gray-500 text-sm">
+                          Enlace de video inválido
+                        </div>
+                      )}
+                      <div className="p-5 border-t border-gray-800">
+                        <h3 className="font-bold text-lg text-white mb-2 leading-tight">{curso.titulo}</h3>
+                        <p className="text-sm text-gray-400 leading-relaxed mb-4">{curso.descripcion}</p>
+                        <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">Publicado el: <span className="text-gray-300">{new Date(curso.fecha).toLocaleDateString('es-MX')}</span></p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </main>
         );
 
@@ -532,13 +603,13 @@ export default function DashboardEntrevistador() {
           </div>
 
           <button 
-            onClick={() => setActiveTab("capacitacion")}
-            className={`flex flex-col items-center justify-center w-12 ml-6 transition-colors ${activeTab === "capacitacion" ? "text-[#00baff]" : "text-gray-400 hover:text-gray-200"}`}
+            onClick={() => setActiveTab("cursos")}
+            className={`flex flex-col items-center justify-center w-12 ml-6 transition-colors ${activeTab === "cursos" ? "text-[#00baff]" : "text-gray-400 hover:text-gray-200"}`}
           >
             <svg className="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
             </svg>
-            <span className="text-[9px] font-medium tracking-wide">Capacita</span>
+            <span className="text-[9px] font-medium tracking-wide">Cursos</span>
           </button>
 
           <button 

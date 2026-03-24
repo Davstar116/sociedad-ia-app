@@ -10,7 +10,7 @@ export default function DashboardAdminMaestro() {
   const [isNotifMenuOpen, setIsNotifMenuOpen] = useState(false);
   const [notificaciones, setNotificaciones] = useState<any[]>([]);
   
-  // ✅ Pestaña por defecto: control (la de más a la izquierda)
+  // ✅ Pestaña por defecto: control
   const [activeTab, setActiveTab] = useState("control");
 
   // ✅ Estados para la funcionalidad de Purga
@@ -18,6 +18,11 @@ export default function DashboardAdminMaestro() {
   const [purgeConfirmText, setPurgeConfirmText] = useState("");
   const [isPurging, setIsPurging] = useState(false);
   const [purgeResult, setPurgeResult] = useState<{success?: boolean, message?: string} | null>(null);
+
+  // ✅ ESTADOS PARA AGREGAR CURSOS
+  const [showCursoModal, setShowCursoModal] = useState(false);
+  const [cursoForm, setCursoForm] = useState({ titulo: "", descripcion: "", url: "" });
+  const [isSavingCurso, setIsSavingCurso] = useState(false);
   
   const { data: session, status } = useSession();
 
@@ -60,7 +65,7 @@ export default function DashboardAdminMaestro() {
     initOneSignal();
   }, [session]);
 
-  // ✅ Función que llama a la API de purga
+  // ✅ Función de purga
   const ejecutarPurga = async () => {
     if (purgeConfirmText !== "PURGAR") return;
     setIsPurging(true);
@@ -79,7 +84,31 @@ export default function DashboardAdminMaestro() {
       setPurgeResult({ success: false, message: "Fallo de conexión con el servidor." });
     } finally {
       setIsPurging(false);
-      setPurgeConfirmText(""); // Limpiamos el input por seguridad
+      setPurgeConfirmText("");
+    }
+  };
+
+  // ✅ Función para guardar curso
+  const guardarCurso = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSavingCurso(true);
+    try {
+      const res = await fetch("/api/cursos", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(cursoForm)
+      });
+      if (res.ok) {
+        setShowCursoModal(false);
+        setCursoForm({ titulo: "", descripcion: "", url: "" });
+        alert("Curso publicado con éxito en el dashboard de Entrevistadores.");
+      } else {
+        alert("Hubo un error al publicar el curso.");
+      }
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsSavingCurso(false);
     }
   };
 
@@ -141,7 +170,6 @@ export default function DashboardAdminMaestro() {
               <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-1">Acciones Administrativas</p>
             </div>
 
-            {/* Cuadrícula de 2 columnas */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               
               {/* Botón de Acción 1: Purga de Miembros */}
@@ -163,19 +191,22 @@ export default function DashboardAdminMaestro() {
                 </button>
               </div>
 
-              {/* Botón Placeholder 2 */}
-              <div className="bg-[#111111] border border-gray-800 rounded-2xl p-6 shadow-xl flex flex-col justify-between opacity-50">
+              {/* ✅ Botón de Acción 2: Publicar Curso */}
+              <div className="bg-[#111111] border border-[#0051ff]/30 rounded-2xl p-6 shadow-xl flex flex-col justify-between group hover:border-[#0051ff]/60 transition-all">
                 <div>
-                  <div className="w-10 h-10 rounded-full bg-gray-800 text-gray-400 flex items-center justify-center text-xl mb-4">
-                    🚧
+                  <div className="w-10 h-10 rounded-full bg-[#00baff]/10 text-[#00baff] flex items-center justify-center text-xl mb-4">
+                    📺
                   </div>
-                  <h3 className="text-lg font-bold text-white mb-2">Siguiente Acción</h3>
-                  <p className="text-xs text-gray-500 leading-relaxed mb-4">
-                    Espacio reservado para la siguiente herramienta administrativa.
+                  <h3 className="text-lg font-bold text-white mb-2">Publicar Curso</h3>
+                  <p className="text-xs text-gray-400 leading-relaxed mb-4">
+                    Sube un nuevo video de capacitación de YouTube al dashboard de los entrevistadores. Se mostrará inmediatamente para todos.
                   </p>
                 </div>
-                <button disabled className="w-full py-3 bg-gray-900 text-gray-600 font-bold text-sm uppercase tracking-wider rounded-xl cursor-not-allowed">
-                  Próximamente
+                <button 
+                  onClick={() => setShowCursoModal(true)}
+                  className="w-full py-3 bg-[#0051ff]/10 hover:bg-[#0051ff] text-[#00baff] hover:text-white font-bold text-sm uppercase tracking-wider rounded-xl transition-all border border-[#0051ff]/30 hover:border-[#0051ff]"
+                >
+                  Agregar Video
                 </button>
               </div>
 
@@ -261,16 +292,48 @@ export default function DashboardAdminMaestro() {
       </header>
 
       {/* OVERLAYS */}
-      {(isMenuOpen || isNotifMenuOpen || showPurgeModal) && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-40 transition-opacity" onClick={() => { setIsMenuOpen(false); setIsNotifMenuOpen(false); if(!isPurging) setShowPurgeModal(false); }} />
+      {(isMenuOpen || isNotifMenuOpen || showPurgeModal || showCursoModal) && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-40 transition-opacity" onClick={() => { setIsMenuOpen(false); setIsNotifMenuOpen(false); if(!isPurging) setShowPurgeModal(false); if(!isSavingCurso) setShowCursoModal(false); }} />
       )}
 
-      {/* ✅ MODAL DE PURGA (VISTA PREVIA Y CONFIRMACIÓN) */}
+      {/* ✅ MODAL DE CURSO NUEVO */}
+      {showCursoModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
+          <div className="bg-[#111111] border border-gray-800 rounded-3xl w-full max-w-md shadow-2xl flex flex-col pointer-events-auto">
+            <div className="p-5 border-b border-gray-800 flex justify-between items-center bg-[#0a0a0a] rounded-t-3xl">
+              <h3 className="text-white font-bold text-lg flex items-center gap-2">
+                <span className="text-[#00baff]">📺</span> Nuevo Video
+              </h3>
+              <button disabled={isSavingCurso} onClick={() => setShowCursoModal(false)} className="text-gray-500 hover:text-white">✕</button>
+            </div>
+            
+            <form onSubmit={guardarCurso} className="p-6 flex flex-col gap-4">
+              <div>
+                <label className="block text-xs text-gray-400 font-bold uppercase tracking-widest mb-2">Título del Video</label>
+                <input required type="text" placeholder="Ej. Entrevistas por Competencias" value={cursoForm.titulo} onChange={e => setCursoForm({...cursoForm, titulo: e.target.value})} className="w-full bg-[#0a0a0a] border border-gray-800 rounded-xl p-3 text-sm text-white focus:border-[#0051ff] outline-none" />
+              </div>
+              <div>
+                <label className="block text-xs text-gray-400 font-bold uppercase tracking-widest mb-2">Descripción breve</label>
+                <textarea required rows={2} placeholder="De qué trata este curso..." value={cursoForm.descripcion} onChange={e => setCursoForm({...cursoForm, descripcion: e.target.value})} className="w-full bg-[#0a0a0a] border border-gray-800 rounded-xl p-3 text-sm text-white focus:border-[#0051ff] outline-none resize-none" />
+              </div>
+              <div>
+                <label className="block text-xs text-gray-400 font-bold uppercase tracking-widest mb-2">Enlace de YouTube</label>
+                <input required type="url" placeholder="https://youtube.com/..." value={cursoForm.url} onChange={e => setCursoForm({...cursoForm, url: e.target.value})} className="w-full bg-[#0a0a0a] border border-gray-800 rounded-xl p-3 text-sm text-white focus:border-[#0051ff] outline-none" />
+              </div>
+              
+              <button type="submit" disabled={isSavingCurso} className="w-full py-4 mt-4 bg-[#0051ff] hover:bg-[#0041cc] text-white font-black text-sm uppercase tracking-wider rounded-xl transition-all disabled:opacity-50">
+                {isSavingCurso ? "Publicando..." : "Publicar Video"}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL DE PURGA */}
       {showPurgeModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
           <div className="bg-[#111111] border border-gray-800 rounded-3xl w-full max-w-lg shadow-2xl flex flex-col pointer-events-auto max-h-[90vh]">
             
-            {/* Header del Modal */}
             <div className="p-5 border-b border-gray-800 flex justify-between items-center bg-[#0a0a0a] rounded-t-3xl">
               <h3 className="text-white font-bold text-lg flex items-center gap-2">
                 <span className="text-red-500">⚠️</span> Confirmar Purga
@@ -278,7 +341,6 @@ export default function DashboardAdminMaestro() {
               <button disabled={isPurging} onClick={() => setShowPurgeModal(false)} className="text-gray-500 hover:text-white">✕</button>
             </div>
 
-            {/* Contenido scrolleable */}
             <div className="p-6 overflow-y-auto custom-scrollbar flex-1">
               
               {!purgeResult ? (
@@ -287,7 +349,6 @@ export default function DashboardAdminMaestro() {
                     Estás a punto de eliminar todas las cuentas de tipo "Miembro" y enviarles el siguiente correo automático. <strong>Revisa la previsualización:</strong>
                   </p>
 
-                  {/* Previsualización del correo */}
                   <div className="bg-[#050505] rounded-2xl mb-6 text-white font-sans text-sm border border-[#1f2937] overflow-hidden">
                     <div className="bg-[#1f2937] px-4 py-2 border-b border-[#374151]">
                       <p className="text-gray-300 text-xs"><span className="font-bold text-gray-400">De:</span> Soporte SIAFI &lt;siafi.reclutamiento@gmail.com&gt;</p>
@@ -295,14 +356,12 @@ export default function DashboardAdminMaestro() {
                     </div>
                     
                     <div className="p-4 bg-[#111111]">
-                      {/* Simulación del header del correo */}
                       <div className="h-1 bg-[#0051ff] w-full mb-0 rounded-t-md"></div>
                       <div className="bg-black p-3 border-b border-[#1f2937] flex justify-between items-center">
-                        <span className="w-6 h-6 bg-gray-800 rounded-full inline-block"></span> {/* Placeholder escudo */}
-                        <span className="w-16 h-4 bg-gray-800 rounded inline-block"></span> {/* Placeholder logo texto */}
+                        <span className="w-6 h-6 bg-gray-800 rounded-full inline-block"></span>
+                        <span className="w-16 h-4 bg-gray-800 rounded inline-block"></span>
                       </div>
                       
-                      {/* Cuerpo del correo */}
                       <div className="p-5">
                         <h2 className="text-[#ef4444] text-lg mb-3">Aviso de Sistema ⚠️</h2>
                         <p className="mb-3">Hola <strong>[Nombre]</strong>,</p>
@@ -313,11 +372,10 @@ export default function DashboardAdminMaestro() {
                           <p className="text-[#fca5a5] text-xs">Para evitar conflictos técnicos en nuestro sistema y asegurar que tu perfil sea evaluado correctamente, <strong>la cuenta que creaste ha sido eliminada.</strong></p>
                         </div>
                         
-                        {/* ✅ Letras en azul en el preview */}
                         <p className="text-[#00baff] font-bold text-xs mb-4 leading-relaxed">Por favor, realiza tu registro de forma correcta ingresando al siguiente enlace y completando las preguntas de evaluación. Es muy importante que llenes los campos con datos completos y reales, sobre todo tu nombre completo:</p>
                         
                         <div className="text-center my-4">
-                          <span className="bg-[#0051ff] text-white px-4 py-2 rounded-lg font-bold text-xs uppercase">Ir al Formulario Correcto</span>
+                          <span className="bg-[#0051ff] text-white px-4 py-2 rounded-lg font-bold text-xs uppercase">Ir al Formulario</span>
                         </div>
                         
                         <p className="text-gray-400 text-xs mb-4 leading-relaxed">Una vez que llenes tu registro correctamente, el sistema creará automáticamente una cuenta para ti y recibirás un nuevo correo con tus credenciales y otra información.</p>
@@ -327,7 +385,6 @@ export default function DashboardAdminMaestro() {
                     </div>
                   </div>
 
-                  {/* Verificación de seguridad */}
                   <div className="bg-red-950/20 border border-red-500/30 rounded-xl p-4">
                     <label className="block text-xs text-red-400 uppercase tracking-widest font-bold mb-2">Para confirmar, escribe "PURGAR"</label>
                     <input 
@@ -340,7 +397,6 @@ export default function DashboardAdminMaestro() {
                   </div>
                 </>
               ) : (
-                /* Resultado de la operación */
                 <div className="text-center py-8">
                   <div className={`text-6xl mb-4 ${purgeResult.success ? 'text-green-500' : 'text-red-500'}`}>
                     {purgeResult.success ? '✅' : '❌'}
@@ -354,7 +410,6 @@ export default function DashboardAdminMaestro() {
 
             </div>
 
-            {/* Footer del Modal (Botones) */}
             <div className="p-5 border-t border-gray-800 bg-[#0a0a0a] rounded-b-3xl">
               {!purgeResult ? (
                 <button 
@@ -377,7 +432,6 @@ export default function DashboardAdminMaestro() {
         </div>
       )}
       
-      {/* MENÚ PERFIL Y NOTIFICACIONES OMITIDOS POR BREVEDAD, SON IGUALES... */}
       <div className={`fixed top-0 right-0 h-full w-72 bg-[#111111] border-l border-gray-800 z-50 transform transition-transform duration-300 ease-in-out flex flex-col ${isMenuOpen ? 'translate-x-0' : 'translate-x-full'}`}>
         <div className="p-6 border-b border-gray-800 flex justify-between items-start">
           <div className="flex items-center gap-4 pr-4">

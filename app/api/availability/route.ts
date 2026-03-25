@@ -32,11 +32,18 @@ export async function POST(request: Request) {
     const queryData = await queryRes.json();
     const existingPage = queryData.results?.length > 0 ? queryData.results[0] : null;
 
+    // ✅ DIVIDIR EL JSON EN BLOQUES DE 2000 CARACTERES MÁXIMO
+    const jsonString = JSON.stringify(horarios);
+    const chunks = jsonString.match(/.{1,2000}/g) || [];
+    const richTextArray = chunks.map(chunk => ({
+      text: { content: chunk }
+    }));
+
     const properties = {
       "Nombre": { title: [{ text: { content: nombre || "Entrevistador" } }] },
       "Email": { email: email },
       "Horas Totales": { number: horasTotales },
-      "HorariosJSON": { rich_text: [{ text: { content: JSON.stringify(horarios) } }] },
+      "HorariosJSON": { rich_text: richTextArray }, // Asignamos el arreglo de chunks
     };
 
     // 2. Si existe, lo actualizamos. Si no, lo creamos.
@@ -52,7 +59,7 @@ export async function POST(request: Request) {
         method: "POST",
         headers: notionHeaders,
         body: JSON.stringify({
-          parent: { database_id: AVAILABILITY_DB_ID },
+          parent: { database_id: AVAILABILITY_DB_ID! },
           properties,
         }),
       });
@@ -100,7 +107,11 @@ export async function GET(request: Request) {
     
     if (queryData.results?.length > 0) {
       const page = queryData.results[0];
-      const horariosGuardados = page.properties["HorariosJSON"]?.rich_text[0]?.plain_text || "[]";
+      
+      // ✅ LEER TODOS LOS CHUNKS Y UNIRLOS
+      const richTextArray = page.properties["HorariosJSON"]?.rich_text || [];
+      const horariosGuardados = richTextArray.map((t: any) => t.plain_text).join("") || "[]";
+      
       return NextResponse.json({ horarios: JSON.parse(horariosGuardados) });
     }
 

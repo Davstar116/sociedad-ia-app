@@ -27,10 +27,14 @@ export default function DashboardAdminMaestro() {
   const [cursoForm, setCursoForm] = useState({ titulo: "", descripcion: "", url: "" });
   const [isSavingCurso, setIsSavingCurso] = useState(false);
 
-  // ✅ ESTADOS GENERACIÓN DE BLOQUES
+  // ESTADOS GENERACIÓN DE BLOQUES
   const [showGenerateModal, setShowGenerateModal] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [generateResult, setGenerateResult] = useState<{success?: boolean, message?: string} | null>(null);
+
+  // ✅ ESTADOS BLOQUEO GLOBAL DE HORARIOS
+  const [isGlobalLockActive, setIsGlobalLockActive] = useState(false);
+  const [isTogglingLock, setIsTogglingLock] = useState(false);
 
   // ESTADOS HORARIO
   const [semana, setSemana] = useState(1);
@@ -91,10 +95,22 @@ export default function DashboardAdminMaestro() {
     }
   };
 
+  // ✅ FUNCIÓN PARA LEER EL ESTADO GLOBAL AL ENTRAR
+  const checkGlobalLock = async () => {
+    try {
+      const res = await fetch("/api/admin/toggle-lock");
+      const data = await res.json();
+      setIsGlobalLockActive(data.isLocked);
+    } catch (error) {
+      console.error("Error revisando bloqueo global:", error);
+    }
+  };
+
   useEffect(() => {
     if (status === "authenticated") {
       fetchNotificaciones();
       cargarHorario();
+      checkGlobalLock(); // ✅ SE LLAMA AQUÍ
     }
   }, [status, session]);
 
@@ -156,7 +172,6 @@ export default function DashboardAdminMaestro() {
     }
   };
 
-  // ✅ NUEVA FUNCIÓN PARA GENERAR BLOQUES CON MODAL
   const generarBloques = async () => {
     setIsGenerating(true);
     setGenerateResult(null);
@@ -175,8 +190,34 @@ export default function DashboardAdminMaestro() {
     }
   };
 
+  const toggleGlobalLock = async () => {
+    const action = isGlobalLockActive ? "DESBLOQUEAR" : "BLOQUEAR";
+    const confirm = window.confirm(`¿Estás seguro de que deseas ${action} el registro de horarios para todos los usuarios?`);
+    
+    if (!confirm) return;
+
+    setIsTogglingLock(true);
+    try {
+      const res = await fetch("/api/admin/toggle-lock", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ lock: !isGlobalLockActive })
+      });
+      
+      if (res.ok) {
+        setIsGlobalLockActive(!isGlobalLockActive);
+      } else {
+        alert("Error al intentar cambiar el estado de bloqueo.");
+      }
+    } catch (error) {
+      alert("Error de conexión al servidor.");
+    } finally {
+      setIsTogglingLock(false);
+    }
+  };
+
   const toggleSlot = (slotId: string) => {
-    if (isLockedHorario) return;
+    if (isLockedHorario || isGlobalLockActive) return; 
     setDisponibilidad((prev) => 
       prev.includes(slotId) ? prev.filter(id => id !== slotId) : [...prev, slotId]
     );
@@ -271,19 +312,42 @@ export default function DashboardAdminMaestro() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               
-              <div className="bg-[#111111] border border-red-500/30 rounded-2xl p-6 shadow-xl flex flex-col justify-between group hover:border-red-500/60 transition-all">
+              <div className={`bg-[#111111] border ${isGlobalLockActive ? 'border-orange-500' : 'border-orange-500/30'} rounded-2xl p-6 shadow-xl flex flex-col justify-between group hover:border-orange-500 transition-all`}>
                 <div>
-                  <div className="w-10 h-10 rounded-full bg-red-500/10 text-red-500 flex items-center justify-center text-xl mb-4">🧹</div>
-                  <h3 className="text-lg font-bold text-white mb-2">Purga de "Miembros"</h3>
+                  <div className={`w-10 h-10 rounded-full ${isGlobalLockActive ? 'bg-orange-500 text-[#0a0a0a]' : 'bg-orange-500/10 text-orange-500'} flex items-center justify-center text-xl mb-4 transition-colors`}>
+                    {isGlobalLockActive ? '🔒' : '🔓'}
+                  </div>
+                  <h3 className="text-lg font-bold text-white mb-2">Bloqueo de Horarios</h3>
                   <p className="text-xs text-gray-400 leading-relaxed mb-4">
-                    Busca todas las cuentas registradas erróneamente con el rol <span className="text-white font-mono bg-gray-800 px-1 rounded">Miembro</span>. Les enviará un correo con las instrucciones correctas y el enlace de postulación, y posteriormente las <strong>eliminará</strong> de la base de datos para evitar conflictos.
+                    Congela el registro de disponibilidad en toda la plataforma. Ningún Entrevistador ni Administrador podrá modificar sus horarios. Ideal para evitar cambios de última hora antes de generar los bloques.
                   </p>
                 </div>
                 <button 
-                  onClick={() => { setShowPurgeModal(true); setPurgeResult(null); setPurgeConfirmText(""); }}
-                  className="w-full py-3 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white font-bold text-sm uppercase tracking-wider rounded-xl transition-all border border-red-500/30 hover:border-red-500"
+                  onClick={toggleGlobalLock}
+                  disabled={isTogglingLock}
+                  className={`w-full py-3 font-bold text-sm uppercase tracking-wider rounded-xl transition-all border disabled:opacity-50 ${
+                    isGlobalLockActive 
+                      ? "bg-orange-500 text-[#0a0a0a] border-orange-500 shadow-[0_0_15px_rgba(249,115,22,0.3)]" 
+                      : "bg-orange-500/10 hover:bg-orange-500 text-orange-500 hover:text-[#0a0a0a] border-orange-500/30 hover:border-orange-500"
+                  }`}
                 >
-                  Configurar Purga
+                  {isTogglingLock ? "Procesando..." : isGlobalLockActive ? "Desbloquear Sistema" : "Bloquear Sistema"}
+                </button>
+              </div>
+
+              <div className="bg-[#111111] border border-green-500/30 rounded-2xl p-6 shadow-xl flex flex-col justify-between group hover:border-green-500/60 transition-all">
+                <div>
+                  <div className="w-10 h-10 rounded-full bg-green-500/10 text-green-500 flex items-center justify-center text-xl mb-4">🧩</div>
+                  <h3 className="text-lg font-bold text-white mb-2">Generar Bloques</h3>
+                  <p className="text-xs text-gray-400 leading-relaxed mb-4">
+                    Cruza los horarios de todos los entrevistadores y genera automáticamente bloques de 1 hora (2 entrevistadores por bloque) listos para que los postulantes reserven.
+                  </p>
+                </div>
+                <button 
+                  onClick={() => { setShowGenerateModal(true); setGenerateResult(null); }}
+                  className="w-full py-3 bg-green-500/10 hover:bg-green-500 text-green-500 hover:text-[#0a0a0a] font-bold text-sm uppercase tracking-wider rounded-xl transition-all border border-green-500/30 hover:border-green-500"
+                >
+                  Construir Horarios
                 </button>
               </div>
 
@@ -303,20 +367,19 @@ export default function DashboardAdminMaestro() {
                 </button>
               </div>
 
-              {/* BOTÓN: GENERAR BLOQUES */}
-              <div className="bg-[#111111] border border-green-500/30 rounded-2xl p-6 shadow-xl flex flex-col justify-between group hover:border-green-500/60 transition-all md:col-span-2 lg:col-span-1">
+              <div className="bg-[#111111] border border-red-500/30 rounded-2xl p-6 shadow-xl flex flex-col justify-between group hover:border-red-500/60 transition-all">
                 <div>
-                  <div className="w-10 h-10 rounded-full bg-green-500/10 text-green-500 flex items-center justify-center text-xl mb-4">🧩</div>
-                  <h3 className="text-lg font-bold text-white mb-2">Generar Bloques</h3>
+                  <div className="w-10 h-10 rounded-full bg-red-500/10 text-red-500 flex items-center justify-center text-xl mb-4">🧹</div>
+                  <h3 className="text-lg font-bold text-white mb-2">Purga de "Miembros"</h3>
                   <p className="text-xs text-gray-400 leading-relaxed mb-4">
-                    Cruza los horarios de todos los entrevistadores y genera automáticamente bloques de 1 hora (2 entrevistadores por bloque) listos para que los postulantes reserven.
+                    Busca todas las cuentas registradas erróneamente con el rol <span className="text-white font-mono bg-gray-800 px-1 rounded">Miembro</span>. Les enviará un correo con las instrucciones correctas y el enlace de postulación.
                   </p>
                 </div>
                 <button 
-                  onClick={() => { setShowGenerateModal(true); setGenerateResult(null); }}
-                  className="w-full py-3 bg-green-500/10 hover:bg-green-500 text-green-500 hover:text-[#0a0a0a] font-bold text-sm uppercase tracking-wider rounded-xl transition-all border border-green-500/30 hover:border-green-500"
+                  onClick={() => { setShowPurgeModal(true); setPurgeResult(null); setPurgeConfirmText(""); }}
+                  className="w-full py-3 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white font-bold text-sm uppercase tracking-wider rounded-xl transition-all border border-red-500/30 hover:border-red-500"
                 >
-                  Construir Horarios
+                  Configurar Purga
                 </button>
               </div>
 
@@ -342,7 +405,11 @@ export default function DashboardAdminMaestro() {
             <div className="flex items-center justify-between mb-4">
               <div>
                 <h2 className="text-xl font-black text-white tracking-tight">Mi Disponibilidad</h2>
-                {isLockedHorario && <p className="text-[10px] text-green-400 font-bold uppercase tracking-widest mt-0.5 flex items-center gap-1"><span>🔒</span> Registrado</p>}
+                {(isLockedHorario || isGlobalLockActive) && (
+                  <p className={`text-[10px] ${isGlobalLockActive ? 'text-orange-500' : 'text-green-400'} font-bold uppercase tracking-widest mt-0.5 flex items-center gap-1`}>
+                    <span>🔒</span> {isGlobalLockActive ? 'Bloqueado por Sistema' : 'Registrado'}
+                  </p>
+                )}
               </div>
               <div className="text-right">
                 <p className="text-2xl font-black text-yellow-500">
@@ -367,7 +434,7 @@ export default function DashboardAdminMaestro() {
               </button>
             </div>
 
-            <div className={`bg-[#111111] border rounded-3xl p-3 sm:p-5 shadow-2xl overflow-hidden relative transition-all ${isLockedHorario ? 'border-green-500/30' : 'border-gray-800'}`}>
+            <div className={`bg-[#111111] border rounded-3xl p-3 sm:p-5 shadow-2xl overflow-hidden relative transition-all ${(isLockedHorario || isGlobalLockActive) ? 'border-green-500/30' : 'border-gray-800'} ${isGlobalLockActive ? 'border-orange-500/30' : ''}`}>
               
               {isLoadingSchedule ? (
                 <div className="flex flex-col items-center justify-center py-10 opacity-50">
@@ -401,7 +468,7 @@ export default function DashboardAdminMaestro() {
                               key={slotId}
                               onClick={() => toggleSlot(slotId)}
                               className={`h-4 sm:h-5 rounded-[2px] transition-all border-[0.5px] ${
-                                isLockedHorario 
+                                (isLockedHorario || isGlobalLockActive)
                                   ? (isSelected ? 'bg-green-500 border-green-400 opacity-90 cursor-default shadow-[0_0_8px_rgba(34,197,94,0.3)]' : 'bg-[#151515] border-gray-800 opacity-30 cursor-default')
                                   : (isSelected ? 'bg-yellow-500 border-yellow-400 shadow-[0_0_8px_rgba(234,179,8,0.4)] cursor-pointer' : 'bg-[#1a1a1a] border-gray-800 hover:bg-gray-800/80 cursor-pointer')
                               }`}
@@ -416,7 +483,11 @@ export default function DashboardAdminMaestro() {
             </div>
 
             <div className="mt-6 flex justify-center">
-              {isLockedHorario ? (
+              {isGlobalLockActive ? (
+                <div className="w-full text-center py-4 bg-orange-500/10 border border-orange-500/30 rounded-xl">
+                  <p className="text-orange-500 font-bold text-xs uppercase tracking-widest">🔒 Sistema Bloqueado</p>
+                </div>
+              ) : isLockedHorario ? (
                 <button 
                   onClick={() => setIsLockedHorario(false)}
                   className="w-full max-w-xs py-4 font-black text-sm uppercase tracking-wider rounded-xl transition-all shadow-lg active:scale-95 bg-gray-800 text-gray-300 hover:bg-gray-700 hover:text-white"
@@ -495,12 +566,10 @@ export default function DashboardAdminMaestro() {
         </button>
       </header>
 
-      {/* OVERLAYS GLOBALES */}
       {(isMenuOpen || isNotifMenuOpen || showPurgeModal || showCursoModal || showConfirmHorarioModal || showGenerateModal) && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-40 transition-opacity" onClick={() => { setIsMenuOpen(false); setIsNotifMenuOpen(false); if(!isPurging) setShowPurgeModal(false); if(!isSavingCurso) setShowCursoModal(false); setShowConfirmHorarioModal(false); if(!isGenerating) setShowGenerateModal(false); }} />
       )}
 
-      {/* ✅ MODAL DE CONFIRMACIÓN DE GENERACIÓN DE BLOQUES */}
       {showGenerateModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
           <div className="bg-[#111111] border border-green-500/30 rounded-3xl w-full max-w-sm shadow-2xl flex flex-col pointer-events-auto overflow-hidden animate-in zoom-in-95 duration-200">
@@ -509,7 +578,6 @@ export default function DashboardAdminMaestro() {
                 <span className="text-green-500">🧩</span> Generar Entrevistas
               </h3>
             </div>
-            
             <div className="p-6">
               {!generateResult ? (
                 <>
@@ -530,7 +598,6 @@ export default function DashboardAdminMaestro() {
                 </div>
               )}
             </div>
-            
             <div className="p-4 border-t border-gray-800 bg-[#0a0a0a] flex gap-3">
               {!generateResult ? (
                 <>
@@ -547,7 +614,6 @@ export default function DashboardAdminMaestro() {
         </div>
       )}
 
-      {/* MODAL HORARIO */}
       {showConfirmHorarioModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
           <div className="bg-[#111111] border border-yellow-500/30 rounded-3xl w-full max-w-sm shadow-2xl flex flex-col pointer-events-auto overflow-hidden animate-in zoom-in-95 duration-200">
@@ -573,7 +639,6 @@ export default function DashboardAdminMaestro() {
         </div>
       )}
 
-      {/* MODAL CURSO */}
       {showCursoModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
           <div className="bg-[#111111] border border-gray-800 rounded-3xl w-full max-w-md shadow-2xl flex flex-col pointer-events-auto">
@@ -604,7 +669,6 @@ export default function DashboardAdminMaestro() {
         </div>
       )}
 
-      {/* MODAL DE PURGA */}
       {showPurgeModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
           <div className="bg-[#111111] border border-gray-800 rounded-3xl w-full max-w-lg shadow-2xl flex flex-col pointer-events-auto max-h-[90vh]">
@@ -670,7 +734,6 @@ export default function DashboardAdminMaestro() {
         </div>
       )}
 
-      {/* MENÚ PERFIL Y NOTIFICACIONES */}
       <div className={`fixed top-0 right-0 h-full w-72 bg-[#111111] border-l border-gray-800 z-50 transform transition-transform duration-300 ease-in-out flex flex-col ${isMenuOpen ? 'translate-x-0' : 'translate-x-full'}`}>
         <div className="p-6 border-b border-gray-800 flex justify-between items-start">
           <div className="flex items-center gap-4 pr-4">
@@ -731,8 +794,6 @@ export default function DashboardAdminMaestro() {
           )}
         </div>
       </div>
-
-      {renderActiveContent()}
 
       <nav className="fixed bottom-0 w-full bg-[#111111]/90 backdrop-blur-md border-t border-gray-800 z-40 pb-safe">
         <div className="flex justify-between items-center h-16 px-6 relative max-w-lg mx-auto">

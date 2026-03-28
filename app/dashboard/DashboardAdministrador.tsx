@@ -24,6 +24,9 @@ export default function DashboardAdministrador() {
   const [isLockedHorario, setIsLockedHorario] = useState(false);
   const [showConfirmHorarioModal, setShowConfirmHorarioModal] = useState(false);
   const hasLoadedSchedule = useRef(false);
+
+  // ✅ ESTADO BLOQUEO GLOBAL DE HORARIOS
+  const [isGlobalLockActive, setIsGlobalLockActive] = useState(false);
   
   const { data: session, status } = useSession();
 
@@ -74,10 +77,22 @@ export default function DashboardAdministrador() {
     }
   };
 
+  // ✅ FUNCIÓN PARA LEER EL ESTADO GLOBAL AL ENTRAR
+  const checkGlobalLock = async () => {
+    try {
+      const res = await fetch("/api/admin/toggle-lock");
+      const data = await res.json();
+      setIsGlobalLockActive(data.isLocked);
+    } catch (error) {
+      console.error("Error revisando bloqueo global:", error);
+    }
+  };
+
   useEffect(() => {
     if (status === "authenticated") {
       fetchNotificaciones();
       cargarHorario();
+      checkGlobalLock(); // ✅ SE LLAMA AQUÍ
     }
   }, [status, session]);
 
@@ -100,7 +115,7 @@ export default function DashboardAdministrador() {
   }, [session]);
 
   const toggleSlot = (slotId: string) => {
-    if (isLockedHorario) return;
+    if (isLockedHorario || isGlobalLockActive) return; // ✅ Evita clics si está bloqueado globalmente
     setDisponibilidad((prev) => 
       prev.includes(slotId) ? prev.filter(id => id !== slotId) : [...prev, slotId]
     );
@@ -183,7 +198,6 @@ export default function DashboardAdministrador() {
   );
 
   const renderActiveContent = () => {
-    // Declaramos la variable fuera del switch para evitar cualquier problema de sintaxis con el linter de Vercel
     const fechasActivas = semana === 1 ? FECHAS_S1 : FECHAS_S2;
 
     switch (activeTab) {
@@ -224,7 +238,11 @@ export default function DashboardAdministrador() {
             <div className="flex items-center justify-between mb-4">
               <div>
                 <h2 className="text-xl font-black text-white tracking-tight">Mi Disponibilidad</h2>
-                {isLockedHorario && <p className="text-[10px] text-green-400 font-bold uppercase tracking-widest mt-0.5 flex items-center gap-1"><span>🔒</span> Registrado</p>}
+                {(isLockedHorario || isGlobalLockActive) && (
+                  <p className={`text-[10px] ${isGlobalLockActive ? 'text-orange-500' : 'text-green-400'} font-bold uppercase tracking-widest mt-0.5 flex items-center gap-1`}>
+                    <span>🔒</span> {isGlobalLockActive ? 'Bloqueado por Sistema' : 'Registrado'}
+                  </p>
+                )}
               </div>
               <div className="text-right">
                 <p className="text-2xl font-black text-violet-400">
@@ -249,7 +267,7 @@ export default function DashboardAdministrador() {
               </button>
             </div>
 
-            <div className={`bg-[#111111] border rounded-3xl p-3 sm:p-5 shadow-2xl overflow-hidden relative transition-all ${isLockedHorario ? 'border-green-500/30' : 'border-gray-800'}`}>
+            <div className={`bg-[#111111] border rounded-3xl p-3 sm:p-5 shadow-2xl overflow-hidden relative transition-all ${(isLockedHorario || isGlobalLockActive) ? 'border-green-500/30' : 'border-gray-800'} ${isGlobalLockActive ? 'border-orange-500/30' : ''}`}>
               
               {isLoadingSchedule ? (
                 <div className="flex flex-col items-center justify-center py-10 opacity-50">
@@ -283,7 +301,7 @@ export default function DashboardAdministrador() {
                               key={slotId}
                               onClick={() => toggleSlot(slotId)}
                               className={`h-4 sm:h-5 rounded-[2px] transition-all border-[0.5px] ${
-                                isLockedHorario 
+                                (isLockedHorario || isGlobalLockActive)
                                   ? (isSelected ? 'bg-green-500 border-green-400 opacity-90 cursor-default shadow-[0_0_8px_rgba(34,197,94,0.3)]' : 'bg-[#151515] border-gray-800 opacity-30 cursor-default')
                                   : (isSelected ? 'bg-violet-500 border-violet-400 shadow-[0_0_8px_rgba(139,92,246,0.4)] cursor-pointer' : 'bg-[#1a1a1a] border-gray-800 hover:bg-gray-800/80 cursor-pointer')
                               }`}
@@ -298,7 +316,11 @@ export default function DashboardAdministrador() {
             </div>
 
             <div className="mt-6 flex justify-center">
-              {isLockedHorario ? (
+              {isGlobalLockActive ? (
+                <div className="w-full text-center py-4 bg-orange-500/10 border border-orange-500/30 rounded-xl">
+                  <p className="text-orange-500 font-bold text-xs uppercase tracking-widest">🔒 Sistema Bloqueado</p>
+                </div>
+              ) : isLockedHorario ? (
                 <button 
                   onClick={() => setIsLockedHorario(false)}
                   className="w-full max-w-xs py-4 font-black text-sm uppercase tracking-wider rounded-xl transition-all shadow-lg active:scale-95 bg-gray-800 text-gray-300 hover:bg-gray-700 hover:text-white"
@@ -457,7 +479,6 @@ export default function DashboardAdministrador() {
         </div>
       </div>
 
-      {/* ✅ AQUÍ ESTÁ EL RENDERIZADOR */}
       {renderActiveContent()}
 
       <nav className="fixed bottom-0 w-full bg-[#111111]/90 backdrop-blur-md border-t border-gray-800 z-40 pb-safe">

@@ -24,10 +24,13 @@ export default function DashboardEntrevistador() {
   const [isLoadingSchedule, setIsLoadingSchedule] = useState(true);
   const [isLocked, setIsLocked] = useState(false);
   
-  // ✅ ESTADO PARA EL MODAL DE CONFIRMACIÓN
+  // ✅ ESTADO BLOQUEO GLOBAL
+  const [isGlobalLockActive, setIsGlobalLockActive] = useState(false);
+  
+  // ESTADO PARA EL MODAL DE CONFIRMACIÓN
   const [showConfirmModal, setShowConfirmModal] = useState(false);
 
-  // ✅ ESTADOS PARA CURSOS
+  // ESTADOS PARA CURSOS
   const [cursos, setCursos] = useState<any[]>([]);
   const [isLoadingCursos, setIsLoadingCursos] = useState(false);
   
@@ -81,10 +84,22 @@ export default function DashboardEntrevistador() {
     }
   };
 
+  // ✅ FUNCIÓN PARA LEER EL ESTADO GLOBAL AL ENTRAR
+  const checkGlobalLock = async () => {
+    try {
+      const res = await fetch("/api/admin/toggle-lock");
+      const data = await res.json();
+      setIsGlobalLockActive(data.isLocked);
+    } catch (error) {
+      console.error("Error revisando bloqueo global:", error);
+    }
+  };
+
   useEffect(() => {
     if (status === "authenticated") {
       fetchNotificaciones();
       cargarHorario();
+      checkGlobalLock(); // ✅ SE LLAMA AQUÍ
     }
   }, [status, session]);
 
@@ -106,7 +121,7 @@ export default function DashboardEntrevistador() {
     initOneSignal();
   }, [session]);
 
-  // ✅ FUNCIONES PARA CURSOS
+  // FUNCIONES PARA CURSOS
   const getYouTubeEmbedUrl = (url: string) => {
     const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|shorts\/|watch\?v=|&v=)([^#&?]*).*/;
     const match = url.match(regExp);
@@ -152,7 +167,7 @@ export default function DashboardEntrevistador() {
   };
 
   const toggleSlot = (slotId: string) => {
-    if (isLocked) return;
+    if (isLocked || isGlobalLockActive) return; // ✅ EVITA CAMBIOS SI ESTÁ BLOQUEADO
     setDisponibilidad((prev) => 
       prev.includes(slotId) ? prev.filter(id => id !== slotId) : [...prev, slotId]
     );
@@ -227,7 +242,11 @@ export default function DashboardEntrevistador() {
             <div className="flex items-center justify-between mb-4">
               <div>
                 <h2 className="text-xl font-black text-white tracking-tight">Mi Disponibilidad</h2>
-                {isLocked && <p className="text-[10px] text-green-400 font-bold uppercase tracking-widest mt-0.5 flex items-center gap-1"><span>🔒</span> Registrado</p>}
+                {(isLocked || isGlobalLockActive) && (
+                  <p className={`text-[10px] ${isGlobalLockActive ? 'text-orange-500' : 'text-green-400'} font-bold uppercase tracking-widest mt-0.5 flex items-center gap-1`}>
+                    <span>🔒</span> {isGlobalLockActive ? 'Bloqueado por Sistema' : 'Registrado'}
+                  </p>
+                )}
               </div>
               <div className="text-right">
                 <p className="text-2xl font-black text-[#00baff]">
@@ -252,7 +271,7 @@ export default function DashboardEntrevistador() {
               </button>
             </div>
 
-            <div className={`bg-[#111111] border rounded-3xl p-3 sm:p-5 shadow-2xl overflow-hidden relative transition-all ${isLocked ? 'border-green-500/30' : 'border-gray-800'}`}>
+            <div className={`bg-[#111111] border rounded-3xl p-3 sm:p-5 shadow-2xl overflow-hidden relative transition-all ${(isLocked || isGlobalLockActive) ? 'border-green-500/30' : 'border-gray-800'} ${isGlobalLockActive ? 'border-orange-500/30' : ''}`}>
               
               {isLoadingSchedule ? (
                 <div className="flex flex-col items-center justify-center py-10 opacity-50">
@@ -286,7 +305,7 @@ export default function DashboardEntrevistador() {
                               key={slotId}
                               onClick={() => toggleSlot(slotId)}
                               className={`h-4 sm:h-5 rounded-[2px] transition-all border-[0.5px] ${
-                                isLocked 
+                                (isLocked || isGlobalLockActive) 
                                   ? (isSelected ? 'bg-green-500 border-green-400 opacity-90 cursor-default shadow-[0_0_8px_rgba(34,197,94,0.3)]' : 'bg-[#151515] border-gray-800 opacity-30 cursor-default')
                                   : (isSelected ? 'bg-[#00baff] border-[#00baff] shadow-[0_0_8px_rgba(0,186,255,0.4)] cursor-pointer' : 'bg-[#1a1a1a] border-gray-800 hover:bg-gray-800/80 cursor-pointer')
                               }`}
@@ -301,7 +320,11 @@ export default function DashboardEntrevistador() {
             </div>
 
             <div className="mt-6 flex justify-center">
-              {isLocked ? (
+              {isGlobalLockActive ? (
+                <div className="w-full text-center py-4 bg-orange-500/10 border border-orange-500/30 rounded-xl">
+                  <p className="text-orange-500 font-bold text-xs uppercase tracking-widest">🔒 Sistema Bloqueado</p>
+                </div>
+              ) : isLocked ? (
                 <button 
                   onClick={() => setIsLocked(false)}
                   className="w-full max-w-xs py-4 font-black text-sm uppercase tracking-wider rounded-xl transition-all shadow-lg active:scale-95 bg-gray-800 text-gray-300 hover:bg-gray-700 hover:text-white"
@@ -335,7 +358,7 @@ export default function DashboardEntrevistador() {
           </main>
         );
 
-      // ✅ NUEVA PESTAÑA DE CURSOS
+      // NUEVA PESTAÑA DE CURSOS
       case "cursos":
         return (
           <main className="pt-24 pb-28 px-5 max-w-lg mx-auto min-h-screen animate-in fade-in duration-300">
@@ -446,7 +469,7 @@ export default function DashboardEntrevistador() {
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-40 transition-opacity" onClick={() => { setIsMenuOpen(false); setIsNotifMenuOpen(false); setShowConfirmModal(false); }} />
       )}
       
-      {/* ✅ MODAL DE CONFIRMACIÓN DE HORARIO */}
+      {/* MODAL DE CONFIRMACIÓN DE HORARIO */}
       {showConfirmModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
           <div className="bg-[#111111] border border-[#0051ff]/30 rounded-3xl w-full max-w-sm shadow-2xl flex flex-col pointer-events-auto overflow-hidden animate-in zoom-in-95 duration-200">
@@ -567,7 +590,7 @@ export default function DashboardEntrevistador() {
 
       {renderActiveContent()}
 
-      {/* ✅ CINTILLO INFERIOR DE ENTREVISTADOR */}
+      {/* CINTILLO INFERIOR DE ENTREVISTADOR */}
       <nav className="fixed bottom-0 w-full bg-[#111111]/90 backdrop-blur-md border-t border-gray-800 z-40 pb-safe">
         <div className="flex justify-between items-center h-16 px-6 relative max-w-lg mx-auto">
           

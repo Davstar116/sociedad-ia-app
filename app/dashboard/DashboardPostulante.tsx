@@ -24,6 +24,10 @@ export default function DashboardPostulante() {
   const [isLoadingBlocks, setIsLoadingBlocks] = useState(false);
   const [isConfirming, setIsConfirming] = useState(false);
 
+  // ✅ NUEVOS ESTADOS PARA EL MODAL DE RESULTADO
+  const [showConfirmResultModal, setShowConfirmResultModal] = useState(false);
+  const [confirmResult, setConfirmResult] = useState<{success?: boolean, message?: string} | null>(null);
+
   const { data: session, status } = useSession();
 
   useEffect(() => {
@@ -104,15 +108,63 @@ export default function DashboardPostulante() {
     loadAvailableBlocks();
   };
 
+  // ✅ FUNCIÓN ACTUALIZADA PARA CONECTAR AL BACKEND DE RESERVA
   const confirmarEntrevista = async () => {
-    if (!selectedBlock) return;
-    setIsConfirming(true);
+    if (!selectedBlock || !session?.user?.email) return;
     
-    // Aquí implementaremos la Fase 2
-    setTimeout(() => {
-      alert(`¡Fase 1 Completada y pulida! Has seleccionado el bloque: ${selectedBlock.hora}. Siguiente paso: Generar el Meet y Correos.`);
+    setIsConfirming(true);
+    setConfirmResult(null);
+    
+    try {
+      // Llamada a la API que crearemos a continuación
+      const res = await fetch("/api/entrevistas/agendar", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          bloqueId: selectedBlock.id,
+          email: session.user.email,
+          nombre: session.user.name
+        })
+      });
+
+      const data = await res.json();
+
+      if (res.ok && data.success) {
+        setConfirmResult({ 
+          success: true, 
+          message: "Tu entrevista ha sido agendada exitosamente. En breve recibirás un correo y un mensaje de WhatsApp con el enlace de Google Meet y los detalles." 
+        });
+        setShowConfirmResultModal(true);
+      } else {
+        // Si alguien ganó el lugar o hubo un error
+        setConfirmResult({ 
+          success: false, 
+          message: data.error || "Este horario acaba de ser ocupado por otra persona. Por favor, selecciona otro bloque." 
+        });
+        setShowConfirmResultModal(true);
+        loadAvailableBlocks(); // Recargamos para actualizar disponibilidad
+      }
+    } catch (error) {
+      setConfirmResult({ success: false, message: "Error de red al intentar agendar. Verifica tu conexión." });
+      setShowConfirmResultModal(true);
+    } finally {
       setIsConfirming(false);
-    }, 2000);
+    }
+  };
+
+  const cerrarModalExito = () => {
+    setShowConfirmResultModal(false);
+    if (confirmResult?.success) {
+      // Si fue éxito, quitamos la pantalla de agendamiento.
+      // Lo ideal aquí será que el estatus del usuario cambie a "Entrevista Agendada",
+      // pero por ahora lo mandamos al inicio.
+      setIsScheduling(false);
+      // Forzar recarga de sesión para actualizar estatus visualmente si es necesario
+      window.location.reload(); 
+    } else {
+      // Si fue error (alguien le ganó), se queda en la pantalla para elegir otro.
+      setSelectedBlock(null);
+    }
   };
 
   if (status === "loading") {
@@ -148,12 +200,11 @@ export default function DashboardPostulante() {
         if (isScheduling) {
           const fechasActivas = scheduleWeek === 1 ? FECHAS_S1 : FECHAS_S2;
           
-          // ✅ AGRUPAMOS LOS BLOQUES DEL DÍA SELECCIONADO PARA EVITAR DUPLICADOS
           const bloquesDelDia = availableBlocks.filter(b => b.fecha === scheduleDay);
           const uniqueBlocksMap = new Map();
           bloquesDelDia.forEach(b => {
             if (!uniqueBlocksMap.has(b.hora)) {
-              uniqueBlocksMap.set(b.hora, b); // Se guarda el primer bloque que encuentre con esa hora
+              uniqueBlocksMap.set(b.hora, b); 
             }
           });
           const uniqueBlocks = Array.from(uniqueBlocksMap.values());
@@ -197,7 +248,6 @@ export default function DashboardPostulante() {
                     {DIAS_SEMANA.map((nombreDia, idx) => {
                       const fechaDia = fechasActivas[idx];
                       
-                      // ✅ LÓGICA DE CONTEO ÚNICO PARA EL DÍA
                       const bloquesHoy = availableBlocks.filter(b => b.fecha === fechaDia);
                       const uniqueHorasHoy = new Set(bloquesHoy.map(b => b.hora)).size;
                       const isSelected = scheduleDay === fechaDia;
@@ -236,7 +286,6 @@ export default function DashboardPostulante() {
                         <p className="text-xs text-gray-500 italic">No hay horarios disponibles para este día.</p>
                       ) : (
                         <div className="grid grid-cols-2 gap-3">
-                          {/* ✅ MAPEO DE BLOQUES ÚNICOS */}
                           {uniqueBlocks.map(bloque => (
                             <button
                               key={bloque.id}
@@ -255,7 +304,6 @@ export default function DashboardPostulante() {
                     </div>
                   )}
 
-                  {/* ✅ ESPACIADOR INVISIBLE PARA MOVILES: Evita que el botón tape los horarios */}
                   {selectedBlock && <div className="h-36 w-full shrink-0"></div>}
 
                   {selectedBlock && (
@@ -273,7 +321,7 @@ export default function DashboardPostulante() {
                           disabled={isConfirming}
                           className="w-full py-3.5 bg-gradient-to-r from-[#0051ff] to-[#00baff] hover:from-[#00baff] hover:to-[#0051ff] text-white font-black text-sm uppercase tracking-wider rounded-xl transition-all shadow-lg shadow-[#0051ff]/20 active:scale-95 disabled:opacity-50"
                         >
-                          {isConfirming ? "Procesando cita..." : "Agendar Horario"}
+                          {isConfirming ? "Procesando cita..." : "Confirmar Horario"}
                         </button>
                       </div>
                     </div>
@@ -796,10 +844,46 @@ export default function DashboardPostulante() {
         </button>
       </header>
 
-      {(isMenuOpen || isNotifMenuOpen) && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 transition-opacity" onClick={() => { setIsMenuOpen(false); setIsNotifMenuOpen(false); }} />
+      {/* OVERLAYS GLOBALES */}
+      {(isMenuOpen || isNotifMenuOpen || showConfirmResultModal) && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-40 transition-opacity" onClick={() => { setIsMenuOpen(false); setIsNotifMenuOpen(false); if (!isConfirming) cerrarModalExito(); }} />
       )}
       
+      {/* ✅ MODAL DE RESULTADO DE AGENDAMIENTO */}
+      {showConfirmResultModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
+          <div className={`bg-[#111111] border ${confirmResult?.success ? 'border-[#00baff]/30' : 'border-red-500/30'} rounded-3xl w-full max-w-sm shadow-2xl flex flex-col pointer-events-auto overflow-hidden animate-in zoom-in-95 duration-200`}>
+            <div className="p-5 border-b border-gray-800 bg-[#0a0a0a] text-center">
+              <h3 className="text-white font-bold text-lg flex items-center justify-center gap-2">
+                {confirmResult?.success ? <span className="text-[#00baff]">✅ Éxito</span> : <span className="text-red-500">⚠️ Aviso</span>}
+              </h3>
+            </div>
+            
+            <div className="p-8 text-center">
+              <div className={`text-6xl mb-6 ${confirmResult?.success ? 'text-[#00baff]' : 'text-red-500'} animate-in fade-in zoom-in duration-300`}>
+                {confirmResult?.success ? '🎉' : '❌'}
+              </div>
+              <p className="text-sm text-gray-300 leading-relaxed">
+                {confirmResult?.message}
+              </p>
+            </div>
+            
+            <div className="p-4 border-t border-gray-800 bg-[#0a0a0a]">
+              <button 
+                onClick={cerrarModalExito} 
+                className={`w-full py-3.5 font-bold text-sm uppercase tracking-wider rounded-xl transition-all shadow-lg active:scale-95 ${
+                  confirmResult?.success 
+                    ? 'bg-[#0051ff] hover:bg-[#0041cc] text-white shadow-[#0051ff]/20' 
+                    : 'bg-red-500 hover:bg-red-600 text-white shadow-red-500/20'
+                }`}
+              >
+                Entendido
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className={`fixed top-0 right-0 h-full w-72 bg-[#111111] border-l border-gray-800 z-50 transform transition-transform duration-300 ease-in-out flex flex-col ${isMenuOpen ? 'translate-x-0' : 'translate-x-full'}`}>
         <div className="p-6 border-b border-gray-800 flex justify-between items-start">
           <div className="flex items-center gap-4 pr-4">

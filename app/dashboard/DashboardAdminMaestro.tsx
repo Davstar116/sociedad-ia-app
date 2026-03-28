@@ -35,6 +35,7 @@ export default function DashboardAdminMaestro() {
   // ✅ ESTADOS BLOQUEO GLOBAL DE HORARIOS
   const [isGlobalLockActive, setIsGlobalLockActive] = useState(false);
   const [isTogglingLock, setIsTogglingLock] = useState(false);
+  const [showLockConfirmModal, setShowLockConfirmModal] = useState(false); // Nuevo estado para el modal
 
   // ESTADOS HORARIO
   const [semana, setSemana] = useState(1);
@@ -189,12 +190,12 @@ export default function DashboardAdminMaestro() {
     }
   };
 
-  const toggleGlobalLock = async () => {
-    const action = isGlobalLockActive ? "DESBLOQUEAR" : "BLOQUEAR";
-    const confirm = window.confirm(`¿Estás seguro de que deseas ${action} el registro de horarios para todos los usuarios?`);
-    
-    if (!confirm) return;
+  // ✅ NUEVAS FUNCIONES PARA EL MODAL DE BLOQUEO
+  const triggerGlobalLockToggle = () => {
+    setShowLockConfirmModal(true);
+  };
 
+  const executeGlobalLock = async () => {
     setIsTogglingLock(true);
     try {
       const res = await fetch("/api/admin/toggle-lock", {
@@ -205,7 +206,7 @@ export default function DashboardAdminMaestro() {
       
       if (res.ok) {
         setIsGlobalLockActive(!isGlobalLockActive);
-        alert(`El registro de horarios ha sido ${action.toLowerCase()} exitosamente.`);
+        setShowLockConfirmModal(false); // Cierra el modal si hay éxito
       } else {
         alert("Error al intentar cambiar el estado de bloqueo.");
       }
@@ -312,6 +313,7 @@ export default function DashboardAdminMaestro() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               
+              {/* BOTÓN DE BLOQUEO GLOBAL QUE AHORA ABRE MODAL */}
               <div className={`bg-[#111111] border ${isGlobalLockActive ? 'border-orange-500' : 'border-orange-500/30'} rounded-2xl p-6 shadow-xl flex flex-col justify-between group hover:border-orange-500 transition-all`}>
                 <div>
                   <div className={`w-10 h-10 rounded-full ${isGlobalLockActive ? 'bg-orange-500 text-[#0a0a0a]' : 'bg-orange-500/10 text-orange-500'} flex items-center justify-center text-xl mb-4 transition-colors`}>
@@ -323,15 +325,14 @@ export default function DashboardAdminMaestro() {
                   </p>
                 </div>
                 <button 
-                  onClick={toggleGlobalLock}
-                  disabled={isTogglingLock}
-                  className={`w-full py-3 font-bold text-sm uppercase tracking-wider rounded-xl transition-all border disabled:opacity-50 ${
+                  onClick={triggerGlobalLockToggle}
+                  className={`w-full py-3 font-bold text-sm uppercase tracking-wider rounded-xl transition-all border ${
                     isGlobalLockActive 
-                      ? "bg-orange-500 text-[#0a0a0a] border-orange-500 shadow-[0_0_15px_rgba(249,115,22,0.3)]" 
+                      ? "bg-orange-500 text-[#0a0a0a] border-orange-500 shadow-[0_0_15px_rgba(249,115,22,0.3)] hover:bg-orange-400" 
                       : "bg-orange-500/10 hover:bg-orange-500 text-orange-500 hover:text-[#0a0a0a] border-orange-500/30 hover:border-orange-500"
                   }`}
                 >
-                  {isTogglingLock ? "Procesando..." : isGlobalLockActive ? "Desbloquear Sistema" : "Bloquear Sistema"}
+                  {isGlobalLockActive ? "Desbloquear Sistema" : "Bloquear Sistema"}
                 </button>
               </div>
 
@@ -397,7 +398,7 @@ export default function DashboardAdminMaestro() {
           </main>
         );
 
-      case "mi-horario": {
+      case "mi-horario":
         const fechasActivas = semana === 1 ? FECHAS_S1 : FECHAS_S2;
         
         return (
@@ -510,7 +511,6 @@ export default function DashboardAdminMaestro() {
             </div>
           </main>
         );
-      }
 
       case "ajustes":
         return (
@@ -568,11 +568,48 @@ export default function DashboardAdminMaestro() {
       </header>
 
       {/* OVERLAYS GLOBALES */}
-      {(isMenuOpen || isNotifMenuOpen || showPurgeModal || showCursoModal || showConfirmHorarioModal || showGenerateModal) && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-40 transition-opacity" onClick={() => { setIsMenuOpen(false); setIsNotifMenuOpen(false); if(!isPurging) setShowPurgeModal(false); if(!isSavingCurso) setShowCursoModal(false); setShowConfirmHorarioModal(false); if(!isGenerating) setShowGenerateModal(false); }} />
+      {(isMenuOpen || isNotifMenuOpen || showPurgeModal || showCursoModal || showConfirmHorarioModal || showGenerateModal || showLockConfirmModal) && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-40 transition-opacity" onClick={() => { setIsMenuOpen(false); setIsNotifMenuOpen(false); if(!isPurging) setShowPurgeModal(false); if(!isSavingCurso) setShowCursoModal(false); setShowConfirmHorarioModal(false); if(!isGenerating) setShowGenerateModal(false); if(!isTogglingLock) setShowLockConfirmModal(false); }} />
       )}
 
-      {/* MODALES DE ACCIONES... */}
+      {/* ✅ NUEVO MODAL DE CONFIRMACIÓN DE BLOQUEO (TEMA NARANJA) */}
+      {showLockConfirmModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
+          <div className="bg-[#111111] border border-orange-500/30 rounded-3xl w-full max-w-sm shadow-2xl flex flex-col pointer-events-auto overflow-hidden animate-in zoom-in-95 duration-200">
+            <div className="p-5 border-b border-gray-800 bg-[#0a0a0a] text-center">
+              <h3 className="text-white font-bold text-lg flex items-center justify-center gap-2">
+                <span className="text-orange-500">⚠️</span> Confirmar Acción
+              </h3>
+            </div>
+            <div className="p-6">
+              <p className="text-sm text-gray-300 leading-relaxed text-center mb-5">
+                ¿Estás seguro de que deseas <strong className="text-orange-500">{isGlobalLockActive ? 'DESBLOQUEAR' : 'BLOQUEAR'}</strong> el registro de horarios para todos los usuarios?
+              </p>
+              <div className="bg-orange-500/10 border border-orange-500/30 rounded-2xl p-4 text-center shadow-inner">
+                <p className="text-orange-500 font-black text-xl">Sistema de Horarios</p>
+                <p className="text-[10px] text-gray-400 uppercase tracking-widest mt-1 font-bold">Estado actual: {isGlobalLockActive ? 'Bloqueado' : 'Activo'}</p>
+              </div>
+            </div>
+            <div className="p-4 border-t border-gray-800 bg-[#0a0a0a] flex gap-3">
+              <button 
+                onClick={() => setShowLockConfirmModal(false)} 
+                disabled={isTogglingLock} 
+                className="flex-1 py-3.5 bg-gray-800 hover:bg-gray-700 text-white font-bold text-sm uppercase tracking-wider rounded-xl transition-all disabled:opacity-50"
+              >
+                Cancelar
+              </button>
+              <button 
+                onClick={executeGlobalLock} 
+                disabled={isTogglingLock} 
+                className="flex-1 py-3.5 bg-orange-500 hover:bg-orange-400 text-[#0a0a0a] font-bold text-sm uppercase tracking-wider rounded-xl transition-all shadow-lg shadow-orange-500/20 active:scale-95 disabled:opacity-50"
+              >
+                {isTogglingLock ? "Procesando..." : "Confirmar"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {showGenerateModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
           <div className="bg-[#111111] border border-green-500/30 rounded-3xl w-full max-w-sm shadow-2xl flex flex-col pointer-events-auto overflow-hidden animate-in zoom-in-95 duration-200">
@@ -581,7 +618,6 @@ export default function DashboardAdminMaestro() {
                 <span className="text-green-500">🧩</span> Generar Entrevistas
               </h3>
             </div>
-            
             <div className="p-6">
               {!generateResult ? (
                 <>
@@ -602,7 +638,6 @@ export default function DashboardAdminMaestro() {
                 </div>
               )}
             </div>
-            
             <div className="p-4 border-t border-gray-800 bg-[#0a0a0a] flex gap-3">
               {!generateResult ? (
                 <>
@@ -739,7 +774,6 @@ export default function DashboardAdminMaestro() {
         </div>
       )}
 
-      {/* MENÚ PERFIL */}
       <div className={`fixed top-0 right-0 h-full w-72 bg-[#111111] border-l border-gray-800 z-50 transform transition-transform duration-300 ease-in-out flex flex-col ${isMenuOpen ? 'translate-x-0' : 'translate-x-full'}`}>
         <div className="p-6 border-b border-gray-800 flex justify-between items-start">
           <div className="flex items-center gap-4 pr-4">
@@ -766,7 +800,6 @@ export default function DashboardAdminMaestro() {
         </div>
       </div>
 
-      {/* MENÚ NOTIFICACIONES */}
       <div className={`fixed top-0 left-0 h-full w-80 bg-[#111111] border-r border-gray-800 z-50 transform transition-transform duration-300 ease-in-out flex flex-col ${isNotifMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         <div className="p-5 border-b border-gray-800 flex justify-between items-center bg-[#0a0a0a]">
           <h2 className="text-lg font-bold text-white flex items-center gap-2">
@@ -802,7 +835,6 @@ export default function DashboardAdminMaestro() {
         </div>
       </div>
 
-      {/* ✅ AQUÍ ESTÁ EL RENDERIZADOR */}
       {renderActiveContent()}
 
       <nav className="fixed bottom-0 w-full bg-[#111111]/90 backdrop-blur-md border-t border-gray-800 z-40 pb-safe">

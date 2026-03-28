@@ -95,7 +95,6 @@ export default function DashboardAdminMaestro() {
     }
   };
 
-  // ✅ FUNCIÓN PARA LEER EL ESTADO GLOBAL AL ENTRAR
   const checkGlobalLock = async () => {
     try {
       const res = await fetch("/api/admin/toggle-lock");
@@ -110,7 +109,7 @@ export default function DashboardAdminMaestro() {
     if (status === "authenticated") {
       fetchNotificaciones();
       cargarHorario();
-      checkGlobalLock(); // ✅ SE LLAMA AQUÍ
+      checkGlobalLock();
     }
   }, [status, session]);
 
@@ -206,6 +205,7 @@ export default function DashboardAdminMaestro() {
       
       if (res.ok) {
         setIsGlobalLockActive(!isGlobalLockActive);
+        alert(`El registro de horarios ha sido ${action.toLowerCase()} exitosamente.`);
       } else {
         alert("Error al intentar cambiar el estado de bloqueo.");
       }
@@ -217,7 +217,7 @@ export default function DashboardAdminMaestro() {
   };
 
   const toggleSlot = (slotId: string) => {
-    if (isLockedHorario || isGlobalLockActive) return; 
+    if (isLockedHorario || isGlobalLockActive) return;
     setDisponibilidad((prev) => 
       prev.includes(slotId) ? prev.filter(id => id !== slotId) : [...prev, slotId]
     );
@@ -397,7 +397,7 @@ export default function DashboardAdminMaestro() {
           </main>
         );
 
-      case "mi-horario":
+      case "mi-horario": {
         const fechasActivas = semana === 1 ? FECHAS_S1 : FECHAS_S2;
         
         return (
@@ -510,6 +510,7 @@ export default function DashboardAdminMaestro() {
             </div>
           </main>
         );
+      }
 
       case "ajustes":
         return (
@@ -566,10 +567,12 @@ export default function DashboardAdminMaestro() {
         </button>
       </header>
 
+      {/* OVERLAYS GLOBALES */}
       {(isMenuOpen || isNotifMenuOpen || showPurgeModal || showCursoModal || showConfirmHorarioModal || showGenerateModal) && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-40 transition-opacity" onClick={() => { setIsMenuOpen(false); setIsNotifMenuOpen(false); if(!isPurging) setShowPurgeModal(false); if(!isSavingCurso) setShowCursoModal(false); setShowConfirmHorarioModal(false); if(!isGenerating) setShowGenerateModal(false); }} />
       )}
 
+      {/* MODALES DE ACCIONES... */}
       {showGenerateModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
           <div className="bg-[#111111] border border-green-500/30 rounded-3xl w-full max-w-sm shadow-2xl flex flex-col pointer-events-auto overflow-hidden animate-in zoom-in-95 duration-200">
@@ -578,6 +581,7 @@ export default function DashboardAdminMaestro() {
                 <span className="text-green-500">🧩</span> Generar Entrevistas
               </h3>
             </div>
+            
             <div className="p-6">
               {!generateResult ? (
                 <>
@@ -598,6 +602,7 @@ export default function DashboardAdminMaestro() {
                 </div>
               )}
             </div>
+            
             <div className="p-4 border-t border-gray-800 bg-[#0a0a0a] flex gap-3">
               {!generateResult ? (
                 <>
@@ -734,6 +739,7 @@ export default function DashboardAdminMaestro() {
         </div>
       )}
 
+      {/* MENÚ PERFIL */}
       <div className={`fixed top-0 right-0 h-full w-72 bg-[#111111] border-l border-gray-800 z-50 transform transition-transform duration-300 ease-in-out flex flex-col ${isMenuOpen ? 'translate-x-0' : 'translate-x-full'}`}>
         <div className="p-6 border-b border-gray-800 flex justify-between items-start">
           <div className="flex items-center gap-4 pr-4">
@@ -760,6 +766,7 @@ export default function DashboardAdminMaestro() {
         </div>
       </div>
 
+      {/* MENÚ NOTIFICACIONES */}
       <div className={`fixed top-0 left-0 h-full w-80 bg-[#111111] border-r border-gray-800 z-50 transform transition-transform duration-300 ease-in-out flex flex-col ${isNotifMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         <div className="p-5 border-b border-gray-800 flex justify-between items-center bg-[#0a0a0a]">
           <h2 className="text-lg font-bold text-white flex items-center gap-2">
@@ -794,6 +801,9 @@ export default function DashboardAdminMaestro() {
           )}
         </div>
       </div>
+
+      {/* ✅ AQUÍ ESTÁ EL RENDERIZADOR */}
+      {renderActiveContent()}
 
       <nav className="fixed bottom-0 w-full bg-[#111111]/90 backdrop-blur-md border-t border-gray-800 z-40 pb-safe">
         <div className="flex justify-between items-center h-16 px-6 relative max-w-lg mx-auto">

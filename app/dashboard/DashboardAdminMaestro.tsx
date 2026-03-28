@@ -22,20 +22,21 @@ export default function DashboardAdminMaestro() {
   const [isPurging, setIsPurging] = useState(false);
   const [purgeResult, setPurgeResult] = useState<{success?: boolean, message?: string} | null>(null);
 
-  // ESTADOS CURSOS
+  // ✅ ESTADOS CURSOS ACTUALIZADOS
   const [showCursoModal, setShowCursoModal] = useState(false);
   const [cursoForm, setCursoForm] = useState({ titulo: "", descripcion: "", url: "" });
   const [isSavingCurso, setIsSavingCurso] = useState(false);
+  const [cursoResult, setCursoResult] = useState<{success?: boolean, message?: string} | null>(null); // Nuevo estado para el modal
 
   // ESTADOS GENERACIÓN DE BLOQUES
   const [showGenerateModal, setShowGenerateModal] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [generateResult, setGenerateResult] = useState<{success?: boolean, message?: string} | null>(null);
 
-  // ✅ ESTADOS BLOQUEO GLOBAL DE HORARIOS
+  // ESTADOS BLOQUEO GLOBAL DE HORARIOS
   const [isGlobalLockActive, setIsGlobalLockActive] = useState(false);
   const [isTogglingLock, setIsTogglingLock] = useState(false);
-  const [showLockConfirmModal, setShowLockConfirmModal] = useState(false); // Nuevo estado para el modal
+  const [showLockConfirmModal, setShowLockConfirmModal] = useState(false);
 
   // ESTADOS HORARIO
   const [semana, setSemana] = useState(1);
@@ -149,9 +150,11 @@ export default function DashboardAdminMaestro() {
     }
   };
 
+  // ✅ FUNCIÓN DE GUARDAR CURSO ACTUALIZADA PARA USAR EL ESTADO
   const guardarCurso = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSavingCurso(true);
+    setCursoResult(null);
     try {
       const res = await fetch("/api/cursos", {
         method: "POST",
@@ -159,14 +162,13 @@ export default function DashboardAdminMaestro() {
         body: JSON.stringify(cursoForm)
       });
       if (res.ok) {
-        setShowCursoModal(false);
         setCursoForm({ titulo: "", descripcion: "", url: "" });
-        alert("Curso publicado con éxito en el dashboard de Entrevistadores.");
+        setCursoResult({ success: true, message: "El video ha sido publicado exitosamente en el dashboard de los entrevistadores." });
       } else {
-        alert("Hubo un error al publicar el curso.");
+        setCursoResult({ success: false, message: "Ocurrió un error al intentar publicar el curso en la base de datos." });
       }
     } catch (error) {
-      console.error(error);
+      setCursoResult({ success: false, message: "Error de conexión con el servidor." });
     } finally {
       setIsSavingCurso(false);
     }
@@ -190,7 +192,6 @@ export default function DashboardAdminMaestro() {
     }
   };
 
-  // ✅ NUEVAS FUNCIONES PARA EL MODAL DE BLOQUEO
   const triggerGlobalLockToggle = () => {
     setShowLockConfirmModal(true);
   };
@@ -206,7 +207,7 @@ export default function DashboardAdminMaestro() {
       
       if (res.ok) {
         setIsGlobalLockActive(!isGlobalLockActive);
-        setShowLockConfirmModal(false); // Cierra el modal si hay éxito
+        setShowLockConfirmModal(false);
       } else {
         alert("Error al intentar cambiar el estado de bloqueo.");
       }
@@ -313,7 +314,6 @@ export default function DashboardAdminMaestro() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               
-              {/* BOTÓN DE BLOQUEO GLOBAL QUE AHORA ABRE MODAL */}
               <div className={`bg-[#111111] border ${isGlobalLockActive ? 'border-orange-500' : 'border-orange-500/30'} rounded-2xl p-6 shadow-xl flex flex-col justify-between group hover:border-orange-500 transition-all`}>
                 <div>
                   <div className={`w-10 h-10 rounded-full ${isGlobalLockActive ? 'bg-orange-500 text-[#0a0a0a]' : 'bg-orange-500/10 text-orange-500'} flex items-center justify-center text-xl mb-4 transition-colors`}>
@@ -361,7 +361,7 @@ export default function DashboardAdminMaestro() {
                   </p>
                 </div>
                 <button 
-                  onClick={() => setShowCursoModal(true)}
+                  onClick={() => { setShowCursoModal(true); setCursoResult(null); }}
                   className="w-full py-3 bg-[#0051ff]/10 hover:bg-[#0051ff] text-[#00baff] hover:text-white font-bold text-sm uppercase tracking-wider rounded-xl transition-all border border-[#0051ff]/30 hover:border-[#0051ff]"
                 >
                   Agregar Video
@@ -572,7 +572,7 @@ export default function DashboardAdminMaestro() {
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-40 transition-opacity" onClick={() => { setIsMenuOpen(false); setIsNotifMenuOpen(false); if(!isPurging) setShowPurgeModal(false); if(!isSavingCurso) setShowCursoModal(false); setShowConfirmHorarioModal(false); if(!isGenerating) setShowGenerateModal(false); if(!isTogglingLock) setShowLockConfirmModal(false); }} />
       )}
 
-      {/* ✅ NUEVO MODAL DE CONFIRMACIÓN DE BLOQUEO (TEMA NARANJA) */}
+      {/* ✅ MODAL DE CONFIRMACIÓN DE BLOQUEO (TEMA NARANJA) */}
       {showLockConfirmModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
           <div className="bg-[#111111] border border-orange-500/30 rounded-3xl w-full max-w-sm shadow-2xl flex flex-col pointer-events-auto overflow-hidden animate-in zoom-in-95 duration-200">
@@ -610,6 +610,7 @@ export default function DashboardAdminMaestro() {
         </div>
       )}
 
+      {/* MODAL GENERACIÓN BLOQUES */}
       {showGenerateModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
           <div className="bg-[#111111] border border-green-500/30 rounded-3xl w-full max-w-sm shadow-2xl flex flex-col pointer-events-auto overflow-hidden animate-in zoom-in-95 duration-200">
@@ -654,6 +655,7 @@ export default function DashboardAdminMaestro() {
         </div>
       )}
 
+      {/* MODAL HORARIO */}
       {showConfirmHorarioModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
           <div className="bg-[#111111] border border-yellow-500/30 rounded-3xl w-full max-w-sm shadow-2xl flex flex-col pointer-events-auto overflow-hidden animate-in zoom-in-95 duration-200">
@@ -679,36 +681,61 @@ export default function DashboardAdminMaestro() {
         </div>
       )}
 
+      {/* ✅ MODAL CURSO ACTUALIZADO */}
       {showCursoModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
-          <div className="bg-[#111111] border border-gray-800 rounded-3xl w-full max-w-md shadow-2xl flex flex-col pointer-events-auto">
-            <div className="p-5 border-b border-gray-800 flex justify-between items-center bg-[#0a0a0a] rounded-t-3xl">
+          <div className="bg-[#111111] border border-[#0051ff]/30 rounded-3xl w-full max-w-md shadow-2xl flex flex-col pointer-events-auto overflow-hidden animate-in zoom-in-95 duration-200">
+            <div className="p-5 border-b border-gray-800 flex justify-between items-center bg-[#0a0a0a]">
               <h3 className="text-white font-bold text-lg flex items-center gap-2">
                 <span className="text-[#00baff]">📺</span> Nuevo Video
               </h3>
-              <button disabled={isSavingCurso} onClick={() => setShowCursoModal(false)} className="text-gray-500 hover:text-white">✕</button>
+              <button disabled={isSavingCurso} onClick={() => {setShowCursoModal(false); setCursoResult(null);}} className="text-gray-500 hover:text-white">✕</button>
             </div>
-            <form onSubmit={guardarCurso} className="p-6 flex flex-col gap-4">
-              <div>
-                <label className="block text-xs text-gray-400 font-bold uppercase tracking-widest mb-2">Título del Video</label>
-                <input required type="text" placeholder="Ej. Entrevistas por Competencias" value={cursoForm.titulo} onChange={e => setCursoForm({...cursoForm, titulo: e.target.value})} className="w-full bg-[#0a0a0a] border border-gray-800 rounded-xl p-3 text-sm text-white focus:border-[#0051ff] outline-none" />
-              </div>
-              <div>
-                <label className="block text-xs text-gray-400 font-bold uppercase tracking-widest mb-2">Descripción breve</label>
-                <textarea required rows={2} placeholder="De qué trata este curso..." value={cursoForm.descripcion} onChange={e => setCursoForm({...cursoForm, descripcion: e.target.value})} className="w-full bg-[#0a0a0a] border border-gray-800 rounded-xl p-3 text-sm text-white focus:border-[#0051ff] outline-none resize-none" />
-              </div>
-              <div>
-                <label className="block text-xs text-gray-400 font-bold uppercase tracking-widest mb-2">Enlace de YouTube</label>
-                <input required type="url" placeholder="https://youtube.com/..." value={cursoForm.url} onChange={e => setCursoForm({...cursoForm, url: e.target.value})} className="w-full bg-[#0a0a0a] border border-gray-800 rounded-xl p-3 text-sm text-white focus:border-[#0051ff] outline-none" />
-              </div>
-              <button type="submit" disabled={isSavingCurso} className="w-full py-4 mt-4 bg-[#0051ff] hover:bg-[#0041cc] text-white font-black text-sm uppercase tracking-wider rounded-xl transition-all disabled:opacity-50">
-                {isSavingCurso ? "Publicando..." : "Publicar Video"}
-              </button>
-            </form>
+            
+            <div className="p-6">
+              {!cursoResult ? (
+                <form id="cursoForm" onSubmit={guardarCurso} className="flex flex-col gap-4">
+                  <div>
+                    <label className="block text-xs text-gray-400 font-bold uppercase tracking-widest mb-2">Título del Video</label>
+                    <input required type="text" placeholder="Ej. Entrevistas por Competencias" value={cursoForm.titulo} onChange={e => setCursoForm({...cursoForm, titulo: e.target.value})} className="w-full bg-[#0a0a0a] border border-gray-800 rounded-xl p-3 text-sm text-white focus:border-[#0051ff] outline-none transition-colors" />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-gray-400 font-bold uppercase tracking-widest mb-2">Descripción breve</label>
+                    <textarea required rows={2} placeholder="De qué trata este curso..." value={cursoForm.descripcion} onChange={e => setCursoForm({...cursoForm, descripcion: e.target.value})} className="w-full bg-[#0a0a0a] border border-gray-800 rounded-xl p-3 text-sm text-white focus:border-[#0051ff] outline-none resize-none transition-colors" />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-gray-400 font-bold uppercase tracking-widest mb-2">Enlace de YouTube</label>
+                    <input required type="url" placeholder="https://youtube.com/..." value={cursoForm.url} onChange={e => setCursoForm({...cursoForm, url: e.target.value})} className="w-full bg-[#0a0a0a] border border-gray-800 rounded-xl p-3 text-sm text-white focus:border-[#0051ff] outline-none transition-colors" />
+                  </div>
+                </form>
+              ) : (
+                <div className="text-center py-6">
+                  <div className={`text-5xl mb-4 ${cursoResult.success ? 'text-[#00baff]' : 'text-red-500'}`}>
+                    {cursoResult.success ? '✅' : '❌'}
+                  </div>
+                  <p className="text-sm text-gray-300 leading-relaxed">{cursoResult.message}</p>
+                </div>
+              )}
+            </div>
+
+            <div className="p-4 border-t border-gray-800 bg-[#0a0a0a] flex gap-3">
+              {!cursoResult ? (
+                <>
+                  <button onClick={() => setShowCursoModal(false)} className="flex-1 py-3.5 bg-gray-800 hover:bg-gray-700 text-white font-bold text-sm uppercase tracking-wider rounded-xl transition-all">Cancelar</button>
+                  <button type="submit" form="cursoForm" disabled={isSavingCurso} className="flex-1 py-3.5 bg-[#0051ff] hover:bg-[#0041cc] text-white font-bold text-sm uppercase tracking-wider rounded-xl transition-all shadow-lg shadow-[#0051ff]/20 active:scale-95 disabled:opacity-50">
+                    {isSavingCurso ? "Publicando..." : "Publicar"}
+                  </button>
+                </>
+              ) : (
+                <button onClick={() => {setShowCursoModal(false); setCursoResult(null);}} className="w-full py-3.5 bg-gray-800 hover:bg-gray-700 text-white font-bold text-sm uppercase tracking-wider rounded-xl transition-all">Cerrar</button>
+              )}
+            </div>
+
           </div>
         </div>
       )}
 
+      {/* MODAL DE PURGA */}
       {showPurgeModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
           <div className="bg-[#111111] border border-gray-800 rounded-3xl w-full max-w-lg shadow-2xl flex flex-col pointer-events-auto max-h-[90vh]">
@@ -774,6 +801,7 @@ export default function DashboardAdminMaestro() {
         </div>
       )}
 
+      {/* MENÚ PERFIL */}
       <div className={`fixed top-0 right-0 h-full w-72 bg-[#111111] border-l border-gray-800 z-50 transform transition-transform duration-300 ease-in-out flex flex-col ${isMenuOpen ? 'translate-x-0' : 'translate-x-full'}`}>
         <div className="p-6 border-b border-gray-800 flex justify-between items-start">
           <div className="flex items-center gap-4 pr-4">
@@ -800,6 +828,7 @@ export default function DashboardAdminMaestro() {
         </div>
       </div>
 
+      {/* MENÚ NOTIFICACIONES */}
       <div className={`fixed top-0 left-0 h-full w-80 bg-[#111111] border-r border-gray-800 z-50 transform transition-transform duration-300 ease-in-out flex flex-col ${isNotifMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         <div className="p-5 border-b border-gray-800 flex justify-between items-center bg-[#0a0a0a]">
           <h2 className="text-lg font-bold text-white flex items-center gap-2">

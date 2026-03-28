@@ -5,7 +5,6 @@ import { useSession, signOut } from "next-auth/react";
 import Link from "next/link"; 
 import OneSignal from 'react-onesignal';
 
-// ✅ CONSTANTES PARA EL HORARIO
 const DIAS_SEMANA = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
 const FECHAS_S1 = [6, 7, 8, 9, 10, 11, 12];
 const FECHAS_S2 = [13, 14, 15, 16, 17, 18, 19];
@@ -15,10 +14,8 @@ export default function DashboardAdministrador() {
   const [isNotifMenuOpen, setIsNotifMenuOpen] = useState(false);
   const [notificaciones, setNotificaciones] = useState<any[]>([]);
   
-  // Pestaña por defecto
   const [activeTab, setActiveTab] = useState("panel");
 
-  // ✅ ESTADOS PARA EL HORARIO (Idéntico a Entrevistador/Maestro)
   const [semana, setSemana] = useState(1);
   const [disponibilidad, setDisponibilidad] = useState<string[]>([]);
   const [isSavingHorario, setIsSavingHorario] = useState(false);
@@ -102,7 +99,6 @@ export default function DashboardAdministrador() {
     initOneSignal();
   }, [session]);
 
-  // ✅ FUNCIONES DE HORARIO
   const toggleSlot = (slotId: string) => {
     if (isLockedHorario) return;
     setDisponibilidad((prev) => 
@@ -187,6 +183,9 @@ export default function DashboardAdministrador() {
   );
 
   const renderActiveContent = () => {
+    // Declaramos la variable fuera del switch para evitar cualquier problema de sintaxis con el linter de Vercel
+    const fechasActivas = semana === 1 ? FECHAS_S1 : FECHAS_S2;
+
     switch (activeTab) {
       
       case "postulantes":
@@ -209,10 +208,17 @@ export default function DashboardAdministrador() {
           </main>
         );
 
-      // ✅ PESTAÑA: HORARIOS (CON TEMA VIOLETA DE ADMIN)
+      case "recursos":
+        return (
+          <main className="pt-24 pb-28 px-5 max-w-lg mx-auto min-h-screen animate-in fade-in duration-300">
+            <h2 className="text-xl font-bold mb-4">Recursos Administrativos</h2>
+            <div className="bg-[#111111] border border-gray-800 rounded-2xl p-6 text-center text-gray-500 text-sm shadow-xl">
+              <p>Manuales de operación, lineamientos y herramientas de gestión interna.</p>
+            </div>
+          </main>
+        );
+
       case "mi-horario":
-        const fechasActivas = semana === 1 ? FECHAS_S1 : FECHAS_S2;
-        
         return (
           <main className="pt-24 pb-28 px-3 max-w-2xl mx-auto min-h-screen animate-in fade-in duration-300 select-none">
             <div className="flex items-center justify-between mb-4">
@@ -316,16 +322,6 @@ export default function DashboardAdministrador() {
           </main>
         );
 
-      case "recursos":
-        return (
-          <main className="pt-24 pb-28 px-5 max-w-lg mx-auto min-h-screen animate-in fade-in duration-300">
-            <h2 className="text-xl font-bold mb-4">Recursos Administrativos</h2>
-            <div className="bg-[#111111] border border-gray-800 rounded-2xl p-6 text-center text-gray-500 text-sm shadow-xl">
-              <p>Manuales de operación, lineamientos y herramientas de gestión interna.</p>
-            </div>
-          </main>
-        );
-
       case "panel":
       default:
         return (
@@ -353,7 +349,6 @@ export default function DashboardAdministrador() {
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white font-sans overflow-hidden">
       
-      {/* HEADER SUPERIOR */}
       <header className="fixed top-0 w-full h-16 bg-[#111111]/90 backdrop-blur-md border-b border-gray-800 z-40 flex items-center justify-between px-5">
         <button onClick={() => setIsNotifMenuOpen(true)} className="relative p-2 text-gray-400 hover:text-white transition-colors">
           <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -372,12 +367,10 @@ export default function DashboardAdministrador() {
         </button>
       </header>
 
-      {/* OVERLAYS GLOBALES */}
       {(isMenuOpen || isNotifMenuOpen || showConfirmHorarioModal) && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-40 transition-opacity" onClick={() => { setIsMenuOpen(false); setIsNotifMenuOpen(false); setShowConfirmHorarioModal(false); }} />
       )}
 
-      {/* ✅ MODAL DE CONFIRMACIÓN DE HORARIO */}
       {showConfirmHorarioModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
           <div className="bg-[#111111] border border-violet-500/30 rounded-3xl w-full max-w-sm shadow-2xl flex flex-col pointer-events-auto overflow-hidden animate-in zoom-in-95 duration-200">
@@ -403,7 +396,6 @@ export default function DashboardAdministrador() {
         </div>
       )}
 
-      {/* MENÚ PERFIL */}
       <div className={`fixed top-0 right-0 h-full w-72 bg-[#111111] border-l border-gray-800 z-50 transform transition-transform duration-300 ease-in-out flex flex-col ${isMenuOpen ? 'translate-x-0' : 'translate-x-full'}`}>
         <div className="p-6 border-b border-gray-800 flex justify-between items-start">
           <div className="flex items-center gap-4 pr-4">
@@ -430,7 +422,6 @@ export default function DashboardAdministrador() {
         </div>
       </div>
 
-      {/* MENÚ NOTIFICACIONES */}
       <div className={`fixed top-0 left-0 h-full w-80 bg-[#111111] border-r border-gray-800 z-50 transform transition-transform duration-300 ease-in-out flex flex-col ${isNotifMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         <div className="p-5 border-b border-gray-800 flex justify-between items-center bg-[#0a0a0a]">
           <h2 className="text-lg font-bold text-white flex items-center gap-2">
@@ -466,7 +457,9 @@ export default function DashboardAdministrador() {
         </div>
       </div>
 
-      {/* ✅ CINTILLO INFERIOR DE ADMINISTRADOR (TEMA VIOLETA) */}
+      {/* ✅ AQUÍ ESTÁ EL RENDERIZADOR */}
+      {renderActiveContent()}
+
       <nav className="fixed bottom-0 w-full bg-[#111111]/90 backdrop-blur-md border-t border-gray-800 z-40 pb-safe">
         <div className="flex justify-between items-center h-16 px-6 relative max-w-lg mx-auto">
           

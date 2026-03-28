@@ -16,7 +16,6 @@ export default function DashboardPostulante() {
   
   const [activeTab, setActiveTab] = useState("home");
   
-  // ✅ ESTADOS PARA EL AGENDAMIENTO DE ENTREVISTAS
   const [isScheduling, setIsScheduling] = useState(false);
   const [scheduleWeek, setScheduleWeek] = useState(1);
   const [scheduleDay, setScheduleDay] = useState<number | null>(null);
@@ -85,11 +84,9 @@ export default function DashboardPostulante() {
     await fetch(`/api/notifications?id=${id}`, { method: "DELETE" });
   };
 
-  // ✅ FUNCIÓN PARA CARGAR BLOQUES DE NOTION
   const loadAvailableBlocks = async () => {
     setIsLoadingBlocks(true);
     try {
-      // Esta API la crearemos en el siguiente paso
       const res = await fetch("/api/entrevistas/disponibles");
       const data = await res.json();
       if (data.success) {
@@ -111,9 +108,9 @@ export default function DashboardPostulante() {
     if (!selectedBlock) return;
     setIsConfirming(true);
     
-    // Aquí implementaremos la Fase 2 (Google Meet, Notion, Correos)
+    // Aquí implementaremos la Fase 2
     setTimeout(() => {
-      alert(`Fase 1 Completada. Has seleccionado el bloque: ${selectedBlock.hora}. En el siguiente paso programaremos el motor para guardar esto y generar el Google Meet.`);
+      alert(`¡Fase 1 Completada y pulida! Has seleccionado el bloque: ${selectedBlock.hora}. Siguiente paso: Generar el Meet y Correos.`);
       setIsConfirming(false);
     }, 2000);
   };
@@ -148,10 +145,18 @@ export default function DashboardPostulante() {
   const renderHomeTab = () => {
     switch (userEstatus) {
       case "Aprobado para Entrevista":
-        // ✅ SI ESTÁ PROGRAMANDO LA ENTREVISTA (VISTA INTERACTIVA)
         if (isScheduling) {
           const fechasActivas = scheduleWeek === 1 ? FECHAS_S1 : FECHAS_S2;
+          
+          // ✅ AGRUPAMOS LOS BLOQUES DEL DÍA SELECCIONADO PARA EVITAR DUPLICADOS
           const bloquesDelDia = availableBlocks.filter(b => b.fecha === scheduleDay);
+          const uniqueBlocksMap = new Map();
+          bloquesDelDia.forEach(b => {
+            if (!uniqueBlocksMap.has(b.hora)) {
+              uniqueBlocksMap.set(b.hora, b); // Se guarda el primer bloque que encuentre con esa hora
+            }
+          });
+          const uniqueBlocks = Array.from(uniqueBlocksMap.values());
 
           return (
             <main className="pt-20 pb-32 px-5 max-w-lg mx-auto min-h-screen animate-in slide-in-from-right-8 fade-in duration-500">
@@ -191,14 +196,17 @@ export default function DashboardPostulante() {
                   <div className="grid grid-cols-3 gap-3 mb-8">
                     {DIAS_SEMANA.map((nombreDia, idx) => {
                       const fechaDia = fechasActivas[idx];
-                      const bloquesDisponiblesHoy = availableBlocks.filter(b => b.fecha === fechaDia).length;
+                      
+                      // ✅ LÓGICA DE CONTEO ÚNICO PARA EL DÍA
+                      const bloquesHoy = availableBlocks.filter(b => b.fecha === fechaDia);
+                      const uniqueHorasHoy = new Set(bloquesHoy.map(b => b.hora)).size;
                       const isSelected = scheduleDay === fechaDia;
 
                       return (
                         <div 
                           key={fechaDia}
                           onClick={() => {
-                            if (bloquesDisponiblesHoy > 0) {
+                            if (uniqueHorasHoy > 0) {
                               setScheduleDay(fechaDia);
                               setSelectedBlock(null);
                             }
@@ -206,15 +214,15 @@ export default function DashboardPostulante() {
                           className={`rounded-2xl p-3 flex flex-col items-center justify-center text-center transition-all ${
                             isSelected 
                               ? 'bg-[#00baff]/10 border-2 border-[#00baff] shadow-[0_0_15px_rgba(0,186,255,0.2)]' 
-                              : bloquesDisponiblesHoy > 0 
+                              : uniqueHorasHoy > 0 
                                 ? 'bg-[#111111] border border-gray-800 hover:border-[#0051ff]/50 cursor-pointer' 
                                 : 'bg-[#0a0a0a] border border-gray-900 opacity-40 cursor-not-allowed'
                           }`}
                         >
                           <span className="text-[10px] text-gray-500 uppercase tracking-widest font-bold mb-1">{nombreDia.slice(0,3)}</span>
                           <span className={`text-xl font-black mb-1 ${isSelected ? 'text-white' : 'text-gray-300'}`}>{fechaDia}</span>
-                          <span className={`text-[9px] font-medium px-1.5 py-0.5 rounded ${isSelected ? 'bg-[#00baff] text-[#0a0a0a]' : bloquesDisponiblesHoy > 0 ? 'bg-gray-800 text-[#00baff]' : 'text-gray-600'}`}>
-                            {bloquesDisponiblesHoy} libres
+                          <span className={`text-[9px] font-medium px-1.5 py-0.5 rounded ${isSelected ? 'bg-[#00baff] text-[#0a0a0a]' : uniqueHorasHoy > 0 ? 'bg-gray-800 text-[#00baff]' : 'text-gray-600'}`}>
+                            {uniqueHorasHoy} libres
                           </span>
                         </div>
                       );
@@ -224,11 +232,12 @@ export default function DashboardPostulante() {
                   {scheduleDay && (
                     <div className="animate-in fade-in slide-in-from-bottom-4 duration-300">
                       <h3 className="text-sm font-bold text-white mb-3">Horarios Disponibles</h3>
-                      {bloquesDelDia.length === 0 ? (
+                      {uniqueBlocks.length === 0 ? (
                         <p className="text-xs text-gray-500 italic">No hay horarios disponibles para este día.</p>
                       ) : (
                         <div className="grid grid-cols-2 gap-3">
-                          {bloquesDelDia.map(bloque => (
+                          {/* ✅ MAPEO DE BLOQUES ÚNICOS */}
+                          {uniqueBlocks.map(bloque => (
                             <button
                               key={bloque.id}
                               onClick={() => setSelectedBlock(bloque)}
@@ -245,6 +254,9 @@ export default function DashboardPostulante() {
                       )}
                     </div>
                   )}
+
+                  {/* ✅ ESPACIADOR INVISIBLE PARA MOVILES: Evita que el botón tape los horarios */}
+                  {selectedBlock && <div className="h-36 w-full shrink-0"></div>}
 
                   {selectedBlock && (
                     <div className="fixed bottom-20 left-0 w-full px-5 z-40 animate-in slide-in-from-bottom-10 duration-300">
@@ -272,7 +284,6 @@ export default function DashboardPostulante() {
           );
         }
 
-        // VISTA POR DEFECTO (BOTÓN DE INICIO)
         return (
           <main className="pt-24 pb-28 px-5 max-w-lg mx-auto min-h-screen flex flex-col items-center justify-center gap-6 animate-in zoom-in-95 fade-in duration-500">
             <div className="text-center w-full">
@@ -837,10 +848,10 @@ export default function DashboardPostulante() {
               <div 
                 key={notif.id} 
                 onClick={() => marcarComoLeida(notif.id, notif.leida)}
-                className={`p-5 border-b border-gray-800/50 cursor-pointer transition-all relative group flex gap-4 items-start ${!notif.leida ? 'bg-[#00baff]/10' : 'hover:bg-[#1f2937]/30'}`}
+                className={`p-5 border-b border-gray-800/50 cursor-pointer transition-all relative group flex gap-4 items-start ${!notif.leida ? 'bg-[#0051ff]/10' : 'hover:bg-[#1f2937]/30'}`}
               >
                 {!notif.leida && <div className="absolute left-0 top-0 w-1 h-full bg-[#00baff]"></div>}
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${!notif.leida ? 'bg-[#00baff]/20 text-[#00baff]' : 'bg-gray-800 text-gray-400'}`}>
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${!notif.leida ? 'bg-[#0051ff]/20 text-[#00baff]' : 'bg-gray-800 text-gray-400'}`}>
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                 </div>
                 <div className="flex-1 pr-6">

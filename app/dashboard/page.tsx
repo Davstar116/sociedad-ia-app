@@ -6,7 +6,7 @@ import DashboardPostulante from "./DashboardPostulante";
 import DashboardEntrevistador from "./DashboardEntrevistador";
 import DashboardMiembro from "./DashboardMiembro";
 import DashboardAdminMaestro from "./DashboardAdminMaestro";
-import DashboardAdministrador from "./DashboardAdministrador"; // ✅ IMPORTAMOS EL NUEVO DASHBOARD
+import DashboardAdministrador from "./DashboardAdministrador"; 
 import { useEffect, useState } from "react";
 
 export default function DashboardSelector() {
@@ -48,23 +48,24 @@ export default function DashboardSelector() {
   if (status === "unauthenticated") return null;
 
   // @ts-ignore
-  const userRole = session?.user?.role || "Estándar";
+  const rawRole = session?.user?.role || "Estándar";
+  
+  // ✅ LIMPIEZA DE ROL: Quitamos espacios extra y convertimos a minúsculas
+  const userRole = rawRole.trim().toLowerCase();
 
-  // ✅ LOGICA DE ENRUTAMIENTO ACTUALIZADA
-  if (userRole === "Admin Maestro") {
+  if (userRole === "admin maestro") {
     return <DashboardAdminMaestro />;
   }
 
-  // ✅ AGREGAMOS LA RUTA PARA EL ADMINISTRADOR
-  if (userRole === "Administrador") {
+  if (userRole === "administrador") {
     return <DashboardAdministrador />;
   }
 
-  if (userRole === "Entrevistador") {
+  if (userRole === "entrevistador") {
     return <DashboardEntrevistador />;
   }
   
-  if (userRole === "Miembro" || userRole === "Estándar") {
+  if (userRole === "miembro" || userRole === "estándar") {
     return <DashboardMiembro />;
   }
 

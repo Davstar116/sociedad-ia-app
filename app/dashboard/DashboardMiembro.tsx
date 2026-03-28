@@ -189,7 +189,6 @@ export default function DashboardAdministrador() {
   const renderActiveContent = () => {
     switch (activeTab) {
       
-      // ✅ CORREGIDO: Se agregaron los "cases" que faltaban para los botones
       case "postulantes":
         return (
           <main className="pt-24 pb-28 px-5 max-w-lg mx-auto min-h-screen animate-in fade-in duration-300">
@@ -220,8 +219,7 @@ export default function DashboardAdministrador() {
           </main>
         );
 
-      // PESTAÑA: HORARIOS (CON TEMA VIOLETA DE ADMIN)
-      case "mi-horario":
+      case "mi-horario": {
         const fechasActivas = semana === 1 ? FECHAS_S1 : FECHAS_S2;
         
         return (
@@ -326,6 +324,7 @@ export default function DashboardAdministrador() {
             </div>
           </main>
         );
+      } // Fin de case "mi-horario"
 
       case "panel":
       default:
@@ -466,6 +465,9 @@ export default function DashboardAdministrador() {
           )}
         </div>
       </div>
+
+      {/* ✅ AQUÍ VA LA FUNCIÓN DE RENDERIZADO QUE ME SALTÉ POR ERROR */}
+      {renderActiveContent()}
 
       {/* ✅ CINTILLO INFERIOR DE ADMINISTRADOR (TEMA VIOLETA) */}
       <nav className="fixed bottom-0 w-full bg-[#111111]/90 backdrop-blur-md border-t border-gray-800 z-40 pb-safe">

@@ -5,6 +5,10 @@ import { useSession, signOut } from "next-auth/react";
 import Link from "next/link"; 
 import OneSignal from 'react-onesignal';
 
+const DIAS_SEMANA = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
+const FECHAS_S1 = [6, 7, 8, 9, 10, 11, 12];
+const FECHAS_S2 = [13, 14, 15, 16, 17, 18, 19];
+
 export default function DashboardPostulante() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isNotifMenuOpen, setIsNotifMenuOpen] = useState(false);
@@ -12,7 +16,15 @@ export default function DashboardPostulante() {
   
   const [activeTab, setActiveTab] = useState("home");
   
-  // ✅ ELIMINADO EL LOOP: Ahora solo leemos la sesión, no la forzamos a recargar aquí
+  // ✅ ESTADOS PARA EL AGENDAMIENTO DE ENTREVISTAS
+  const [isScheduling, setIsScheduling] = useState(false);
+  const [scheduleWeek, setScheduleWeek] = useState(1);
+  const [scheduleDay, setScheduleDay] = useState<number | null>(null);
+  const [selectedBlock, setSelectedBlock] = useState<any | null>(null);
+  const [availableBlocks, setAvailableBlocks] = useState<any[]>([]);
+  const [isLoadingBlocks, setIsLoadingBlocks] = useState(false);
+  const [isConfirming, setIsConfirming] = useState(false);
+
   const { data: session, status } = useSession();
 
   useEffect(() => {
@@ -73,6 +85,39 @@ export default function DashboardPostulante() {
     await fetch(`/api/notifications?id=${id}`, { method: "DELETE" });
   };
 
+  // ✅ FUNCIÓN PARA CARGAR BLOQUES DE NOTION
+  const loadAvailableBlocks = async () => {
+    setIsLoadingBlocks(true);
+    try {
+      // Esta API la crearemos en el siguiente paso
+      const res = await fetch("/api/entrevistas/disponibles");
+      const data = await res.json();
+      if (data.success) {
+        setAvailableBlocks(data.bloques);
+      }
+    } catch (error) {
+      console.error("Error cargando bloques disponibles:", error);
+    } finally {
+      setIsLoadingBlocks(false);
+    }
+  };
+
+  const iniciarAgendamiento = () => {
+    setIsScheduling(true);
+    loadAvailableBlocks();
+  };
+
+  const confirmarEntrevista = async () => {
+    if (!selectedBlock) return;
+    setIsConfirming(true);
+    
+    // Aquí implementaremos la Fase 2 (Google Meet, Notion, Correos)
+    setTimeout(() => {
+      alert(`Fase 1 Completada. Has seleccionado el bloque: ${selectedBlock.hora}. En el siguiente paso programaremos el motor para guardar esto y generar el Google Meet.`);
+      setIsConfirming(false);
+    }, 2000);
+  };
+
   if (status === "loading") {
     return <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center text-[#00baff] animate-pulse">Cargando tu perfil...</div>;
   }
@@ -103,6 +148,131 @@ export default function DashboardPostulante() {
   const renderHomeTab = () => {
     switch (userEstatus) {
       case "Aprobado para Entrevista":
+        // ✅ SI ESTÁ PROGRAMANDO LA ENTREVISTA (VISTA INTERACTIVA)
+        if (isScheduling) {
+          const fechasActivas = scheduleWeek === 1 ? FECHAS_S1 : FECHAS_S2;
+          const bloquesDelDia = availableBlocks.filter(b => b.fecha === scheduleDay);
+
+          return (
+            <main className="pt-20 pb-32 px-5 max-w-lg mx-auto min-h-screen animate-in slide-in-from-right-8 fade-in duration-500">
+              
+              <button onClick={() => {setIsScheduling(false); setSelectedBlock(null); setScheduleDay(null);}} className="text-gray-400 hover:text-white flex items-center gap-2 mb-6 text-sm transition-colors">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
+                Volver
+              </button>
+
+              <div className="mb-6">
+                <h2 className="text-2xl font-black text-white tracking-tight">Selecciona tu Horario</h2>
+                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-1">Entrevista de Admisión SIAFI</p>
+              </div>
+
+              {isLoadingBlocks ? (
+                <div className="flex flex-col items-center justify-center py-20 opacity-50">
+                  <div className="w-10 h-10 border-4 border-[#0051ff] border-t-[#00baff] rounded-full animate-spin mb-4"></div>
+                  <p className="text-xs text-gray-400 uppercase tracking-widest font-bold">Buscando horarios...</p>
+                </div>
+              ) : (
+                <>
+                  <div className="flex gap-2 mb-6 bg-[#111111] p-1.5 rounded-xl border border-gray-800">
+                    <button 
+                      onClick={() => {setScheduleWeek(1); setScheduleDay(null); setSelectedBlock(null);}}
+                      className={`flex-1 py-2.5 text-[11px] font-bold rounded-lg transition-colors ${scheduleWeek === 1 ? 'bg-gradient-to-r from-[#0051ff] to-[#00baff] text-white shadow-lg shadow-[#0051ff]/20' : 'text-gray-400 hover:text-white'}`}
+                    >
+                      Semana 1 (6-12 Abr)
+                    </button>
+                    <button 
+                      onClick={() => {setScheduleWeek(2); setScheduleDay(null); setSelectedBlock(null);}}
+                      className={`flex-1 py-2.5 text-[11px] font-bold rounded-lg transition-colors ${scheduleWeek === 2 ? 'bg-gradient-to-r from-[#0051ff] to-[#00baff] text-white shadow-lg shadow-[#0051ff]/20' : 'text-gray-400 hover:text-white'}`}
+                    >
+                      Semana 2 (13-19 Abr)
+                    </button>
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-3 mb-8">
+                    {DIAS_SEMANA.map((nombreDia, idx) => {
+                      const fechaDia = fechasActivas[idx];
+                      const bloquesDisponiblesHoy = availableBlocks.filter(b => b.fecha === fechaDia).length;
+                      const isSelected = scheduleDay === fechaDia;
+
+                      return (
+                        <div 
+                          key={fechaDia}
+                          onClick={() => {
+                            if (bloquesDisponiblesHoy > 0) {
+                              setScheduleDay(fechaDia);
+                              setSelectedBlock(null);
+                            }
+                          }}
+                          className={`rounded-2xl p-3 flex flex-col items-center justify-center text-center transition-all ${
+                            isSelected 
+                              ? 'bg-[#00baff]/10 border-2 border-[#00baff] shadow-[0_0_15px_rgba(0,186,255,0.2)]' 
+                              : bloquesDisponiblesHoy > 0 
+                                ? 'bg-[#111111] border border-gray-800 hover:border-[#0051ff]/50 cursor-pointer' 
+                                : 'bg-[#0a0a0a] border border-gray-900 opacity-40 cursor-not-allowed'
+                          }`}
+                        >
+                          <span className="text-[10px] text-gray-500 uppercase tracking-widest font-bold mb-1">{nombreDia.slice(0,3)}</span>
+                          <span className={`text-xl font-black mb-1 ${isSelected ? 'text-white' : 'text-gray-300'}`}>{fechaDia}</span>
+                          <span className={`text-[9px] font-medium px-1.5 py-0.5 rounded ${isSelected ? 'bg-[#00baff] text-[#0a0a0a]' : bloquesDisponiblesHoy > 0 ? 'bg-gray-800 text-[#00baff]' : 'text-gray-600'}`}>
+                            {bloquesDisponiblesHoy} libres
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {scheduleDay && (
+                    <div className="animate-in fade-in slide-in-from-bottom-4 duration-300">
+                      <h3 className="text-sm font-bold text-white mb-3">Horarios Disponibles</h3>
+                      {bloquesDelDia.length === 0 ? (
+                        <p className="text-xs text-gray-500 italic">No hay horarios disponibles para este día.</p>
+                      ) : (
+                        <div className="grid grid-cols-2 gap-3">
+                          {bloquesDelDia.map(bloque => (
+                            <button
+                              key={bloque.id}
+                              onClick={() => setSelectedBlock(bloque)}
+                              className={`py-3 px-2 rounded-xl border text-sm font-bold transition-all ${
+                                selectedBlock?.id === bloque.id
+                                  ? 'bg-[#00baff]/10 border-[#00baff] text-[#00baff] shadow-[0_0_15px_rgba(0,186,255,0.2)]'
+                                  : 'bg-[#111111] border-gray-800 text-gray-300 hover:bg-[#1a1a1a] hover:border-gray-600'
+                              }`}
+                            >
+                              {bloque.hora}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {selectedBlock && (
+                    <div className="fixed bottom-20 left-0 w-full px-5 z-40 animate-in slide-in-from-bottom-10 duration-300">
+                      <div className="max-w-lg mx-auto bg-[#111111] p-4 rounded-3xl border border-[#00baff]/30 shadow-[0_-10px_40px_rgba(0,0,0,0.8)]">
+                        <div className="flex justify-between items-center mb-4 px-2">
+                          <div>
+                            <p className="text-[10px] text-gray-400 uppercase tracking-widest font-bold">Selección</p>
+                            <p className="text-white font-bold">{selectedBlock.dia} {selectedBlock.fecha}, {selectedBlock.hora}</p>
+                          </div>
+                          <div className="w-8 h-8 rounded-full bg-[#00baff]/20 flex items-center justify-center text-[#00baff]">✓</div>
+                        </div>
+                        <button 
+                          onClick={confirmarEntrevista}
+                          disabled={isConfirming}
+                          className="w-full py-3.5 bg-gradient-to-r from-[#0051ff] to-[#00baff] hover:from-[#00baff] hover:to-[#0051ff] text-white font-black text-sm uppercase tracking-wider rounded-xl transition-all shadow-lg shadow-[#0051ff]/20 active:scale-95 disabled:opacity-50"
+                        >
+                          {isConfirming ? "Procesando cita..." : "Agendar Horario"}
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </>
+              )}
+            </main>
+          );
+        }
+
+        // VISTA POR DEFECTO (BOTÓN DE INICIO)
         return (
           <main className="pt-24 pb-28 px-5 max-w-lg mx-auto min-h-screen flex flex-col items-center justify-center gap-6 animate-in zoom-in-95 fade-in duration-500">
             <div className="text-center w-full">
@@ -118,7 +288,10 @@ export default function DashboardPostulante() {
               <p className="text-gray-300 text-sm leading-relaxed mb-8">
                 Felicidades <strong>{primerNombre}</strong>, tu perfil ha destacado entre los demás postulantes. Queremos conocerte mejor, platicar sobre tu visión y tu pasión por la tecnología.
               </p>
-              <button className="w-full py-4 bg-green-500 hover:bg-green-600 text-white font-black text-sm uppercase tracking-wider rounded-xl transition-all shadow-lg shadow-green-500/20 active:scale-95">
+              <button 
+                onClick={iniciarAgendamiento}
+                className="w-full py-4 bg-green-500 hover:bg-green-600 text-white font-black text-sm uppercase tracking-wider rounded-xl transition-all shadow-lg shadow-green-500/20 active:scale-95"
+              >
                 Agendar Entrevista
               </button>
             </div>
@@ -460,7 +633,7 @@ export default function DashboardPostulante() {
                 </div>
                 <p className="text-gray-400 text-xs leading-relaxed relative z-10">
                   Creemos en inspirar a las siguientes generaciones. Realizamos talleres interactivos y eventos lúdicos diseñados especialmente para niños, acercándoles la ciencia y la tecnología de forma divertida para despertar su curiosidad y vocación científica.
-				</p>
+        </p>
               </div>
 
               {/* STANDS EN FERIAS */}
@@ -664,10 +837,10 @@ export default function DashboardPostulante() {
               <div 
                 key={notif.id} 
                 onClick={() => marcarComoLeida(notif.id, notif.leida)}
-                className={`p-5 border-b border-gray-800/50 cursor-pointer transition-all relative group flex gap-4 items-start ${!notif.leida ? 'bg-[#0051ff]/10' : 'hover:bg-[#1f2937]/30'}`}
+                className={`p-5 border-b border-gray-800/50 cursor-pointer transition-all relative group flex gap-4 items-start ${!notif.leida ? 'bg-[#00baff]/10' : 'hover:bg-[#1f2937]/30'}`}
               >
                 {!notif.leida && <div className="absolute left-0 top-0 w-1 h-full bg-[#00baff]"></div>}
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${!notif.leida ? 'bg-[#0051ff]/20 text-[#00baff]' : 'bg-gray-800 text-gray-400'}`}>
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${!notif.leida ? 'bg-[#00baff]/20 text-[#00baff]' : 'bg-gray-800 text-gray-400'}`}>
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                 </div>
                 <div className="flex-1 pr-6">
@@ -719,7 +892,7 @@ export default function DashboardPostulante() {
 
           <div className="absolute left-1/2 -translate-x-1/2 -top-4">
             <button 
-              onClick={() => setActiveTab("home")}
+              onClick={() => { setActiveTab("home"); setIsScheduling(false); setSelectedBlock(null); setScheduleDay(null); }}
               className={`w-16 h-16 rounded-full flex items-center justify-center border-[6px] border-[#0a0a0a] transition-all duration-300 ${activeTab === "home" ? "bg-gradient-to-tr from-[#0051ff] to-[#00baff] shadow-[0_0_20px_rgba(0,186,255,0.4)] scale-105" : "bg-gray-800 text-gray-400 hover:bg-gray-700 hover:text-white"}`}
             >
               <svg className={`w-7 h-7 ${activeTab === "home" ? "text-white" : "currentColor"}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -5,7 +5,8 @@ import { useRouter } from "next/navigation";
 import DashboardPostulante from "./DashboardPostulante";
 import DashboardEntrevistador from "./DashboardEntrevistador";
 import DashboardMiembro from "./DashboardMiembro";
-import DashboardAdminMaestro from "./DashboardAdminMaestro"; // ✅ IMPORTAMOS EL NUEVO
+import DashboardAdminMaestro from "./DashboardAdminMaestro";
+import DashboardAdministrador from "./DashboardAdministrador"; // ✅ IMPORTAMOS EL NUEVO DASHBOARD
 import { useEffect, useState } from "react";
 
 export default function DashboardSelector() {
@@ -52,6 +53,11 @@ export default function DashboardSelector() {
   // ✅ LOGICA DE ENRUTAMIENTO ACTUALIZADA
   if (userRole === "Admin Maestro") {
     return <DashboardAdminMaestro />;
+  }
+
+  // ✅ AGREGAMOS LA RUTA PARA EL ADMINISTRADOR
+  if (userRole === "Administrador") {
+    return <DashboardAdministrador />;
   }
 
   if (userRole === "Entrevistador") {

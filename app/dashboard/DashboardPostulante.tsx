@@ -24,9 +24,12 @@ export default function DashboardPostulante() {
   const [isLoadingBlocks, setIsLoadingBlocks] = useState(false);
   const [isConfirming, setIsConfirming] = useState(false);
 
-  // ✅ NUEVOS ESTADOS PARA EL MODAL DE RESULTADO
   const [showConfirmResultModal, setShowConfirmResultModal] = useState(false);
   const [confirmResult, setConfirmResult] = useState<{success?: boolean, message?: string} | null>(null);
+
+  // ✅ ESTADO PARA GUARDAR LA ENTREVISTA YA CONFIRMADA
+  const [miEntrevista, setMiEntrevista] = useState<any | null>(null);
+  const [isLoadingMiEntrevista, setIsLoadingMiEntrevista] = useState(true);
 
   const { data: session, status } = useSession();
 
@@ -47,9 +50,28 @@ export default function DashboardPostulante() {
     }
   };
 
+  // ✅ BUSCAR SI EL USUARIO YA AGENDÓ
+  const fetchMiEntrevista = async () => {
+    if (!session?.user?.email) return;
+    try {
+      const res = await fetch(`/api/entrevistas/mi-entrevista?email=${session.user.email}`);
+      const data = await res.json();
+      if (data.success && data.entrevista) {
+        setMiEntrevista(data.entrevista);
+      }
+    } catch (error) {
+      console.error("Error verificando entrevista", error);
+    } finally {
+      setIsLoadingMiEntrevista(false);
+    }
+  };
+
   useEffect(() => {
-    fetchNotificaciones();
-  }, [session]);
+    if (status === "authenticated") {
+      fetchNotificaciones();
+      fetchMiEntrevista();
+    }
+  }, [status, session]);
 
   useEffect(() => {
     const initOneSignal = async () => {
@@ -67,7 +89,6 @@ export default function DashboardPostulante() {
         }
       }
     };
-
     initOneSignal();
   }, [session]);
 
@@ -108,7 +129,6 @@ export default function DashboardPostulante() {
     loadAvailableBlocks();
   };
 
-  // ✅ FUNCIÓN ACTUALIZADA PARA CONECTAR AL BACKEND DE RESERVA
   const confirmarEntrevista = async () => {
     if (!selectedBlock || !session?.user?.email) return;
     
@@ -116,7 +136,6 @@ export default function DashboardPostulante() {
     setConfirmResult(null);
     
     try {
-      // Llamada a la API que crearemos a continuación
       const res = await fetch("/api/entrevistas/agendar", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -130,19 +149,20 @@ export default function DashboardPostulante() {
       const data = await res.json();
 
       if (res.ok && data.success) {
+        // Guardamos los datos para mostrar la pantalla de éxito directamente al cerrar el modal
+        setMiEntrevista({ ...selectedBlock, meetLink: data.meetLink });
         setConfirmResult({ 
           success: true, 
-          message: "Tu entrevista ha sido agendada exitosamente. En breve recibirás un correo y un mensaje de WhatsApp con el enlace de Google Meet y los detalles." 
+          message: "Tu entrevista ha sido agendada exitosamente. Se te ha enviado un correo con los detalles." 
         });
         setShowConfirmResultModal(true);
       } else {
-        // Si alguien ganó el lugar o hubo un error
         setConfirmResult({ 
           success: false, 
-          message: data.error || "Este horario acaba de ser ocupado por otra persona. Por favor, selecciona otro bloque." 
+          message: data.error || "Este horario acaba de ser ocupado. Por favor, selecciona otro." 
         });
         setShowConfirmResultModal(true);
-        loadAvailableBlocks(); // Recargamos para actualizar disponibilidad
+        loadAvailableBlocks(); 
       }
     } catch (error) {
       setConfirmResult({ success: false, message: "Error de red al intentar agendar. Verifica tu conexión." });
@@ -155,19 +175,13 @@ export default function DashboardPostulante() {
   const cerrarModalExito = () => {
     setShowConfirmResultModal(false);
     if (confirmResult?.success) {
-      // Si fue éxito, quitamos la pantalla de agendamiento.
-      // Lo ideal aquí será que el estatus del usuario cambie a "Entrevista Agendada",
-      // pero por ahora lo mandamos al inicio.
-      setIsScheduling(false);
-      // Forzar recarga de sesión para actualizar estatus visualmente si es necesario
-      window.location.reload(); 
+      setIsScheduling(false); // Automáticamente se mostrará la vista de "Entrevista Reservada"
     } else {
-      // Si fue error (alguien le ganó), se queda en la pantalla para elegir otro.
       setSelectedBlock(null);
     }
   };
 
-  if (status === "loading") {
+  if (status === "loading" || isLoadingMiEntrevista) {
     return <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center text-[#00baff] animate-pulse">Cargando tu perfil...</div>;
   }
 
@@ -195,6 +209,58 @@ export default function DashboardPostulante() {
   );
 
   const renderHomeTab = () => {
+    // ✅ SI YA TIENE ENTREVISTA AGENDADA, MOSTRAMOS LA TARJETA FINAL
+    if (miEntrevista) {
+      return (
+        <main className="pt-24 pb-28 px-5 max-w-lg mx-auto min-h-screen flex flex-col items-center justify-center gap-6 animate-in zoom-in-95 fade-in duration-500">
+          <div className="text-center w-full mb-2">
+            <div className="w-24 h-24 bg-green-500/10 text-green-400 rounded-full flex items-center justify-center text-5xl mx-auto mb-6 shadow-[0_0_40px_rgba(34,197,94,0.2)]">
+              📅
+            </div>
+            <h2 className="text-2xl font-black mb-1 text-white tracking-tight">Cita Confirmada</h2>
+            <p className="text-green-400 font-bold tracking-widest uppercase text-[10px]">Todo listo para conocerte</p>
+          </div>
+          
+          <div className="bg-[#111111] border border-[#0051ff]/30 rounded-3xl p-6 shadow-2xl relative overflow-hidden w-full">
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#0051ff] to-[#00baff]"></div>
+            
+            <div className="bg-[#0a0a0a] border border-gray-800 rounded-2xl p-5 mb-5">
+              <div className="flex justify-between items-center mb-4 border-b border-gray-800 pb-4">
+                <div>
+                  <p className="text-[10px] text-gray-500 uppercase tracking-widest font-bold mb-1">Fecha</p>
+                  <p className="text-white font-bold text-lg">{miEntrevista.dia} {miEntrevista.fecha} de Abril</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-[10px] text-gray-500 uppercase tracking-widest font-bold mb-1">Hora</p>
+                  <p className="text-[#00baff] font-black text-lg">{miEntrevista.hora}</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3 text-xs text-gray-400">
+                <span className="text-lg">📍</span>
+                <p>Modalidad Online a través de Google Meet. Acceso directo disponible en el momento de la cita.</p>
+              </div>
+            </div>
+
+            {miEntrevista.meetLink ? (
+              <a 
+                href={miEntrevista.meetLink} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="block w-full text-center py-4 bg-[#0051ff] hover:bg-[#0041cc] text-white font-black text-sm uppercase tracking-wider rounded-xl transition-all shadow-lg shadow-[#0051ff]/20 active:scale-95"
+              >
+                Unirse a la Videollamada
+              </a>
+            ) : (
+              <button disabled className="w-full py-4 bg-gray-800 text-gray-500 font-black text-sm uppercase tracking-wider rounded-xl cursor-not-allowed">
+                Generando Enlace...
+              </button>
+            )}
+          </div>
+        </main>
+      );
+    }
+
+    // SI NO TIENE ENTREVISTA AGENDADA PERO ESTÁ APROBADO
     switch (userEstatus) {
       case "Aprobado para Entrevista":
         if (isScheduling) {
@@ -844,7 +910,6 @@ export default function DashboardPostulante() {
         </button>
       </header>
 
-      {/* OVERLAYS GLOBALES */}
       {(isMenuOpen || isNotifMenuOpen || showConfirmResultModal) && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-40 transition-opacity" onClick={() => { setIsMenuOpen(false); setIsNotifMenuOpen(false); if (!isConfirming) cerrarModalExito(); }} />
       )}

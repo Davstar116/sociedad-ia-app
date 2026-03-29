@@ -4,7 +4,7 @@ import nodemailer from "nodemailer";
 
 const NOTION_TOKEN = process.env.NOTION_TOKEN;
 const ENTREVISTAS_DB_ID = process.env.NOTION_ENTREVISTAS_DB_ID;
-const USERS_DB_ID = process.env.NOTION_USERS_DB_ID; // ✅ Variable actualizada
+const USERS_DB_ID = process.env.NOTION_USERS_DB_ID; 
 const EMAIL_USER = process.env.EMAIL_USER;
 const EMAIL_PASS = process.env.EMAIL_PASS;
 
@@ -57,14 +57,13 @@ export async function POST(request: Request) {
     if (nombreEntrevistador1 || nombreEntrevistador2) {
       const nombresABuscar = [nombreEntrevistador1, nombreEntrevistador2].filter(Boolean);
       
-      // ✅ Utilizamos la base de datos de Usuarios actualizada
       const buscarMiembrosRes = await fetch(`https://api.notion.com/v1/databases/${USERS_DB_ID}/query`, {
         method: "POST",
         headers: notionHeaders,
         body: JSON.stringify({
           filter: {
             or: nombresABuscar.map(n => ({
-              property: "Nombre", // Asegúrate de que así se llame la columna del nombre en tu DB de Usuarios
+              property: "Nombre", 
               title: { equals: n }
             }))
           }
@@ -74,18 +73,24 @@ export async function POST(request: Request) {
       if (buscarMiembrosRes.ok) {
         const miembrosData = await buscarMiembrosRes.json();
         miembrosData.results.forEach((m: any) => {
-          const correo = m.properties["Correo"]?.email || m.properties["Email"]?.email; // Ajusta según el nombre de tu columna
+          const correo = m.properties["Correo"]?.email || m.properties["Email"]?.email; 
           if (correo) correosEntrevistadores.push(correo);
         });
       }
     }
 
     // =========================================================
-    // 3. GENERAR GOOGLE MEET CON INVITADOS (Evita sala de espera)
+    // 3. GENERAR GOOGLE MEET CON INVITADOS Y PERMISOS MASTER
     // =========================================================
     let meetLink = ""; 
-    const asistentesGoogle = [{ email: email }]; // Siempre invitamos al postulante
-    correosEntrevistadores.forEach(correo => asistentesGoogle.push({ email: correo })); // Agregamos a los entrevistadores
+    
+    // ✅ Agregamos a todos a la lista de invitados para que no pidan permiso al entrar
+    const asistentesGoogle = [
+      { email: email }, // El postulante
+      { email: "david.solorzano.a@gmail.com" }, // 👑 Tú, siempre con acceso maestro
+      { email: "astridmondragon25@gmail.com" }  // 👑 Astrid, administradora maestra
+    ]; 
+    correosEntrevistadores.forEach(correo => asistentesGoogle.push({ email: correo })); // Los entrevistadores
     
     try {
       if (process.env.SIAFI_CALENDAR_CLIENT_ID && process.env.SIAFI_CALENDAR_REFRESH_TOKEN) {
@@ -113,6 +118,8 @@ export async function POST(request: Request) {
             start: { dateTime: startDate.toISOString(), timeZone: "America/Mexico_City" },
             end: { dateTime: endDate.toISOString(), timeZone: "America/Mexico_City" },
             attendees: asistentesGoogle, // 👈 LA MAGIA ESTÁ AQUÍ. Esto da acceso directo al Meet.
+            guestsCanModify: true, // ✅ Permite a los entrevistadores mover el evento si es necesario
+            guestsCanInviteOthers: true, // ✅ Permite que los invitados metan a alguien más a la sala
             conferenceData: {
               createRequest: {
                 requestId: `siafi-entrevista-${bloqueId}`,
@@ -153,7 +160,7 @@ export async function POST(request: Request) {
     if (!patchRes.ok) throw new Error("No se pudo reservar en Notion de forma definitiva.");
 
     // =========================================================
-    // 5. ENVÍO DE CORREOS AUTOMÁTICOS (FASE 3)
+    // 5. ENVÍO DE CORREOS AUTOMÁTICOS
     // =========================================================
     if (EMAIL_USER && EMAIL_PASS) {
       const transporter = nodemailer.createTransport({
@@ -191,11 +198,12 @@ export async function POST(request: Request) {
         `
       });
 
-      // ✉️ Correo a los Entrevistadores
-      if (correosEntrevistadores.length > 0) {
+      // ✉️ Correo a los Entrevistadores y a los Admins Maestros
+      const correosStaff = [...correosEntrevistadores, "david.solorzano.a@gmail.com", "astridmondragon25@gmail.com"];
+      if (correosStaff.length > 0) {
         await transporter.sendMail({
           from: `"Sistema SIAFI" <${EMAIL_USER}>`,
-          to: correosEntrevistadores.join(', '),
+          to: correosStaff.join(', '),
           subject: `🔔 Nueva Entrevista Asignada - ${nombre}`,
           html: `
             <div style="font-family: Arial, sans-serif; max-w: 600px; margin: 0 auto; background-color: #111111; color: #ffffff; border-radius: 16px; overflow: hidden; border: 1px solid #1f2937;">
@@ -203,8 +211,8 @@ export async function POST(request: Request) {
                 <h1 style="margin: 0; color: #ffffff; font-size: 24px; letter-spacing: 1px;">Nueva Asignación</h1>
               </div>
               <div style="padding: 32px;">
-                <p style="font-size: 16px; color: #e5e7eb;">Hola Entrevistadores,</p>
-                <p style="font-size: 14px; color: #9ca3af; line-height: 1.6;">El sistema central les ha asignado una nueva entrevista para evaluar a un candidato de la convocatoria.</p>
+                <p style="font-size: 16px; color: #e5e7eb;">Hola Equipo,</p>
+                <p style="font-size: 14px; color: #9ca3af; line-height: 1.6;">El sistema central ha asignado una nueva entrevista para evaluar a un candidato.</p>
                 
                 <div style="background-color: #0a0a0a; border: 1px solid #1f2937; border-radius: 12px; padding: 20px; margin: 24px 0;">
                   <p style="margin: 0 0 10px 0; font-size: 12px; text-transform: uppercase; color: #c084fc; letter-spacing: 1px; font-weight: bold;">Datos del Postulante</p>
@@ -214,7 +222,7 @@ export async function POST(request: Request) {
                   <p style="margin: 0 0 15px 0; font-size: 16px;"><strong>Hora:</strong> ${horaString}</p>
                   <a href="${meetLink}" style="display: inline-block; background-color: #8b5cf6; color: #ffffff; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-weight: bold; font-size: 14px;">Ir a la Sala de Entrevista</a>
                 </div>
-                <p style="font-size: 12px; color: #6b7280; line-height: 1.5;">El evento ya ha sido agregado a sus calendarios institucionales con el enlace correspondiente.</p>
+                <p style="font-size: 12px; color: #6b7280; line-height: 1.5;">El evento ya ha sido agregado a sus calendarios de Google con permisos para modificar la sala si es necesario.</p>
               </div>
             </div>
           `
@@ -225,7 +233,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ success: true, meetLink });
 
   } catch (error: any) {
-    console.error("Error crìtico agendando entrevista:", error);
+    console.error("Error crítico agendando entrevista:", error);
     return NextResponse.json({ success: false, error: "Error del servidor al intentar guardar tu selección." }, { status: 500 });
   }
 }

@@ -1,12 +1,15 @@
 import { NextResponse } from "next/server";
 import { google } from "googleapis";
 import nodemailer from "nodemailer";
+import { PostulanteEntrevistaEmailTemplate } from "@/app/components/emails/PostulanteEntrevistaEmail";
+import { EntrevistadorAsignacionEmailTemplate } from "@/app/components/emails/EntrevistadorAsignacionEmail";
 
 const NOTION_TOKEN = process.env.NOTION_TOKEN;
 const ENTREVISTAS_DB_ID = process.env.NOTION_ENTREVISTAS_DB_ID;
 const USERS_DB_ID = process.env.NOTION_USERS_DB_ID; 
 const EMAIL_USER = process.env.EMAIL_USER;
 const EMAIL_PASS = process.env.EMAIL_PASS;
+const NEXT_PUBLIC_BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://siafi.com.mx";
 
 const notionHeaders = {
   "Authorization": `Bearer ${NOTION_TOKEN}`,
@@ -80,17 +83,15 @@ export async function POST(request: Request) {
     }
 
     // =========================================================
-    // 3. GENERAR GOOGLE MEET CON INVITADOS Y PERMISOS MASTER
+    // 3. GENERAR GOOGLE MEET (CORRECCIÓN DE ZONA HORARIA)
     // =========================================================
     let meetLink = ""; 
-    
-    // ✅ Agregamos a todos a la lista de invitados para que no pidan permiso al entrar
     const asistentesGoogle = [
-      { email: email }, // El postulante
-      { email: "david.solorzano.a@gmail.com" }, // 👑 Tú, siempre con acceso maestro
-      { email: "astridmondragon25@gmail.com" }  // 👑 Astrid, administradora maestra
+      { email: email }, 
+      { email: "david.solorzano.a@gmail.com" },
+      { email: "astridmondragon25@gmail.com" }
     ]; 
-    correosEntrevistadores.forEach(correo => asistentesGoogle.push({ email: correo })); // Los entrevistadores
+    correosEntrevistadores.forEach(correo => asistentesGoogle.push({ email: correo }));
     
     try {
       if (process.env.SIAFI_CALENDAR_CLIENT_ID && process.env.SIAFI_CALENDAR_REFRESH_TOKEN) {
@@ -102,24 +103,26 @@ export async function POST(request: Request) {
         const calendar = google.calendar({ version: "v3", auth: oauth2Client });
 
         const [horaInicio, horaFin] = horaString.split(" - ");
-        const [hInicio, mInicio] = horaInicio.split(":");
-        const [hFin, mFin] = horaFin.split(":");
         
-        const startDate = new Date(2026, 3, fechaNum, parseInt(hInicio), parseInt(mInicio));
-        const endDate = new Date(2026, 3, fechaNum, parseInt(hFin), parseInt(mFin));
+        // Construimos un string ISO hardcodeando la zona horaria de México (-06:00) para evitar que el servidor de Vercel (UTC) lo arruine
+        const mes = "04"; // Abril
+        const diaNum = String(fechaNum).padStart(2, '0');
+        
+        const startDateTime = `2026-${mes}-${diaNum}T${horaInicio}:00-06:00`;
+        const endDateTime = `2026-${mes}-${diaNum}T${horaFin}:00-06:00`;
 
         const event = await calendar.events.insert({
           calendarId: "primary",
           conferenceDataVersion: 1, 
-          sendUpdates: "all", // Esto fuerza a que les llegue la invitación oficial de Google a sus calendarios
+          sendUpdates: "all", 
           requestBody: {
             summary: `Entrevista SIAFI: ${nombre}`,
             description: `Entrevista de admisión a la Sociedad de Inteligencia Artificial.\n\nPostulante: ${nombre}\nEntrevistadores: ${nombreEntrevistador1} y ${nombreEntrevistador2}\n\n*Por favor, únete puntual al enlace de Meet adjunto.*`,
-            start: { dateTime: startDate.toISOString(), timeZone: "America/Mexico_City" },
-            end: { dateTime: endDate.toISOString(), timeZone: "America/Mexico_City" },
-            attendees: asistentesGoogle, // 👈 LA MAGIA ESTÁ AQUÍ. Esto da acceso directo al Meet.
-            guestsCanModify: true, // ✅ Permite a los entrevistadores mover el evento si es necesario
-            guestsCanInviteOthers: true, // ✅ Permite que los invitados metan a alguien más a la sala
+            start: { dateTime: startDateTime, timeZone: "America/Mexico_City" },
+            end: { dateTime: endDateTime, timeZone: "America/Mexico_City" },
+            attendees: asistentesGoogle, 
+            guestsCanModify: true, 
+            guestsCanInviteOthers: true, 
             conferenceData: {
               createRequest: {
                 requestId: `siafi-entrevista-${bloqueId}`,
@@ -133,7 +136,6 @@ export async function POST(request: Request) {
           meetLink = event.data.hangoutLink;
         }
       } else {
-        console.warn("⚠️ Advertencia: Faltan las variables SIAFI_CALENDAR en el .env");
         meetLink = "Enlace pendiente de asignación";
       }
     } catch (calendarError) {
@@ -160,7 +162,7 @@ export async function POST(request: Request) {
     if (!patchRes.ok) throw new Error("No se pudo reservar en Notion de forma definitiva.");
 
     // =========================================================
-    // 5. ENVÍO DE CORREOS AUTOMÁTICOS
+    // 5. ENVÍO DE CORREOS AUTOMÁTICOS CON PLANTILLAS HTML
     // =========================================================
     if (EMAIL_USER && EMAIL_PASS) {
       const transporter = nodemailer.createTransport({
@@ -171,61 +173,39 @@ export async function POST(request: Request) {
       const fechaLegible = `${diaTexto} ${fechaNum} de Abril`;
 
       // ✉️ Correo al Postulante
+      const htmlPostulante = PostulanteEntrevistaEmailTemplate({
+        nombre: nombre,
+        baseUrl: NEXT_PUBLIC_BASE_URL,
+        fechaLegible: fechaLegible,
+        hora: horaString,
+        meetLink: meetLink
+      });
+
       await transporter.sendMail({
         from: `"Reclutamiento SIAFI" <${EMAIL_USER}>`,
         to: email,
         subject: `✅ Entrevista Confirmada - SIAFI UNAM`,
-        html: `
-          <div style="font-family: Arial, sans-serif; max-w: 600px; margin: 0 auto; background-color: #111111; color: #ffffff; border-radius: 16px; overflow: hidden; border: 1px solid #1f2937;">
-            <div style="background: linear-gradient(90deg, #0051ff, #00baff); padding: 24px; text-align: center;">
-              <h1 style="margin: 0; color: #ffffff; font-size: 24px; letter-spacing: 1px;">Entrevista Confirmada</h1>
-            </div>
-            <div style="padding: 32px;">
-              <p style="font-size: 16px; color: #e5e7eb;">Hola <strong>${nombre}</strong>,</p>
-              <p style="font-size: 14px; color: #9ca3af; line-height: 1.6;">Tu horario ha sido registrado exitosamente en nuestro sistema. Estamos emocionados por platicar contigo y conocer más sobre tu perfil.</p>
-              
-              <div style="background-color: #0a0a0a; border: 1px solid #1f2937; border-radius: 12px; padding: 20px; margin: 24px 0;">
-                <p style="margin: 0 0 10px 0; font-size: 12px; text-transform: uppercase; color: #00baff; letter-spacing: 1px; font-weight: bold;">Detalles de tu cita</p>
-                <p style="margin: 0 0 5px 0; font-size: 16px;"><strong>Fecha:</strong> ${fechaLegible}</p>
-                <p style="margin: 0 0 15px 0; font-size: 16px;"><strong>Hora:</strong> ${horaString}</p>
-                <a href="${meetLink}" style="display: inline-block; background-color: #0051ff; color: #ffffff; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-weight: bold; font-size: 14px;">Unirse a la Entrevista</a>
-              </div>
-
-              <p style="font-size: 12px; color: #6b7280; line-height: 1.5; margin-bottom: 20px;"><strong>Recomendaciones:</strong><br/>- Conéctate 5 minutos antes de la hora acordada.<br/>- Busca un lugar tranquilo y con buena conexión a internet.<br/>- Asegúrate de que tu cámara y micrófono funcionen correctamente.</p>
-              <p style="font-size: 14px; color: #9ca3af;">¡Mucho éxito!<br/><strong style="color: #ffffff;">Mesa Directiva SIAFI</strong></p>
-            </div>
-          </div>
-        `
+        html: htmlPostulante
       });
 
       // ✉️ Correo a los Entrevistadores y a los Admins Maestros
       const correosStaff = [...correosEntrevistadores, "david.solorzano.a@gmail.com", "astridmondragon25@gmail.com"];
       if (correosStaff.length > 0) {
+        
+        const htmlStaff = EntrevistadorAsignacionEmailTemplate({
+          nombrePostulante: nombre,
+          correoPostulante: email,
+          fechaLegible: fechaLegible,
+          hora: horaString,
+          meetLink: meetLink,
+          baseUrl: NEXT_PUBLIC_BASE_URL
+        });
+
         await transporter.sendMail({
           from: `"Sistema SIAFI" <${EMAIL_USER}>`,
           to: correosStaff.join(', '),
           subject: `🔔 Nueva Entrevista Asignada - ${nombre}`,
-          html: `
-            <div style="font-family: Arial, sans-serif; max-w: 600px; margin: 0 auto; background-color: #111111; color: #ffffff; border-radius: 16px; overflow: hidden; border: 1px solid #1f2937;">
-              <div style="background: linear-gradient(90deg, #8b5cf6, #c084fc); padding: 24px; text-align: center;">
-                <h1 style="margin: 0; color: #ffffff; font-size: 24px; letter-spacing: 1px;">Nueva Asignación</h1>
-              </div>
-              <div style="padding: 32px;">
-                <p style="font-size: 16px; color: #e5e7eb;">Hola Equipo,</p>
-                <p style="font-size: 14px; color: #9ca3af; line-height: 1.6;">El sistema central ha asignado una nueva entrevista para evaluar a un candidato.</p>
-                
-                <div style="background-color: #0a0a0a; border: 1px solid #1f2937; border-radius: 12px; padding: 20px; margin: 24px 0;">
-                  <p style="margin: 0 0 10px 0; font-size: 12px; text-transform: uppercase; color: #c084fc; letter-spacing: 1px; font-weight: bold;">Datos del Postulante</p>
-                  <p style="margin: 0 0 5px 0; font-size: 16px;"><strong>Nombre:</strong> ${nombre}</p>
-                  <p style="margin: 0 0 5px 0; font-size: 16px;"><strong>Correo:</strong> ${email}</p>
-                  <p style="margin: 0 0 5px 0; font-size: 16px;"><strong>Fecha:</strong> ${fechaLegible}</p>
-                  <p style="margin: 0 0 15px 0; font-size: 16px;"><strong>Hora:</strong> ${horaString}</p>
-                  <a href="${meetLink}" style="display: inline-block; background-color: #8b5cf6; color: #ffffff; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-weight: bold; font-size: 14px;">Ir a la Sala de Entrevista</a>
-                </div>
-                <p style="font-size: 12px; color: #6b7280; line-height: 1.5;">El evento ya ha sido agregado a sus calendarios de Google con permisos para modificar la sala si es necesario.</p>
-              </div>
-            </div>
-          `
+          html: htmlStaff
         });
       }
     }

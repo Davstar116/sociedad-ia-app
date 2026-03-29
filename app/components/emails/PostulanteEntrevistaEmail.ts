@@ -30,11 +30,11 @@ export function PostulanteEntrevistaEmailTemplate({ nombre, baseUrl, fechaLegibl
                 <td style="padding: 20px 24px; background-color: #000000; border-bottom: 1px solid #1f2937;">
                     <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
                     <tr>
-                        <td valign="middle" style="width: 50px;">
-                            <img src="${cleanBaseUrl}/email/shield.png" alt="SIAFI" width="45" height="45" style="display: block; width: 45px; height: 45px; object-fit: contain;" />
+                        <td valign="middle">
+                        <img src="${cleanBaseUrl}/email/shield.png" alt="Escudo SIAFI" width="50" style="display: block; max-width: 50px;" />
                         </td>
                         <td valign="middle" align="right">
-                            <img src="${cleanBaseUrl}/email/logo-text.png" alt="SIAFI" width="120" style="display: block; width: 120px; object-fit: contain;" />
+                        <img src="${cleanBaseUrl}/email/logo-text.png" alt="SIAFI Text" width="130" style="display: block; max-width: 130px;" />
                         </td>
                     </tr>
                     </table>
@@ -94,6 +94,7 @@ export function PostulanteEntrevistaEmailTemplate({ nombre, baseUrl, fechaLegibl
                             </td>
                         </tr>
                     </table>
+
                 </td>
                 </tr>
                 

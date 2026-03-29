@@ -30,11 +30,11 @@ export function EntrevistadorAsignacionEmailTemplate({ nombrePostulante, correoP
                 <td style="padding: 20px 24px; background-color: #000000; border-bottom: 1px solid #1f2937;">
                     <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
                     <tr>
-                        <td valign="middle" style="width: 50px;">
-                            <img src="${cleanBaseUrl}/email/shield.png" alt="SIAFI" width="45" height="45" style="display: block; width: 45px; height: 45px; object-fit: contain;" />
+                        <td valign="middle">
+                        <img src="${cleanBaseUrl}/email/shield.png" alt="Escudo SIAFI" width="50" style="display: block; max-width: 50px;" />
                         </td>
                         <td valign="middle" align="right">
-                            <img src="${cleanBaseUrl}/email/logo-text.png" alt="SIAFI" width="120" style="display: block; width: 120px; object-fit: contain;" />
+                        <img src="${cleanBaseUrl}/email/logo-text.png" alt="SIAFI Text" width="130" style="display: block; max-width: 130px;" />
                         </td>
                     </tr>
                     </table>
@@ -62,11 +62,11 @@ export function EntrevistadorAsignacionEmailTemplate({ nombrePostulante, correoP
                     <div style="margin-bottom: 30px; padding-bottom: 20px; border-bottom: 1px solid #1f2937;">
                         <h3 style="margin: 0 0 10px 0; font-size: 16px; color: #ffffff;">Acciones del Sistema ⚙️</h3>
                         <p style="margin: 0; font-size: 14px; color: #9ca3af; line-height: 1.6;">
-                            El evento ya ha sido agregado automáticamente a sus calendarios de Google. El estatus en Notion ha sido actualizado a "Reservado".
+                            El evento ya ha sido agregado automáticamente a sus calendarios de Google con los accesos correspondientes. Adicionalmente, el estatus en Notion ha sido actualizado a "Reservado".
                         </p>
                     </div>
                     
-                    <p style="margin: 0 0 30px 0; color: #9ca3af; font-size: 14px; line-height: 1.6;">
+                    <p style="margin: 0 0 10px 0; color: #9ca3af; font-size: 14px; line-height: 1.6;">
                     Saludos cordiales,<br />
                     <strong style="color: #ffffff;">SophIA</strong>
                     </p>
@@ -92,6 +92,7 @@ export function EntrevistadorAsignacionEmailTemplate({ nombrePostulante, correoP
                             </td>
                         </tr>
                     </table>
+
                 </td>
                 </tr>
                 

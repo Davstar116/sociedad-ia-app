@@ -30,11 +30,11 @@ export function PostulanteEntrevistaEmailTemplate({ nombre, baseUrl, fechaLegibl
                 <td style="padding: 20px 24px; background-color: #000000; border-bottom: 1px solid #1f2937;">
                     <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
                     <tr>
-                        <td valign="middle">
-                        <img src="${cleanBaseUrl}/email/shield.png" alt="Escudo SIAFI" width="50" style="display: block; max-width: 50px;" />
+                        <td valign="middle" style="width: 50px;">
+                            <img src="${cleanBaseUrl}/email/shield.png" alt="SIAFI" width="45" height="45" style="display: block; width: 45px; height: 45px; object-fit: contain;" />
                         </td>
                         <td valign="middle" align="right">
-                        <img src="${cleanBaseUrl}/email/logo-text.png" alt="SIAFI Text" width="130" style="display: block; max-width: 130px;" />
+                            <img src="${cleanBaseUrl}/email/logo-text.png" alt="SIAFI" width="120" style="display: block; width: 120px; object-fit: contain;" />
                         </td>
                     </tr>
                     </table>
@@ -43,9 +43,9 @@ export function PostulanteEntrevistaEmailTemplate({ nombre, baseUrl, fechaLegibl
                 
                 <tr>
                 <td style="padding: 30px 40px 40px 40px;">
-                    <h2 style="margin: 0 0 20px 0; font-size: 22px; color: #ffffff;">Cita Confirmada, ${primerNombre} 📅</h2>
+                    <h2 style="margin: 0 0 20px 0; font-size: 22px; color: #ffffff;">Entrevista Confirmada, ${primerNombre} 📅</h2>
                     <p style="margin: 0 0 20px 0; font-size: 15px; color: #9ca3af; line-height: 1.6;">
-                    Tu horario ha sido registrado exitosamente en nuestro sistema. Estamos muy emocionados por platicar contigo y conocer más sobre tu visión, experiencia y pasión por la tecnología.
+                    Tu horario ha sido registrado exitosamente en nuestro sistema. Estamos muy emocionados por platicar contigo y conocer más sobre tu visión y pasión por la tecnología.
                     </p>
                     
                     <div style="background-color: #0a0a0a; border: 1px solid #0051ff; border-radius: 12px; padding: 20px; margin-bottom: 25px;">
@@ -58,9 +58,9 @@ export function PostulanteEntrevistaEmailTemplate({ nombre, baseUrl, fechaLegibl
                     </div>
 
                     <div style="margin-bottom: 30px; padding-bottom: 20px; border-bottom: 1px solid #1f2937;">
-                        <h3 style="margin: 0 0 10px 0; font-size: 16px; color: #ffffff;">Recomendaciones para tu Entrevista 💡</h3>
+                        <h3 style="margin: 0 0 10px 0; font-size: 16px; color: #ffffff;">Recomendaciones 💡</h3>
                         <ul style="margin: 0; padding-left: 20px; font-size: 14px; color: #9ca3af; line-height: 1.6;">
-                            <li style="margin-bottom: 8px;">Conéctate <strong>5 minutos antes</strong> de la hora acordada.</li>
+                            <li style="margin-bottom: 8px;">Conéctate <strong>puntual</strong> a la sesión en la hora acordada.</li>
                             <li style="margin-bottom: 8px;">Busca un lugar tranquilo y con buena conexión a internet.</li>
                             <li style="margin-bottom: 8px;">Asegúrate de que tu <strong>cámara y micrófono</strong> funcionen correctamente.</li>
                             <li>¡Sé tú mismo! Queremos conocer al futuro miembro de nuestra sociedad.</li>
@@ -94,7 +94,6 @@ export function PostulanteEntrevistaEmailTemplate({ nombre, baseUrl, fechaLegibl
                             </td>
                         </tr>
                     </table>
-
                 </td>
                 </tr>
                 

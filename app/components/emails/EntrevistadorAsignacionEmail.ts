@@ -45,7 +45,7 @@ export function EntrevistadorAsignacionEmailTemplate({ nombrePostulante, correoP
                 <td style="padding: 30px 40px 40px 40px;">
                     <h2 style="margin: 0 0 20px 0; font-size: 22px; color: #ffffff;">Nueva Entrevista Asignada 🔔</h2>
                     <p style="margin: 0 0 20px 0; font-size: 15px; color: #9ca3af; line-height: 1.6;">
-                    Hola Equipo, el sistema central de SophIA ha procesado la selección de un candidato y les ha asignado una nueva entrevista de evaluación.
+                    Hola Equipo, el sistema central ha procesado la selección de un candidato y les ha asignado una nueva entrevista de evaluación.
                     </p>
                     
                     <div style="background-color: #0a0a0a; border: 1px solid #8b5cf6; border-radius: 12px; padding: 20px; margin-bottom: 25px;">
@@ -66,7 +66,7 @@ export function EntrevistadorAsignacionEmailTemplate({ nombrePostulante, correoP
                         </p>
                     </div>
                     
-                    <p style="margin: 0 0 10px 0; color: #9ca3af; font-size: 14px; line-height: 1.6;">
+                    <p style="margin: 0 0 30px 0; color: #9ca3af; font-size: 14px; line-height: 1.6;">
                     Saludos cordiales,<br />
                     <strong style="color: #ffffff;">SophIA</strong>
                     </p>
@@ -74,7 +74,7 @@ export function EntrevistadorAsignacionEmailTemplate({ nombrePostulante, correoP
                     <table width="100%" cellpadding="0" cellspacing="0" border="0" style="border-top: 1px solid #1f2937; padding-top: 25px;">
                         <tr>
                             <td align="center">
-                                <p style="margin: 0 0 15px 0; font-size: 12px; color: #6b7280; font-weight: bold; text-transform: uppercase; letter-spacing: 2px;">Redes Sociales SIAFI</p>
+                                <p style="margin: 0 0 15px 0; font-size: 12px; color: #6b7280; font-weight: bold; text-transform: uppercase; letter-spacing: 2px;">Síguenos en nuestras redes</p>
                                 <table cellpadding="0" cellspacing="0" border="0">
                                     <tr>
                                         <td style="padding: 0 12px;">
@@ -92,14 +92,17 @@ export function EntrevistadorAsignacionEmailTemplate({ nombrePostulante, correoP
                             </td>
                         </tr>
                     </table>
-
                 </td>
                 </tr>
                 
                 <tr>
                 <td style="background-color: #0a0a0a; padding: 24px 40px; border-top: 1px solid #1f2937; text-align: center;">
                     <p style="margin: 0 0 6px 0; font-size: 12px; color: #6b7280;">2026 SIAFI - Facultad de Ingeniería, UNAM.</p>
-                    <p style="margin: 0 0 16px 0; font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: #4b5563;">Mensaje Interno Administrativo</p>
+                    <p style="margin: 0 0 16px 0; font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: #4b5563;">Este es un mensaje generado por SophIA.</p>
+                    <p style="margin: 0; font-size: 12px; color: #6b7280;">
+                    ¿Problemas para acceder? <br />
+                    <a href="mailto:siafi.reclutamiento@gmail.com" style="color: #00baff; text-decoration: none; font-weight: bold;">siafi.reclutamiento@gmail.com</a>
+                    </p>
                 </td>
                 </tr>
             </table>

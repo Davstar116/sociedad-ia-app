@@ -94,7 +94,6 @@ export function PostulanteEntrevistaEmailTemplate({ nombre, baseUrl, fechaLegibl
                             </td>
                         </tr>
                     </table>
-
                 </td>
                 </tr>
                 
@@ -103,7 +102,7 @@ export function PostulanteEntrevistaEmailTemplate({ nombre, baseUrl, fechaLegibl
                     <p style="margin: 0 0 6px 0; font-size: 12px; color: #6b7280;">2026 SIAFI - Facultad de Ingeniería, UNAM.</p>
                     <p style="margin: 0 0 16px 0; font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: #4b5563;">Este es un mensaje generado por SophIA.</p>
                     <p style="margin: 0; font-size: 12px; color: #6b7280;">
-                    ¿Problemas para acceder al enlace? <br />
+                    ¿Problemas para acceder? <br />
                     <a href="mailto:siafi.reclutamiento@gmail.com" style="color: #00baff; text-decoration: none; font-weight: bold;">siafi.reclutamiento@gmail.com</a>
                     </p>
                 </td>

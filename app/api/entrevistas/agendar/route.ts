@@ -172,10 +172,15 @@ export async function POST(request: Request) {
 
       const fechaLegible = `${diaTexto} ${fechaNum} de Abril`;
 
+      // ✅ OBTENEMOS EL DOMINIO DINÁMICAMENTE EN VEZ DE USAR EL .ENV
+      const host = request.headers.get("host") || "localhost:3000";
+      const protocol = host.includes("localhost") ? "http" : "https";
+      const dynamicBaseUrl = `${protocol}://${host}`;
+
       // ✉️ Correo al Postulante
       const htmlPostulante = PostulanteEntrevistaEmailTemplate({
         nombre: nombre,
-        baseUrl: NEXT_PUBLIC_BASE_URL,
+        baseUrl: dynamicBaseUrl, // <-- Mandamos el dinámico
         fechaLegible: fechaLegible,
         hora: horaString,
         meetLink: meetLink
@@ -198,7 +203,7 @@ export async function POST(request: Request) {
           fechaLegible: fechaLegible,
           hora: horaString,
           meetLink: meetLink,
-          baseUrl: NEXT_PUBLIC_BASE_URL
+          baseUrl: dynamicBaseUrl // <-- Mandamos el dinámico
         });
 
         await transporter.sendMail({

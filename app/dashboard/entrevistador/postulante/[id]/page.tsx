@@ -54,7 +54,7 @@ export default function PostulanteDetallePage() {
     return (
       <div className="min-h-screen bg-[#0a0a0a] flex flex-col items-center justify-center px-5 text-center">
         <p className="text-red-500 text-5xl mb-4">⚠️</p>
-        <h2 className="text-xl font-bold text-white mb-2">Registro No Encontrado</h2>
+        <h2 className="text-xl font-bold text-white mb-2">Expediente No Encontrado</h2>
         <p className="text-gray-400 text-sm mb-6">No pudimos localizar los datos de este candidato en la base de registros.</p>
         <button onClick={() => router.back()} className="px-6 py-3 bg-gray-800 hover:bg-gray-700 text-white font-bold text-sm uppercase tracking-wider rounded-xl transition-all">
           Volver al Panel
@@ -63,14 +63,14 @@ export default function PostulanteDetallePage() {
     );
   }
 
-  // Extraemos datos principales asumiendo nombres comunes de columnas (ajusta si tus columnas se llaman distinto)
-  const nombre = datos["Nombre"] || datos["Name"] || "Candidato";
+  // ✅ Corregido: Usar "Nombre Completo"
+  const nombre = datos["Nombre Completo"] || "Candidato";
   const carrera = datos["Carrera"] || datos["Licenciatura"] || "Sin carrera registrada";
   const semestre = datos["Semestre"] || "-";
   const celular = datos["Celular"] || datos["Teléfono"] || "Sin número";
   
-  // Filtramos las propiedades que ya mostramos en el header para no repetirlas abajo
-  const camposExcluidos = ["Nombre", "Name", "Correo", "Email", "Carrera", "Licenciatura", "Semestre", "Celular", "Teléfono"];
+  // ✅ Corregido: Excluir "Nombre Completo" y "Correo electrónico"
+  const camposExcluidos = ["Nombre Completo", "Correo electrónico", "Carrera", "Licenciatura", "Semestre", "Celular", "Teléfono"];
   const respuestasExtra = Object.entries(datos).filter(([key]) => !camposExcluidos.includes(key) && key !== "Estatus" && key !== "ID");
 
   return (
@@ -106,7 +106,7 @@ export default function PostulanteDetallePage() {
           <div className="grid grid-cols-2 gap-4">
             <div className="bg-[#0a0a0a] border border-gray-800 rounded-xl p-3">
               <p className="text-[10px] text-gray-500 uppercase tracking-widest font-bold mb-1">Correo Electrónico</p>
-              <p className="text-xs text-gray-200 truncate" title={emailPostulante}>{emailPostulante}</p>
+              <p className="text-xs text-gray-200 truncate" title={emailPostulante || ""}>{emailPostulante}</p>
             </div>
             <div className="bg-[#0a0a0a] border border-gray-800 rounded-xl p-3">
               <p className="text-[10px] text-gray-500 uppercase tracking-widest font-bold mb-1">Teléfono</p>
@@ -120,7 +120,7 @@ export default function PostulanteDetallePage() {
         </div>
 
         {/* RESPUESTAS DEL FORMULARIO DINÁMICAS */}
-        <h3 className="text-sm font-bold text-gray-300 uppercase tracking-wider mb-4 px-2">Respuestas del Registro</h3>
+        <h3 className="text-sm font-bold text-gray-300 uppercase tracking-wider mb-4 px-2">Información del Registro</h3>
         
         <div className="flex flex-col gap-4 mb-8">
           {respuestasExtra.map(([pregunta, respuesta], idx) => (

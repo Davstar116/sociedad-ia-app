@@ -20,7 +20,8 @@ export async function GET(request: Request) {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        filter: { property: "Correo", email: { equals: email } }
+        // ✅ Corregido: Ahora busca en la columna exacta "Correo electrónico"
+        filter: { property: "Correo electrónico", email: { equals: email } }
       }),
       cache: 'no-store'
     });

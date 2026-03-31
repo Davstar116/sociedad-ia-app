@@ -13,7 +13,6 @@ export default function PostulanteDetallePage() {
   const idBloque = params.id as string;
   const emailPostulante = searchParams.get("email");
   
-  // ✅ Nuevos parámetros recibidos del Dashboard
   const diaEntrevista = searchParams.get("dia");
   const fechaEntrevista = searchParams.get("fecha");
   const horaEntrevista = searchParams.get("hora");
@@ -89,13 +88,10 @@ export default function PostulanteDetallePage() {
   respuestas.forEach(item => {
     const pLower = item.pregunta.toLowerCase();
     
-    // Inicia el bloque general
     if (pLower.includes("aportación")) enBloqueGeneral = true;
     
-    // Si estamos dentro del bloque (o es Expectativas directamente)
     if (enBloqueGeneral || (!tieneAportacion && pLower.includes("expectativas"))) {
       bloqueGeneral.push(item);
-      // Cierra el bloque al llegar a expectativas
       if (pLower.includes("expectativas")) enBloqueGeneral = false;
     } else {
       bloqueModulos.push(item);
@@ -106,7 +102,6 @@ export default function PostulanteDetallePage() {
   // RENDERIZADOR INTELIGENTE DE RESPUESTAS (ESTRELLAS Y LINKS)
   // =========================================================
   const renderRespuesta = (texto: string) => {
-    // 1. Si es un Link
     if (texto.startsWith("http://") || texto.startsWith("https://")) {
       return (
         <a href={texto} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 mt-2 px-4 py-2 bg-gray-800 hover:bg-[#0051ff] text-white text-xs font-bold uppercase tracking-wider rounded-xl transition-all">
@@ -115,7 +110,6 @@ export default function PostulanteDetallePage() {
       );
     }
 
-    // 2. Procesamiento multilínea para detectar habilidades (Ej. "Python: 4")
     const lineas = texto.split('\n');
     const esListaDeHabilidades = lineas.some(l => l.match(/^(.*?)(?:[:\-])?\s*([1-5])(?:\/5)?\s*$/i));
 
@@ -124,7 +118,6 @@ export default function PostulanteDetallePage() {
         <div className="flex flex-col gap-2 mt-2">
           {lineas.map((linea, i) => {
             if (!linea.trim()) return null;
-            // Busca Texto seguido de un número del 1 al 5 al final
             const match = linea.match(/^(.*?)(?:[:\-])?\s*([1-5])(?:\/5)?\s*$/i);
             
             if (match) {
@@ -132,8 +125,8 @@ export default function PostulanteDetallePage() {
               const calificacion = parseInt(match[2], 10);
               return (
                 <div key={i} className="flex justify-between items-center bg-[#0a0a0a] px-3 py-2.5 rounded-lg border border-gray-800/50">
-                  <span className="text-sm font-bold text-gray-200">{skill}</span>
-                  <div className="flex gap-1 text-[15px] drop-shadow-[0_0_6px_rgba(250,204,21,0.5)]">
+                  <span className="text-sm font-bold text-gray-200 truncate pr-2">{skill}</span>
+                  <div className="flex gap-1 text-[13px] sm:text-[15px] drop-shadow-[0_0_6px_rgba(250,204,21,0.5)] shrink-0">
                     {[...Array(5)].map((_, j) => (
                       <span key={j} className={j < calificacion ? "text-yellow-400" : "text-gray-800"}>★</span>
                     ))}
@@ -141,14 +134,12 @@ export default function PostulanteDetallePage() {
                 </div>
               );
             }
-            // Fallback si una línea no es número
             return <p key={i} className="text-sm text-gray-300 leading-relaxed">{linea}</p>;
           })}
         </div>
       );
     }
 
-    // 3. Texto normal
     return <p className="text-sm text-gray-300 leading-relaxed whitespace-pre-wrap">{texto}</p>;
   };
 
@@ -166,33 +157,34 @@ export default function PostulanteDetallePage() {
         </div>
       </header>
 
-      <main className="pt-8 px-5 max-w-2xl mx-auto animate-in slide-in-from-bottom-8 fade-in duration-500">
+      <main className="pt-6 px-4 sm:px-5 max-w-2xl mx-auto animate-in slide-in-from-bottom-8 fade-in duration-500">
         
         {/* TARJETA PRINCIPAL DEL CANDIDATO */}
-        <div className="bg-[#111111] border border-[#00baff]/30 rounded-3xl p-6 shadow-[0_10px_40px_rgba(0,186,255,0.05)] relative overflow-hidden mb-8 mt-4">
+        <div className="bg-[#111111] border border-[#00baff]/30 rounded-3xl p-5 sm:p-6 shadow-[0_10px_40px_rgba(0,186,255,0.05)] relative overflow-hidden mb-8">
           <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#0051ff] to-[#00baff]"></div>
           
-          {/* ✅ BADGE DE FECHA Y HORA (ARRIBA A LA IZQUIERDA) */}
-          {(diaEntrevista && fechaEntrevista && horaEntrevista) && (
-            <div className="absolute top-4 left-6 bg-[#0051ff]/10 border border-[#0051ff]/30 px-3 py-1 rounded-full flex items-center gap-2">
-              <span className="text-[9px] uppercase tracking-widest text-[#00baff] font-bold">
-                📅 {diaEntrevista} {fechaEntrevista} Abr • ⏰ {horaEntrevista}
-              </span>
-            </div>
-          )}
-          
-          <div className="flex items-start gap-4 mb-5 mt-8">
-            <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-[#0051ff]/20 to-[#00baff]/20 flex items-center justify-center text-[#00baff] text-2xl border border-[#00baff]/20 shrink-0 shadow-inner">
+          <div className="flex items-start gap-3 sm:gap-4 mb-5 mt-2">
+            <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-tr from-[#0051ff]/20 to-[#00baff]/20 flex items-center justify-center text-[#00baff] text-2xl border border-[#00baff]/20 shrink-0 shadow-inner mt-1">
               👤
             </div>
-            <div className="flex-1">
-              <h2 className="text-2xl font-black text-white leading-tight mb-1">{nombre}</h2>
-              <p className="text-gray-400 text-xs font-bold uppercase tracking-widest mb-3">{carrera}</p>
+            
+            <div className="flex-1 overflow-hidden">
+              {/* ✅ FECHA Y NOMBRE EN LA MISMA LÍNEA */}
+              <div className="flex items-center gap-2 mb-1">
+                {(diaEntrevista && fechaEntrevista && horaEntrevista) && (
+                  <span className="px-2 py-1 bg-[#0051ff]/10 border border-[#0051ff]/30 text-[#00baff] text-[8px] sm:text-[9px] font-black uppercase tracking-widest rounded-md shrink-0">
+                    📅 {diaEntrevista} {fechaEntrevista} • ⏰ {horaEntrevista}
+                  </span>
+                )}
+                <h2 className="text-lg sm:text-2xl font-black text-white leading-tight truncate">{nombre}</h2>
+              </div>
+              
+              <p className="text-gray-400 text-[10px] sm:text-xs font-bold uppercase tracking-widest mb-3 truncate">{carrera}</p>
               
               {/* NÚCLEOS */}
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-1.5">
                 {nucleosArray.map((nucleo, idx) => (
-                  <span key={idx} className="px-2.5 py-1 bg-[#00baff]/10 border border-[#00baff]/30 text-[#00baff] text-[10px] font-black uppercase tracking-wider rounded-md">
+                  <span key={idx} className="px-2 py-1 bg-[#00baff]/10 border border-[#00baff]/30 text-[#00baff] text-[9px] font-black uppercase tracking-wider rounded-md">
                     {nucleo}
                   </span>
                 ))}
@@ -200,7 +192,7 @@ export default function PostulanteDetallePage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3 mb-2">
+          <div className="grid grid-cols-2 gap-3 mb-1">
             <div className="bg-[#0a0a0a] border border-gray-800 rounded-xl p-3 flex flex-col justify-center items-center text-center">
               <p className="text-[10px] text-gray-500 uppercase tracking-widest font-bold mb-1">Semestre</p>
               <p className="text-xl font-black text-white">{semestre}º</p>
@@ -228,7 +220,7 @@ export default function PostulanteDetallePage() {
 
         {/* ✅ BLOQUE UNIFICADO: PERFIL DEL CANDIDATO (Aportación -> Expectativas) */}
         {bloqueGeneral.length > 0 && (
-          <div className="bg-[#111111] border border-gray-800 rounded-3xl p-6 mb-8 shadow-sm">
+          <div className="bg-[#111111] border border-gray-800 rounded-3xl p-5 sm:p-6 mb-8 shadow-sm">
             <div className="flex items-center gap-2 mb-6 pb-4 border-b border-gray-800">
               <span className="w-2 h-2 rounded-full bg-purple-500"></span>
               <h3 className="text-sm font-bold text-gray-300 uppercase tracking-wider">Perfil General</h3>
@@ -245,7 +237,7 @@ export default function PostulanteDetallePage() {
           </div>
         )}
 
-        {/* ✅ MÓDULOS TÉCNICOS Y NÚCLEOS (Con separación clara Q & A) */}
+        {/* ✅ MÓDULOS TÉCNICOS Y NÚCLEOS */}
         {bloqueModulos.length > 0 && (
           <div className="mb-8">
             <div className="flex items-center gap-2 mb-6 px-2">
@@ -253,7 +245,7 @@ export default function PostulanteDetallePage() {
               <h3 className="text-sm font-bold text-gray-300 uppercase tracking-wider">Evaluación de Núcleos</h3>
             </div>
             
-            <div className="bg-[#111111] border border-gray-800 rounded-3xl p-6 shadow-sm flex flex-col gap-8">
+            <div className="bg-[#111111] border border-gray-800 rounded-3xl p-5 sm:p-6 shadow-sm flex flex-col gap-8">
               {bloqueModulos.map((item, idx) => (
                 <div key={idx} className="relative">
                   {/* Pregunta */}
@@ -262,10 +254,10 @@ export default function PostulanteDetallePage() {
                     <p className="text-sm text-[#00baff] font-bold leading-relaxed">{item.pregunta}</p>
                   </div>
                   
-                  {/* Respuesta con indentación y borde lateral */}
+                  {/* Respuesta con indentación */}
                   <div className="flex gap-3 items-start">
                     <div className="w-[2px] bg-gray-800 ml-2.5 mt-1 self-stretch rounded-full"></div>
-                    <div className="flex-1 pb-2">
+                    <div className="flex-1 pb-2 overflow-hidden">
                       {renderRespuesta(item.respuesta)}
                     </div>
                   </div>

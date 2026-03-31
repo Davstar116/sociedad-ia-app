@@ -163,22 +163,22 @@ export default function PostulanteDetallePage() {
         <div className="bg-[#111111] border border-[#00baff]/30 rounded-3xl p-5 sm:p-6 shadow-[0_10px_40px_rgba(0,186,255,0.05)] relative overflow-hidden mb-8">
           <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#0051ff] to-[#00baff]"></div>
           
-          <div className="flex items-start gap-3 sm:gap-4 mb-5 mt-2">
+          {/* ✅ FECHA Y HORA ALINEADA A LA ESQUINA SUPERIOR DERECHA */}
+          {(diaEntrevista && fechaEntrevista && horaEntrevista) && (
+            <div className="flex justify-end mb-2">
+              <span className="px-2.5 py-1.5 bg-[#0051ff]/10 border border-[#0051ff]/30 text-[#00baff] text-[9px] font-black uppercase tracking-widest rounded-lg">
+                📅 {diaEntrevista} {fechaEntrevista} Abr • ⏰ {horaEntrevista}
+              </span>
+            </div>
+          )}
+          
+          <div className="flex items-start gap-3 sm:gap-4 mb-5">
             <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-tr from-[#0051ff]/20 to-[#00baff]/20 flex items-center justify-center text-[#00baff] text-2xl border border-[#00baff]/20 shrink-0 shadow-inner mt-1">
               👤
             </div>
             
             <div className="flex-1 overflow-hidden">
-              {/* ✅ FECHA Y NOMBRE EN LA MISMA LÍNEA */}
-              <div className="flex items-center gap-2 mb-1">
-                {(diaEntrevista && fechaEntrevista && horaEntrevista) && (
-                  <span className="px-2 py-1 bg-[#0051ff]/10 border border-[#0051ff]/30 text-[#00baff] text-[8px] sm:text-[9px] font-black uppercase tracking-widest rounded-md shrink-0">
-                    📅 {diaEntrevista} {fechaEntrevista} • ⏰ {horaEntrevista}
-                  </span>
-                )}
-                <h2 className="text-lg sm:text-2xl font-black text-white leading-tight truncate">{nombre}</h2>
-              </div>
-              
+              <h2 className="text-lg sm:text-2xl font-black text-white leading-tight truncate mb-1">{nombre}</h2>
               <p className="text-gray-400 text-[10px] sm:text-xs font-bold uppercase tracking-widest mb-3 truncate">{carrera}</p>
               
               {/* NÚCLEOS */}
@@ -218,7 +218,7 @@ export default function PostulanteDetallePage() {
           </div>
         </div>
 
-        {/* ✅ BLOQUE UNIFICADO: PERFIL DEL CANDIDATO (Aportación -> Expectativas) */}
+        {/* ✅ BLOQUE UNIFICADO: PERFIL DEL CANDIDATO */}
         {bloqueGeneral.length > 0 && (
           <div className="bg-[#111111] border border-gray-800 rounded-3xl p-5 sm:p-6 mb-8 shadow-sm">
             <div className="flex items-center gap-2 mb-6 pb-4 border-b border-gray-800">

@@ -120,7 +120,7 @@ export default function PostulanteDetallePage() {
         </div>
 
         {/* RESPUESTAS DEL FORMULARIO DINÁMICAS */}
-        <h3 className="text-sm font-bold text-gray-300 uppercase tracking-wider mb-4 px-2">Información del Registro</h3>
+        <h3 className="text-sm font-bold text-gray-300 uppercase tracking-wider mb-4 px-2">Respuestas del Registro</h3>
         
         <div className="flex flex-col gap-4 mb-8">
           {respuestasExtra.map(([pregunta, respuesta], idx) => (

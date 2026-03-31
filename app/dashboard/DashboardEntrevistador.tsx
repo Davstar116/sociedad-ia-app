@@ -16,7 +16,7 @@ export default function DashboardEntrevistador() {
   
   const [activeTab, setActiveTab] = useState("panel");
   
-  // ✅ ESTADOS DEL HORARIO Y BLOQUEO
+  // ESTADOS DEL HORARIO Y BLOQUEO
   const [semana, setSemana] = useState(1);
   const [disponibilidad, setDisponibilidad] = useState<string[]>([]);
   const [isSaving, setIsSaving] = useState(false);
@@ -24,7 +24,7 @@ export default function DashboardEntrevistador() {
   const [isLoadingSchedule, setIsLoadingSchedule] = useState(true);
   const [isLocked, setIsLocked] = useState(false);
   
-  // ✅ ESTADO BLOQUEO GLOBAL
+  // ESTADO BLOQUEO GLOBAL
   const [isGlobalLockActive, setIsGlobalLockActive] = useState(false);
   
   // ESTADO PARA EL MODAL DE CONFIRMACIÓN
@@ -33,6 +33,10 @@ export default function DashboardEntrevistador() {
   // ESTADOS PARA CURSOS
   const [cursos, setCursos] = useState<any[]>([]);
   const [isLoadingCursos, setIsLoadingCursos] = useState(false);
+
+  // ✅ ESTADOS PARA MIS ENTREVISTAS ASIGNADAS
+  const [misEntrevistas, setMisEntrevistas] = useState<any[]>([]);
+  const [isLoadingEntrevistas, setIsLoadingEntrevistas] = useState(false);
   
   const hasLoadedSchedule = useRef(false);
   const { data: session, status } = useSession();
@@ -84,7 +88,6 @@ export default function DashboardEntrevistador() {
     }
   };
 
-  // ✅ FUNCIÓN PARA LEER EL ESTADO GLOBAL AL ENTRAR
   const checkGlobalLock = async () => {
     try {
       const res = await fetch("/api/admin/toggle-lock");
@@ -95,13 +98,37 @@ export default function DashboardEntrevistador() {
     }
   };
 
+  // ✅ FUNCIÓN PARA CARGAR LAS ENTREVISTAS ASIGNADAS
+  const fetchMisEntrevistas = async () => {
+    if (!session?.user?.name) return;
+    setIsLoadingEntrevistas(true);
+    try {
+      const res = await fetch(`/api/entrevistas/mis-asignaciones?entrevistador=${encodeURIComponent(session.user.name)}`);
+      const data = await res.json();
+      if (data.success) {
+        setMisEntrevistas(data.entrevistas);
+      }
+    } catch (error) {
+      console.error("Error al cargar mis entrevistas:", error);
+    } finally {
+      setIsLoadingEntrevistas(false);
+    }
+  };
+
   useEffect(() => {
     if (status === "authenticated") {
       fetchNotificaciones();
       cargarHorario();
-      checkGlobalLock(); // ✅ SE LLAMA AQUÍ
+      checkGlobalLock();
     }
   }, [status, session]);
+
+  // ✅ DISPARAMOS LA BÚSQUEDA DE ENTREVISTAS AL ENTRAR AL PANEL
+  useEffect(() => {
+    if (activeTab === "panel" && status === "authenticated") {
+      fetchMisEntrevistas();
+    }
+  }, [activeTab, status]);
 
   useEffect(() => {
     const initOneSignal = async () => {
@@ -121,7 +148,6 @@ export default function DashboardEntrevistador() {
     initOneSignal();
   }, [session]);
 
-  // FUNCIONES PARA CURSOS
   const getYouTubeEmbedUrl = (url: string) => {
     const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|shorts\/|watch\?v=|&v=)([^#&?]*).*/;
     const match = url.match(regExp);
@@ -167,7 +193,7 @@ export default function DashboardEntrevistador() {
   };
 
   const toggleSlot = (slotId: string) => {
-    if (isLocked || isGlobalLockActive) return; // ✅ EVITA CAMBIOS SI ESTÁ BLOQUEADO
+    if (isLocked || isGlobalLockActive) return; 
     setDisponibilidad((prev) => 
       prev.includes(slotId) ? prev.filter(id => id !== slotId) : [...prev, slotId]
     );
@@ -358,7 +384,6 @@ export default function DashboardEntrevistador() {
           </main>
         );
 
-      // NUEVA PESTAÑA DE CURSOS
       case "cursos":
         return (
           <main className="pt-24 pb-28 px-5 max-w-lg mx-auto min-h-screen animate-in fade-in duration-300">
@@ -421,22 +446,65 @@ export default function DashboardEntrevistador() {
       case "panel":
       default:
         return (
-          <main className="pt-24 pb-28 px-5 max-w-lg mx-auto min-h-screen flex flex-col gap-6 animate-in fade-in duration-500">
-            <div className="bg-[#111111] border border-gray-800 rounded-2xl p-6 shadow-xl relative overflow-hidden">
+          <main className="pt-24 pb-32 px-5 max-w-lg mx-auto min-h-screen flex flex-col gap-6 animate-in fade-in duration-500">
+            <div className="bg-[#111111] border border-gray-800 rounded-2xl p-6 shadow-xl relative overflow-hidden shrink-0">
               <div className="absolute top-0 left-0 w-1 h-full bg-[#00baff]"></div>
               <h2 className="text-xl font-bold mb-1">Hola, {primerNombre} 👋</h2>
-              <p className="text-sm text-gray-400 mb-5">Bienvenido a tu panel de Entrevistador SIAFI.</p>
-              
-              <div className="bg-[#0a0a0a] border border-gray-800 rounded-xl p-4 flex items-center justify-between">
-                <div>
-                  <p className="text-xs text-gray-500 uppercase tracking-widest font-bold mb-1">Estatus</p>
-                  <p className="text-sm font-semibold text-[#00baff]">Listo para evaluar</p>
-                </div>
-                <div className="w-10 h-10 rounded-full bg-[#00baff]/10 flex items-center justify-center text-xl shadow-[0_0_15px_rgba(0,186,255,0.2)]">
-                  📋
-                </div>
-              </div>
+              <p className="text-sm text-gray-400">Aquí tienes tus entrevistas programadas.</p>
             </div>
+
+            {/* ✅ TARJETAS DE ENTREVISTAS */}
+            {isLoadingEntrevistas ? (
+              <div className="flex flex-col items-center justify-center py-10 opacity-50">
+                <div className="w-8 h-8 border-2 border-[#00baff] border-t-transparent rounded-full animate-spin mb-3"></div>
+                <p className="text-xs text-gray-400 font-bold uppercase tracking-widest">Cargando agenda...</p>
+              </div>
+            ) : misEntrevistas.length === 0 ? (
+              <div className="bg-[#111111] border border-gray-800 rounded-2xl p-8 text-center shadow-xl">
+                <div className="text-4xl mb-4 text-[#00baff] opacity-50">☕</div>
+                <p className="text-gray-400 text-sm">No tienes entrevistas asignadas por el momento.</p>
+                <p className="text-[10px] text-gray-500 mt-2 uppercase tracking-widest">El sistema te notificará cuando tengas una.</p>
+              </div>
+            ) : (
+              <div className="flex flex-col gap-4">
+                <h3 className="text-sm font-bold text-gray-300 uppercase tracking-wider mb-2">Tus Próximas Citas ({misEntrevistas.length})</h3>
+                {misEntrevistas.map((entrevista, idx) => (
+                  <div key={idx} className="bg-[#111111] border border-gray-800 rounded-2xl overflow-hidden shadow-lg hover:border-[#00baff]/50 transition-all group">
+                    <div className="p-5">
+                      <div className="flex justify-between items-start mb-4">
+                        <div>
+                          <p className="text-[10px] text-[#00baff] uppercase tracking-widest font-bold mb-1">Candidato</p>
+                          <h3 className="text-lg font-bold text-white leading-tight">{entrevista.postulante}</h3>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-[10px] text-gray-500 uppercase tracking-widest font-bold mb-1">{entrevista.dia} {entrevista.fecha} Abr</p>
+                          <p className="text-sm font-black text-white">{entrevista.hora}</p>
+                        </div>
+                      </div>
+                      
+                      <div className="flex gap-2 mt-4 pt-4 border-t border-gray-800">
+                        {entrevista.meetLink && (
+                          <a 
+                            href={entrevista.meetLink} 
+                            target="_blank" 
+                            rel="noreferrer" 
+                            className="flex-1 py-3 bg-gray-800 hover:bg-gray-700 text-center text-white text-xs font-bold uppercase tracking-wider rounded-xl transition-colors flex items-center justify-center gap-2"
+                          >
+                            <span>📹</span> Meet
+                          </a>
+                        )}
+                        <Link 
+                          href={`/dashboard/entrevistador/postulante/${entrevista.idBloque}?email=${encodeURIComponent(entrevista.correoPostulante)}`} 
+                          className="flex-[2] py-3 bg-gradient-to-r from-[#0051ff] to-[#00baff] hover:from-[#00baff] hover:to-[#0051ff] text-center text-white text-xs font-black uppercase tracking-wider rounded-xl transition-all shadow-lg shadow-[#0051ff]/20 flex items-center justify-center gap-2 active:scale-95"
+                        >
+                          Ver Perfil Completo <span>→</span>
+                        </Link>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </main>
         );
     }

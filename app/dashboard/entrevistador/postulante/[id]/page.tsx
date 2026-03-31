@@ -76,9 +76,6 @@ export default function PostulanteDetallePage() {
   const nucleosArray = nucleosString.split(",").map(n => n.trim()).filter(Boolean);
   const cvLink = datosPersonales["CV"] || datosPersonales["Curriculum"] || Object.values(datosPersonales).find(v => v.startsWith("http") && v.includes("aws"));
 
-  // =========================================================
-  // LÓGICA DE AGRUPACIÓN (Aportación -> Expectativas)
-  // =========================================================
   const bloqueGeneral: Array<{pregunta: string, respuesta: string}> = [];
   const bloqueModulos: Array<{pregunta: string, respuesta: string}> = [];
   
@@ -98,9 +95,6 @@ export default function PostulanteDetallePage() {
     }
   });
 
-  // =========================================================
-  // RENDERIZADOR INTELIGENTE DE RESPUESTAS (ESTRELLAS Y LINKS)
-  // =========================================================
   const renderRespuesta = (texto: string) => {
     if (texto.startsWith("http://") || texto.startsWith("https://")) {
       return (
@@ -163,16 +157,17 @@ export default function PostulanteDetallePage() {
         <div className="bg-[#111111] border border-[#00baff]/30 rounded-3xl p-5 sm:p-6 shadow-[0_10px_40px_rgba(0,186,255,0.05)] relative overflow-hidden mb-8">
           <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#0051ff] to-[#00baff]"></div>
           
-          {/* ✅ FECHA Y HORA ALINEADA A LA ESQUINA SUPERIOR DERECHA */}
+          {/* ✅ FECHA Y HORA (AHORA EN ABSOLUTO PARA ASEGURAR POSICIÓN) */}
           {(diaEntrevista && fechaEntrevista && horaEntrevista) && (
-            <div className="flex justify-end mb-2">
-              <span className="px-2.5 py-1.5 bg-[#0051ff]/10 border border-[#0051ff]/30 text-[#00baff] text-[9px] font-black uppercase tracking-widest rounded-lg">
+            <div className="absolute top-4 right-4 sm:top-5 sm:right-5 z-10">
+              <span className="px-2 py-1 sm:px-2.5 sm:py-1.5 bg-[#0051ff]/10 border border-[#0051ff]/30 text-[#00baff] text-[8px] sm:text-[9px] font-black uppercase tracking-widest rounded-lg shadow-sm">
                 📅 {diaEntrevista} {fechaEntrevista} Abr • ⏰ {horaEntrevista}
               </span>
             </div>
           )}
           
-          <div className="flex items-start gap-3 sm:gap-4 mb-5">
+          {/* ✅ mt-8 en móvil evita que la fecha tape el nombre o los núcleos si es pantalla chiquita */}
+          <div className="flex items-start gap-3 sm:gap-4 mb-5 mt-8 sm:mt-2">
             <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-tr from-[#0051ff]/20 to-[#00baff]/20 flex items-center justify-center text-[#00baff] text-2xl border border-[#00baff]/20 shrink-0 shadow-inner mt-1">
               👤
             </div>
@@ -181,7 +176,6 @@ export default function PostulanteDetallePage() {
               <h2 className="text-lg sm:text-2xl font-black text-white leading-tight truncate mb-1">{nombre}</h2>
               <p className="text-gray-400 text-[10px] sm:text-xs font-bold uppercase tracking-widest mb-3 truncate">{carrera}</p>
               
-              {/* NÚCLEOS */}
               <div className="flex flex-wrap gap-1.5">
                 {nucleosArray.map((nucleo, idx) => (
                   <span key={idx} className="px-2 py-1 bg-[#00baff]/10 border border-[#00baff]/30 text-[#00baff] text-[9px] font-black uppercase tracking-wider rounded-md">
@@ -198,7 +192,6 @@ export default function PostulanteDetallePage() {
               <p className="text-xl font-black text-white">{semestre}º</p>
             </div>
             
-            {/* BOTÓN CV */}
             {cvLink ? (
               <a 
                 href={cvLink} 
@@ -218,7 +211,7 @@ export default function PostulanteDetallePage() {
           </div>
         </div>
 
-        {/* ✅ BLOQUE UNIFICADO: PERFIL DEL CANDIDATO */}
+        {/* BLOQUE UNIFICADO */}
         {bloqueGeneral.length > 0 && (
           <div className="bg-[#111111] border border-gray-800 rounded-3xl p-5 sm:p-6 mb-8 shadow-sm">
             <div className="flex items-center gap-2 mb-6 pb-4 border-b border-gray-800">
@@ -237,7 +230,7 @@ export default function PostulanteDetallePage() {
           </div>
         )}
 
-        {/* ✅ MÓDULOS TÉCNICOS Y NÚCLEOS */}
+        {/* MÓDULOS TÉCNICOS Y NÚCLEOS */}
         {bloqueModulos.length > 0 && (
           <div className="mb-8">
             <div className="flex items-center gap-2 mb-6 px-2">
@@ -248,13 +241,10 @@ export default function PostulanteDetallePage() {
             <div className="bg-[#111111] border border-gray-800 rounded-3xl p-5 sm:p-6 shadow-sm flex flex-col gap-8">
               {bloqueModulos.map((item, idx) => (
                 <div key={idx} className="relative">
-                  {/* Pregunta */}
                   <div className="flex gap-3 items-start mb-3">
                     <span className="text-[#0051ff] font-black text-lg leading-none mt-0.5">Q.</span>
                     <p className="text-sm text-[#00baff] font-bold leading-relaxed">{item.pregunta}</p>
                   </div>
-                  
-                  {/* Respuesta con indentación */}
                   <div className="flex gap-3 items-start">
                     <div className="w-[2px] bg-gray-800 ml-2.5 mt-1 self-stretch rounded-full"></div>
                     <div className="flex-1 pb-2 overflow-hidden">

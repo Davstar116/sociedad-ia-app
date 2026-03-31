@@ -12,6 +12,11 @@ export default function PostulanteDetallePage() {
 
   const idBloque = params.id as string;
   const emailPostulante = searchParams.get("email");
+  
+  // ✅ Nuevos parámetros recibidos del Dashboard
+  const diaEntrevista = searchParams.get("dia");
+  const fechaEntrevista = searchParams.get("fecha");
+  const horaEntrevista = searchParams.get("hora");
 
   const [datosPersonales, setDatosPersonales] = useState<Record<string, string> | null>(null);
   const [respuestas, setRespuestas] = useState<Array<{pregunta: string, respuesta: string}>>([]);
@@ -65,47 +70,85 @@ export default function PostulanteDetallePage() {
     );
   }
 
-  // Extracción de datos para la tarjeta superior (ajusta los keys si son diferentes)
   const nombre = datosPersonales["Nombre Completo"] || "Candidato";
   const carrera = datosPersonales["Carrera"] || datosPersonales["Licenciatura"] || "Sin carrera registrada";
   const semestre = datosPersonales["Semestre"] || "N/A";
   const nucleosString = datosPersonales["Núcleo"] || "No especificado";
   const nucleosArray = nucleosString.split(",").map(n => n.trim()).filter(Boolean);
-  
-  // Buscar un CV o cualquier archivo adjunto o URL que contenga CV en el nombre de la columna
   const cvLink = datosPersonales["CV"] || datosPersonales["Curriculum"] || Object.values(datosPersonales).find(v => v.startsWith("http") && v.includes("aws"));
 
-  // ✅ FUNCIÓN PARA RENDERIZAR ESTRELLAS O TEXTO
+  // =========================================================
+  // LÓGICA DE AGRUPACIÓN (Aportación -> Expectativas)
+  // =========================================================
+  const bloqueGeneral: Array<{pregunta: string, respuesta: string}> = [];
+  const bloqueModulos: Array<{pregunta: string, respuesta: string}> = [];
+  
+  let enBloqueGeneral = false;
+  const tieneAportacion = respuestas.some(r => r.pregunta.toLowerCase().includes("aportación"));
+
+  respuestas.forEach(item => {
+    const pLower = item.pregunta.toLowerCase();
+    
+    // Inicia el bloque general
+    if (pLower.includes("aportación")) enBloqueGeneral = true;
+    
+    // Si estamos dentro del bloque (o es Expectativas directamente)
+    if (enBloqueGeneral || (!tieneAportacion && pLower.includes("expectativas"))) {
+      bloqueGeneral.push(item);
+      // Cierra el bloque al llegar a expectativas
+      if (pLower.includes("expectativas")) enBloqueGeneral = false;
+    } else {
+      bloqueModulos.push(item);
+    }
+  });
+
+  // =========================================================
+  // RENDERIZADOR INTELIGENTE DE RESPUESTAS (ESTRELLAS Y LINKS)
+  // =========================================================
   const renderRespuesta = (texto: string) => {
-    const isURL = texto.startsWith("http://") || texto.startsWith("https://");
-    if (isURL) {
+    // 1. Si es un Link
+    if (texto.startsWith("http://") || texto.startsWith("https://")) {
       return (
-        <a href={texto} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 mt-1 px-4 py-2.5 bg-gray-800 hover:bg-[#0051ff] text-white text-xs font-bold uppercase tracking-wider rounded-xl transition-all">
+        <a href={texto} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 mt-2 px-4 py-2 bg-gray-800 hover:bg-[#0051ff] text-white text-xs font-bold uppercase tracking-wider rounded-xl transition-all">
           <span>🔗</span> Abrir Enlace
         </a>
       );
     }
 
-    // Detectar si la respuesta es un número para calificar (Ej. "4" o "4/5")
-    const numMatch = texto.trim().match(/^(\d+)(?:\/\d+)?$/);
-    if (numMatch) {
-      const calificacion = parseInt(numMatch[1], 10);
-      // Asumimos escala de 5 (si es mayor a 5, mostramos escala de 10)
-      if (calificacion > 0 && calificacion <= 10) {
-        const maxStars = calificacion > 5 ? 10 : 5;
-        return (
-          <div className="flex gap-1 mt-1 text-lg drop-shadow-[0_0_5px_rgba(250,204,21,0.4)]">
-            {[...Array(maxStars)].map((_, i) => (
-              <span key={i} className={i < calificacion ? "text-yellow-400" : "text-gray-700"}>
-                ★
-              </span>
-            ))}
-            <span className="ml-2 text-xs text-gray-500 font-bold self-center">({calificacion}/{maxStars})</span>
-          </div>
-        );
-      }
+    // 2. Procesamiento multilínea para detectar habilidades (Ej. "Python: 4")
+    const lineas = texto.split('\n');
+    const esListaDeHabilidades = lineas.some(l => l.match(/^(.*?)(?:[:\-])?\s*([1-5])(?:\/5)?\s*$/i));
+
+    if (esListaDeHabilidades) {
+      return (
+        <div className="flex flex-col gap-2 mt-2">
+          {lineas.map((linea, i) => {
+            if (!linea.trim()) return null;
+            // Busca Texto seguido de un número del 1 al 5 al final
+            const match = linea.match(/^(.*?)(?:[:\-])?\s*([1-5])(?:\/5)?\s*$/i);
+            
+            if (match) {
+              const skill = match[1].trim() || "Habilidad";
+              const calificacion = parseInt(match[2], 10);
+              return (
+                <div key={i} className="flex justify-between items-center bg-[#0a0a0a] px-3 py-2.5 rounded-lg border border-gray-800/50">
+                  <span className="text-sm font-bold text-gray-200">{skill}</span>
+                  <div className="flex gap-1 text-[15px] drop-shadow-[0_0_6px_rgba(250,204,21,0.5)]">
+                    {[...Array(5)].map((_, j) => (
+                      <span key={j} className={j < calificacion ? "text-yellow-400" : "text-gray-800"}>★</span>
+                    ))}
+                  </div>
+                </div>
+              );
+            }
+            // Fallback si una línea no es número
+            return <p key={i} className="text-sm text-gray-300 leading-relaxed">{linea}</p>;
+          })}
+        </div>
+      );
     }
 
+    // 3. Texto normal
     return <p className="text-sm text-gray-300 leading-relaxed whitespace-pre-wrap">{texto}</p>;
   };
 
@@ -125,11 +168,20 @@ export default function PostulanteDetallePage() {
 
       <main className="pt-8 px-5 max-w-2xl mx-auto animate-in slide-in-from-bottom-8 fade-in duration-500">
         
-        {/* TARJETA PRINCIPAL DEL CANDIDATO (Rediseñada) */}
-        <div className="bg-[#111111] border border-[#00baff]/30 rounded-3xl p-6 shadow-[0_10px_40px_rgba(0,186,255,0.05)] relative overflow-hidden mb-8">
+        {/* TARJETA PRINCIPAL DEL CANDIDATO */}
+        <div className="bg-[#111111] border border-[#00baff]/30 rounded-3xl p-6 shadow-[0_10px_40px_rgba(0,186,255,0.05)] relative overflow-hidden mb-8 mt-4">
           <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#0051ff] to-[#00baff]"></div>
           
-          <div className="flex items-start gap-4 mb-5">
+          {/* ✅ BADGE DE FECHA Y HORA (ARRIBA A LA IZQUIERDA) */}
+          {(diaEntrevista && fechaEntrevista && horaEntrevista) && (
+            <div className="absolute top-4 left-6 bg-[#0051ff]/10 border border-[#0051ff]/30 px-3 py-1 rounded-full flex items-center gap-2">
+              <span className="text-[9px] uppercase tracking-widest text-[#00baff] font-bold">
+                📅 {diaEntrevista} {fechaEntrevista} Abr • ⏰ {horaEntrevista}
+              </span>
+            </div>
+          )}
+          
+          <div className="flex items-start gap-4 mb-5 mt-8">
             <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-[#0051ff]/20 to-[#00baff]/20 flex items-center justify-center text-[#00baff] text-2xl border border-[#00baff]/20 shrink-0 shadow-inner">
               👤
             </div>
@@ -137,7 +189,7 @@ export default function PostulanteDetallePage() {
               <h2 className="text-2xl font-black text-white leading-tight mb-1">{nombre}</h2>
               <p className="text-gray-400 text-xs font-bold uppercase tracking-widest mb-3">{carrera}</p>
               
-              {/* NÚCLEOS (Badges) */}
+              {/* NÚCLEOS */}
               <div className="flex flex-wrap gap-2">
                 {nucleosArray.map((nucleo, idx) => (
                   <span key={idx} className="px-2.5 py-1 bg-[#00baff]/10 border border-[#00baff]/30 text-[#00baff] text-[10px] font-black uppercase tracking-wider rounded-md">
@@ -148,7 +200,7 @@ export default function PostulanteDetallePage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3 mb-5">
+          <div className="grid grid-cols-2 gap-3 mb-2">
             <div className="bg-[#0a0a0a] border border-gray-800 rounded-xl p-3 flex flex-col justify-center items-center text-center">
               <p className="text-[10px] text-gray-500 uppercase tracking-widest font-bold mb-1">Semestre</p>
               <p className="text-xl font-black text-white">{semestre}º</p>
@@ -174,24 +226,52 @@ export default function PostulanteDetallePage() {
           </div>
         </div>
 
-        {/* RESPUESTAS DEL FORMULARIO (Contenido de Notion) */}
-        <div className="flex items-center gap-2 mb-4 px-2">
-          <span className="w-2 h-2 rounded-full bg-purple-500 animate-pulse"></span>
-          <h3 className="text-sm font-bold text-gray-300 uppercase tracking-wider">Respuestas del Postulante</h3>
-        </div>
-        
-        {respuestas.length === 0 ? (
-          <div className="bg-[#111111] border border-gray-800 rounded-2xl p-8 text-center">
-            <p className="text-gray-500 text-sm">El contenido del formulario no está disponible en la página de Notion.</p>
+        {/* ✅ BLOQUE UNIFICADO: PERFIL DEL CANDIDATO (Aportación -> Expectativas) */}
+        {bloqueGeneral.length > 0 && (
+          <div className="bg-[#111111] border border-gray-800 rounded-3xl p-6 mb-8 shadow-sm">
+            <div className="flex items-center gap-2 mb-6 pb-4 border-b border-gray-800">
+              <span className="w-2 h-2 rounded-full bg-purple-500"></span>
+              <h3 className="text-sm font-bold text-gray-300 uppercase tracking-wider">Perfil General</h3>
+            </div>
+            
+            <div className="flex flex-col gap-6">
+              {bloqueGeneral.map((item, idx) => (
+                <div key={idx}>
+                  <p className="text-xs text-purple-400 font-bold uppercase tracking-wider mb-2">{item.pregunta}</p>
+                  {renderRespuesta(item.respuesta)}
+                </div>
+              ))}
+            </div>
           </div>
-        ) : (
-          <div className="flex flex-col gap-4 mb-8">
-            {respuestas.map((item, idx) => (
-              <div key={idx} className="bg-[#111111] border border-gray-800 rounded-2xl p-5 hover:border-gray-700 transition-colors shadow-sm">
-                <p className="text-xs text-purple-400 font-bold uppercase tracking-wider mb-2 leading-relaxed">{item.pregunta}</p>
-                {renderRespuesta(item.respuesta)}
-              </div>
-            ))}
+        )}
+
+        {/* ✅ MÓDULOS TÉCNICOS Y NÚCLEOS (Con separación clara Q & A) */}
+        {bloqueModulos.length > 0 && (
+          <div className="mb-8">
+            <div className="flex items-center gap-2 mb-6 px-2">
+              <span className="w-2 h-2 rounded-full bg-[#00baff]"></span>
+              <h3 className="text-sm font-bold text-gray-300 uppercase tracking-wider">Evaluación de Núcleos</h3>
+            </div>
+            
+            <div className="bg-[#111111] border border-gray-800 rounded-3xl p-6 shadow-sm flex flex-col gap-8">
+              {bloqueModulos.map((item, idx) => (
+                <div key={idx} className="relative">
+                  {/* Pregunta */}
+                  <div className="flex gap-3 items-start mb-3">
+                    <span className="text-[#0051ff] font-black text-lg leading-none mt-0.5">Q.</span>
+                    <p className="text-sm text-[#00baff] font-bold leading-relaxed">{item.pregunta}</p>
+                  </div>
+                  
+                  {/* Respuesta con indentación y borde lateral */}
+                  <div className="flex gap-3 items-start">
+                    <div className="w-[2px] bg-gray-800 ml-2.5 mt-1 self-stretch rounded-full"></div>
+                    <div className="flex-1 pb-2">
+                      {renderRespuesta(item.respuesta)}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         )}
 

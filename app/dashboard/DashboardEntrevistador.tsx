@@ -494,9 +494,9 @@ export default function DashboardEntrevistador() {
                           </a>
                         )}
                         <Link 
-                          href={`/dashboard/entrevistador/postulante/${entrevista.idBloque}?email=${encodeURIComponent(entrevista.correoPostulante)}`} 
+                          href={`/dashboard/entrevistador/postulante/${entrevista.idBloque}?email=${encodeURIComponent(entrevista.correoPostulante)}&dia=${entrevista.dia}&fecha=${entrevista.fecha}&hora=${entrevista.hora}`} 
                           className="flex-[2] py-3 bg-gradient-to-r from-[#0051ff] to-[#00baff] hover:from-[#00baff] hover:to-[#0051ff] text-center text-white text-xs font-black uppercase tracking-wider rounded-xl transition-all shadow-lg shadow-[#0051ff]/20 flex items-center justify-center gap-2 active:scale-95"
-                        >
+                          >
                           Ver Perfil Completo <span>→</span>
                         </Link>
                       </div>

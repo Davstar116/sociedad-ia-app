@@ -54,7 +54,7 @@ export default function PostulanteDetallePage() {
     return (
       <div className="min-h-screen bg-[#0a0a0a] flex flex-col items-center justify-center px-5 text-center">
         <p className="text-red-500 text-5xl mb-4">⚠️</p>
-        <h2 className="text-xl font-bold text-white mb-2">Expediente No Encontrado</h2>
+        <h2 className="text-xl font-bold text-white mb-2">Registro No Encontrado</h2>
         <p className="text-gray-400 text-sm mb-6">No pudimos localizar los datos de este candidato en la base de registros.</p>
         <button onClick={() => router.back()} className="px-6 py-3 bg-gray-800 hover:bg-gray-700 text-white font-bold text-sm uppercase tracking-wider rounded-xl transition-all">
           Volver al Panel

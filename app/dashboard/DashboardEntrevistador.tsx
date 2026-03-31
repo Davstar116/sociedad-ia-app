@@ -450,7 +450,7 @@ export default function DashboardEntrevistador() {
             <div className="bg-[#111111] border border-gray-800 rounded-2xl p-6 shadow-xl relative overflow-hidden shrink-0">
               <div className="absolute top-0 left-0 w-1 h-full bg-[#00baff]"></div>
               <h2 className="text-xl font-bold mb-1">Hola, {primerNombre} 👋</h2>
-              <p className="text-sm text-gray-400">Aquí tienes tus entrevistas programadas.</p>
+              <p className="text-sm text-gray-400">Entrevistas programadas:</p>
             </div>
 
             {/* ✅ TARJETAS DE ENTREVISTAS */}

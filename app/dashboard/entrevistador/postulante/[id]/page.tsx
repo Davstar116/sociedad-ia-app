@@ -13,7 +13,8 @@ export default function PostulanteDetallePage() {
   const idBloque = params.id as string;
   const emailPostulante = searchParams.get("email");
 
-  const [datos, setDatos] = useState<Record<string, string> | null>(null);
+  const [datosPersonales, setDatosPersonales] = useState<Record<string, string> | null>(null);
+  const [respuestas, setRespuestas] = useState<Array<{pregunta: string, respuesta: string}>>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -29,7 +30,8 @@ export default function PostulanteDetallePage() {
         const res = await fetch(`/api/postulantes/detalle?email=${encodeURIComponent(emailPostulante)}`);
         const data = await res.json();
         if (data.success) {
-          setDatos(data.datos);
+          setDatosPersonales(data.datosPersonales);
+          setRespuestas(data.respuestasContenido);
         }
       } catch (error) {
         console.error("Error cargando el perfil", error);
@@ -50,7 +52,7 @@ export default function PostulanteDetallePage() {
     );
   }
 
-  if (!datos) {
+  if (!datosPersonales) {
     return (
       <div className="min-h-screen bg-[#0a0a0a] flex flex-col items-center justify-center px-5 text-center">
         <p className="text-red-500 text-5xl mb-4">⚠️</p>
@@ -63,14 +65,49 @@ export default function PostulanteDetallePage() {
     );
   }
 
-  const nombre = datos["Nombre Completo"] || "Candidato";
-  const carrera = datos["Carrera"] || datos["Licenciatura"] || "Sin carrera registrada";
-  const semestre = datos["Semestre"] || "-";
-  const celular = datos["Celular"] || datos["Teléfono"] || "Sin número";
+  // Extracción de datos para la tarjeta superior (ajusta los keys si son diferentes)
+  const nombre = datosPersonales["Nombre Completo"] || "Candidato";
+  const carrera = datosPersonales["Carrera"] || datosPersonales["Licenciatura"] || "Sin carrera registrada";
+  const semestre = datosPersonales["Semestre"] || "N/A";
+  const nucleosString = datosPersonales["Núcleo"] || "No especificado";
+  const nucleosArray = nucleosString.split(",").map(n => n.trim()).filter(Boolean);
   
-  // ✅ Solo ocultamos los datos de contacto que ya están en la tarjeta superior. Dejamos Carrera y Semestre para que se lean en la lista de abajo.
-  const camposExcluidos = ["Nombre Completo", "Correo electrónico", "Celular", "Teléfono"];
-  const respuestasExtra = Object.entries(datos).filter(([key]) => !camposExcluidos.includes(key) && key !== "Estatus" && key !== "ID");
+  // Buscar un CV o cualquier archivo adjunto o URL que contenga CV en el nombre de la columna
+  const cvLink = datosPersonales["CV"] || datosPersonales["Curriculum"] || Object.values(datosPersonales).find(v => v.startsWith("http") && v.includes("aws"));
+
+  // ✅ FUNCIÓN PARA RENDERIZAR ESTRELLAS O TEXTO
+  const renderRespuesta = (texto: string) => {
+    const isURL = texto.startsWith("http://") || texto.startsWith("https://");
+    if (isURL) {
+      return (
+        <a href={texto} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 mt-1 px-4 py-2.5 bg-gray-800 hover:bg-[#0051ff] text-white text-xs font-bold uppercase tracking-wider rounded-xl transition-all">
+          <span>🔗</span> Abrir Enlace
+        </a>
+      );
+    }
+
+    // Detectar si la respuesta es un número para calificar (Ej. "4" o "4/5")
+    const numMatch = texto.trim().match(/^(\d+)(?:\/\d+)?$/);
+    if (numMatch) {
+      const calificacion = parseInt(numMatch[1], 10);
+      // Asumimos escala de 5 (si es mayor a 5, mostramos escala de 10)
+      if (calificacion > 0 && calificacion <= 10) {
+        const maxStars = calificacion > 5 ? 10 : 5;
+        return (
+          <div className="flex gap-1 mt-1 text-lg drop-shadow-[0_0_5px_rgba(250,204,21,0.4)]">
+            {[...Array(maxStars)].map((_, i) => (
+              <span key={i} className={i < calificacion ? "text-yellow-400" : "text-gray-700"}>
+                ★
+              </span>
+            ))}
+            <span className="ml-2 text-xs text-gray-500 font-bold self-center">({calificacion}/{maxStars})</span>
+          </div>
+        );
+      }
+    }
+
+    return <p className="text-sm text-gray-300 leading-relaxed whitespace-pre-wrap">{texto}</p>;
+  };
 
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white font-sans pb-24">
@@ -88,63 +125,75 @@ export default function PostulanteDetallePage() {
 
       <main className="pt-8 px-5 max-w-2xl mx-auto animate-in slide-in-from-bottom-8 fade-in duration-500">
         
-        {/* TARJETA PRINCIPAL DEL CANDIDATO */}
-        <div className="bg-[#111111] border border-[#00baff]/30 rounded-3xl p-6 shadow-[0_10px_40px_rgba(0,186,255,0.05)] relative overflow-hidden mb-6">
+        {/* TARJETA PRINCIPAL DEL CANDIDATO (Rediseñada) */}
+        <div className="bg-[#111111] border border-[#00baff]/30 rounded-3xl p-6 shadow-[0_10px_40px_rgba(0,186,255,0.05)] relative overflow-hidden mb-8">
           <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#0051ff] to-[#00baff]"></div>
           
-          <div className="flex items-start gap-4 mb-6">
-            <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-[#0051ff]/20 to-[#00baff]/20 flex items-center justify-center text-[#00baff] text-2xl border border-[#00baff]/20 shrink-0">
+          <div className="flex items-start gap-4 mb-5">
+            <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-[#0051ff]/20 to-[#00baff]/20 flex items-center justify-center text-[#00baff] text-2xl border border-[#00baff]/20 shrink-0 shadow-inner">
               👤
             </div>
-            <div>
+            <div className="flex-1">
               <h2 className="text-2xl font-black text-white leading-tight mb-1">{nombre}</h2>
-              <p className="text-[#00baff] text-xs font-bold uppercase tracking-widest">{carrera}</p>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div className="bg-[#0a0a0a] border border-gray-800 rounded-xl p-3">
-              <p className="text-[10px] text-gray-500 uppercase tracking-widest font-bold mb-1">Correo Electrónico</p>
-              <p className="text-xs text-gray-200 truncate" title={emailPostulante || ""}>{emailPostulante}</p>
-            </div>
-            <div className="bg-[#0a0a0a] border border-gray-800 rounded-xl p-3">
-              <p className="text-[10px] text-gray-500 uppercase tracking-widest font-bold mb-1">Teléfono</p>
-              <p className="text-xs text-gray-200">{celular}</p>
-            </div>
-            <div className="bg-[#0a0a0a] border border-gray-800 rounded-xl p-3">
-              <p className="text-[10px] text-gray-500 uppercase tracking-widest font-bold mb-1">Semestre</p>
-              <p className="text-xs text-gray-200">{semestre}</p>
-            </div>
-          </div>
-        </div>
-
-        {/* RESPUESTAS DEL FORMULARIO DINÁMICAS */}
-        <h3 className="text-sm font-bold text-gray-300 uppercase tracking-wider mb-4 px-2">Información del Registro</h3>
-        
-        <div className="flex flex-col gap-4 mb-8">
-          {respuestasExtra.map(([pregunta, respuesta], idx) => {
-            // ✅ DETECTAMOS SI LA RESPUESTA ES UN LINK (Ej. CV, GitHub, Portafolio)
-            const esURL = respuesta.startsWith("http://") || respuesta.startsWith("https://");
-
-            return (
-              <div key={idx} className="bg-[#111111] border border-gray-800 rounded-2xl p-5 hover:border-gray-700 transition-colors">
-                <p className="text-xs text-[#00baff] font-bold uppercase tracking-wider mb-2 leading-relaxed">{pregunta}</p>
-                {esURL ? (
-                  <a 
-                    href={respuesta} 
-                    target="_blank" 
-                    rel="noreferrer" 
-                    className="inline-flex items-center gap-2 mt-1 px-4 py-2.5 bg-gray-800 hover:bg-gray-700 text-white text-xs font-bold uppercase tracking-wider rounded-xl transition-all"
-                  >
-                    <span>📄</span> Abrir Documento / Enlace
-                  </a>
-                ) : (
-                  <p className="text-sm text-gray-300 leading-relaxed whitespace-pre-wrap">{respuesta}</p>
-                )}
+              <p className="text-gray-400 text-xs font-bold uppercase tracking-widest mb-3">{carrera}</p>
+              
+              {/* NÚCLEOS (Badges) */}
+              <div className="flex flex-wrap gap-2">
+                {nucleosArray.map((nucleo, idx) => (
+                  <span key={idx} className="px-2.5 py-1 bg-[#00baff]/10 border border-[#00baff]/30 text-[#00baff] text-[10px] font-black uppercase tracking-wider rounded-md">
+                    {nucleo}
+                  </span>
+                ))}
               </div>
-            );
-          })}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3 mb-5">
+            <div className="bg-[#0a0a0a] border border-gray-800 rounded-xl p-3 flex flex-col justify-center items-center text-center">
+              <p className="text-[10px] text-gray-500 uppercase tracking-widest font-bold mb-1">Semestre</p>
+              <p className="text-xl font-black text-white">{semestre}º</p>
+            </div>
+            
+            {/* BOTÓN CV */}
+            {cvLink ? (
+              <a 
+                href={cvLink} 
+                target="_blank" 
+                rel="noreferrer"
+                className="bg-gradient-to-br from-gray-800 to-[#1a1a1a] hover:from-[#0051ff]/40 hover:to-[#00baff]/40 border border-gray-700 hover:border-[#00baff]/50 rounded-xl p-3 flex flex-col justify-center items-center text-center transition-all group"
+              >
+                <span className="text-xl mb-1 group-hover:scale-110 transition-transform">📄</span>
+                <p className="text-[10px] text-white uppercase tracking-widest font-bold">Ver Currículum</p>
+              </a>
+            ) : (
+              <div className="bg-[#0a0a0a] border border-gray-900 opacity-50 rounded-xl p-3 flex flex-col justify-center items-center text-center cursor-not-allowed">
+                <span className="text-xl mb-1 grayscale">📄</span>
+                <p className="text-[10px] text-gray-600 uppercase tracking-widest font-bold">Sin CV</p>
+              </div>
+            )}
+          </div>
         </div>
+
+        {/* RESPUESTAS DEL FORMULARIO (Contenido de Notion) */}
+        <div className="flex items-center gap-2 mb-4 px-2">
+          <span className="w-2 h-2 rounded-full bg-purple-500 animate-pulse"></span>
+          <h3 className="text-sm font-bold text-gray-300 uppercase tracking-wider">Respuestas del Postulante</h3>
+        </div>
+        
+        {respuestas.length === 0 ? (
+          <div className="bg-[#111111] border border-gray-800 rounded-2xl p-8 text-center">
+            <p className="text-gray-500 text-sm">El contenido del formulario no está disponible en la página de Notion.</p>
+          </div>
+        ) : (
+          <div className="flex flex-col gap-4 mb-8">
+            {respuestas.map((item, idx) => (
+              <div key={idx} className="bg-[#111111] border border-gray-800 rounded-2xl p-5 hover:border-gray-700 transition-colors shadow-sm">
+                <p className="text-xs text-purple-400 font-bold uppercase tracking-wider mb-2 leading-relaxed">{item.pregunta}</p>
+                {renderRespuesta(item.respuesta)}
+              </div>
+            ))}
+          </div>
+        )}
 
         {/* BOTÓN DE EVALUACIÓN */}
         <div className="fixed bottom-0 left-0 w-full bg-[#111111]/90 backdrop-blur-md border-t border-gray-800 p-4 z-40 pb-safe">

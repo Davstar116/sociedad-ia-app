@@ -20,7 +20,6 @@ export async function GET(request: Request) {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        // ✅ Corregido: Ahora busca en la columna exacta "Correo electrónico"
         filter: { property: "Correo electrónico", email: { equals: email } }
       }),
       cache: 'no-store'
@@ -35,7 +34,7 @@ export async function GET(request: Request) {
     const rawProps = data.results[0].properties;
     const processedProps: Record<string, string> = {};
 
-    // Extractor dinámico: lee cualquier tipo de columna de Notion y saca su texto
+    // Extractor dinámico: lee cualquier tipo de columna de Notion y saca su texto o link
     for (const key in rawProps) {
       const prop = rawProps[key];
       let value = "";
@@ -48,7 +47,12 @@ export async function GET(request: Request) {
       else if (prop.type === "multi_select") value = prop.multi_select.map((s: any) => s.name).join(", ");
       else if (prop.type === "number") value = prop.number?.toString();
       else if (prop.type === "date" && prop.date) value = prop.date.start;
-      else if (prop.type === "url") value = prop.url;
+      else if (prop.type === "url" && prop.url) value = prop.url;
+      // ✅ NUEVO: Soporte para extraer el link del CV u otros archivos
+      else if (prop.type === "files" && prop.files.length > 0) {
+        const fileObj = prop.files[0];
+        value = fileObj.type === "file" ? fileObj.file.url : fileObj.external?.url || "";
+      }
       
       if (value && value.trim() !== "") {
         processedProps[key] = value;

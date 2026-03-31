@@ -63,14 +63,13 @@ export default function PostulanteDetallePage() {
     );
   }
 
-  // ✅ Corregido: Usar "Nombre Completo"
   const nombre = datos["Nombre Completo"] || "Candidato";
   const carrera = datos["Carrera"] || datos["Licenciatura"] || "Sin carrera registrada";
   const semestre = datos["Semestre"] || "-";
   const celular = datos["Celular"] || datos["Teléfono"] || "Sin número";
   
-  // ✅ Corregido: Excluir "Nombre Completo" y "Correo electrónico"
-  const camposExcluidos = ["Nombre Completo", "Correo electrónico", "Carrera", "Licenciatura", "Semestre", "Celular", "Teléfono"];
+  // ✅ Solo ocultamos los datos de contacto que ya están en la tarjeta superior. Dejamos Carrera y Semestre para que se lean en la lista de abajo.
+  const camposExcluidos = ["Nombre Completo", "Correo electrónico", "Celular", "Teléfono"];
   const respuestasExtra = Object.entries(datos).filter(([key]) => !camposExcluidos.includes(key) && key !== "Estatus" && key !== "ID");
 
   return (
@@ -123,12 +122,28 @@ export default function PostulanteDetallePage() {
         <h3 className="text-sm font-bold text-gray-300 uppercase tracking-wider mb-4 px-2">Información del Registro</h3>
         
         <div className="flex flex-col gap-4 mb-8">
-          {respuestasExtra.map(([pregunta, respuesta], idx) => (
-            <div key={idx} className="bg-[#111111] border border-gray-800 rounded-2xl p-5 hover:border-gray-700 transition-colors">
-              <p className="text-xs text-[#00baff] font-bold uppercase tracking-wider mb-2 leading-relaxed">{pregunta}</p>
-              <p className="text-sm text-gray-300 leading-relaxed whitespace-pre-wrap">{respuesta}</p>
-            </div>
-          ))}
+          {respuestasExtra.map(([pregunta, respuesta], idx) => {
+            // ✅ DETECTAMOS SI LA RESPUESTA ES UN LINK (Ej. CV, GitHub, Portafolio)
+            const esURL = respuesta.startsWith("http://") || respuesta.startsWith("https://");
+
+            return (
+              <div key={idx} className="bg-[#111111] border border-gray-800 rounded-2xl p-5 hover:border-gray-700 transition-colors">
+                <p className="text-xs text-[#00baff] font-bold uppercase tracking-wider mb-2 leading-relaxed">{pregunta}</p>
+                {esURL ? (
+                  <a 
+                    href={respuesta} 
+                    target="_blank" 
+                    rel="noreferrer" 
+                    className="inline-flex items-center gap-2 mt-1 px-4 py-2.5 bg-gray-800 hover:bg-gray-700 text-white text-xs font-bold uppercase tracking-wider rounded-xl transition-all"
+                  >
+                    <span>📄</span> Abrir Documento / Enlace
+                  </a>
+                ) : (
+                  <p className="text-sm text-gray-300 leading-relaxed whitespace-pre-wrap">{respuesta}</p>
+                )}
+              </div>
+            );
+          })}
         </div>
 
         {/* BOTÓN DE EVALUACIÓN */}

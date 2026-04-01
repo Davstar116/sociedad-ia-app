@@ -76,6 +76,10 @@ export default function PostulanteDetallePage() {
   const nucleosArray = nucleosString.split(",").map(n => n.trim()).filter(Boolean);
   const cvLink = datosPersonales["CV"] || datosPersonales["Curriculum"] || Object.values(datosPersonales).find(v => v.startsWith("http") && v.includes("aws"));
 
+  // ✅ Extracción de Notas Administrativas
+  const notasPresidencia = datosPersonales["Notas Presidencia"] || "Aún no hay comentarios registrados.";
+  const notasLider = datosPersonales["Notas Lider"] || "Aún no hay comentarios registrados.";
+
   const bloqueGeneral: Array<{pregunta: string, respuesta: string}> = [];
   const bloqueModulos: Array<{pregunta: string, respuesta: string}> = [];
   
@@ -157,7 +161,6 @@ export default function PostulanteDetallePage() {
         <div className="bg-[#111111] border border-[#00baff]/30 rounded-3xl p-5 sm:p-6 shadow-[0_10px_40px_rgba(0,186,255,0.05)] relative overflow-hidden mb-8">
           <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#0051ff] to-[#00baff]"></div>
           
-          {/* ✅ FECHA Y HORA (AHORA EN ABSOLUTO PARA ASEGURAR POSICIÓN) */}
           {(diaEntrevista && fechaEntrevista && horaEntrevista) && (
             <div className="absolute top-4 right-4 sm:top-5 sm:right-5 z-10">
               <span className="px-2 py-1 sm:px-2.5 sm:py-1.5 bg-[#0051ff]/10 border border-[#0051ff]/30 text-[#00baff] text-[8px] sm:text-[9px] font-black uppercase tracking-widest rounded-lg shadow-sm">
@@ -166,7 +169,6 @@ export default function PostulanteDetallePage() {
             </div>
           )}
           
-          {/* ✅ mt-8 en móvil evita que la fecha tape el nombre o los núcleos si es pantalla chiquita */}
           <div className="flex items-start gap-3 sm:gap-4 mb-5 mt-8 sm:mt-2">
             <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-tr from-[#0051ff]/20 to-[#00baff]/20 flex items-center justify-center text-[#00baff] text-2xl border border-[#00baff]/20 shrink-0 shadow-inner mt-1">
               👤
@@ -211,7 +213,7 @@ export default function PostulanteDetallePage() {
           </div>
         </div>
 
-        {/* BLOQUE UNIFICADO */}
+        {/* 1️⃣ BLOQUE UNIFICADO: PERFIL DEL CANDIDATO */}
         {bloqueGeneral.length > 0 && (
           <div className="bg-[#111111] border border-gray-800 rounded-3xl p-5 sm:p-6 mb-8 shadow-sm">
             <div className="flex items-center gap-2 mb-6 pb-4 border-b border-gray-800">
@@ -230,7 +232,39 @@ export default function PostulanteDetallePage() {
           </div>
         )}
 
-        {/* MÓDULOS TÉCNICOS Y NÚCLEOS */}
+        {/* 2️⃣ NUEVO BLOQUE: NOTAS ADMINISTRATIVAS */}
+        <div className="bg-[#111111] border border-gray-800 rounded-3xl p-5 sm:p-6 mb-8 shadow-sm">
+          <div className="flex items-center gap-2 mb-6 pb-4 border-b border-gray-800">
+            <span className="w-2 h-2 rounded-full bg-amber-500"></span>
+            <h3 className="text-sm font-bold text-gray-300 uppercase tracking-wider">Notas Internas</h3>
+          </div>
+          
+          <div className="flex flex-col gap-5">
+            <div>
+              <p className="text-xs text-amber-500 font-bold uppercase tracking-wider mb-2 flex items-center gap-2">
+                <span>👑</span> Presidencia
+              </p>
+              <div className="bg-[#0a0a0a] p-4 rounded-xl border border-gray-800/50">
+                <p className={`text-sm leading-relaxed whitespace-pre-wrap ${datosPersonales["Notas Presidencia"] ? 'text-gray-300' : 'text-gray-600 italic'}`}>
+                  {notasPresidencia}
+                </p>
+              </div>
+            </div>
+
+            <div>
+              <p className="text-xs text-amber-500 font-bold uppercase tracking-wider mb-2 flex items-center gap-2">
+                <span>🎯</span> Líder de Núcleo
+              </p>
+              <div className="bg-[#0a0a0a] p-4 rounded-xl border border-gray-800/50">
+                <p className={`text-sm leading-relaxed whitespace-pre-wrap ${datosPersonales["Notas Lider"] ? 'text-gray-300' : 'text-gray-600 italic'}`}>
+                  {notasLider}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* 3️⃣ MÓDULOS TÉCNICOS Y NÚCLEOS */}
         {bloqueModulos.length > 0 && (
           <div className="mb-8">
             <div className="flex items-center gap-2 mb-6 px-2">

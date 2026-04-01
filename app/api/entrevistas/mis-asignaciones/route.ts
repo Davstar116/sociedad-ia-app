@@ -53,7 +53,10 @@ export async function GET(request: Request) {
         hora: props["Hora"]?.rich_text[0]?.plain_text || "",
         postulante: props["Postulante"]?.rich_text[0]?.plain_text || "Candidato",
         correoPostulante: props["Correo Postulante"]?.email || "",
-        meetLink: props["Link Meet"]?.url || ""
+        meetLink: props["Link Meet"]?.url || "",
+        // ✅ NUEVOS CAMPOS AÑADIDOS PARA INTERCAMBIOS
+        solicitaIntercambio: props["Solicita Intercambio"]?.checkbox || false,
+        entrevistadorSaliente: props["Entrevistador Saliente"]?.rich_text[0]?.plain_text || ""
       };
     });
 

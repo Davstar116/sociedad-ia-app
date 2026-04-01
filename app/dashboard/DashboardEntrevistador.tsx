@@ -26,18 +26,34 @@ export default function DashboardEntrevistador() {
   const [isGlobalLockActive, setIsGlobalLockActive] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
 
-  // ESTADOS PARA CURSOS
   const [cursos, setCursos] = useState<any[]>([]);
   const [isLoadingCursos, setIsLoadingCursos] = useState(false);
 
-  // ESTADOS PARA MIS ENTREVISTAS
   const [misEntrevistas, setMisEntrevistas] = useState<any[]>([]);
   const [isLoadingEntrevistas, setIsLoadingEntrevistas] = useState(false);
   
-  // ✅ ESTADOS PARA INTERCAMBIOS
   const [intercambios, setIntercambios] = useState<any[]>([]);
   const [isLoadingIntercambios, setIsLoadingIntercambios] = useState(false);
   const [isProcessingSwap, setIsProcessingSwap] = useState(false);
+
+  // ✅ ESTADO DEL MODAL GENÉRICO PARA INTERCAMBIOS
+  const [modalInfo, setModalInfo] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    icon: string;
+    confirmText: string;
+    isError?: boolean;
+    onConfirm: () => void;
+  }>({
+    isOpen: false,
+    title: "",
+    message: "",
+    icon: "",
+    confirmText: "Confirmar",
+    isError: false,
+    onConfirm: () => {}
+  });
   
   const hasLoadedSchedule = useRef(false);
   const { data: session, status } = useSession();
@@ -63,9 +79,7 @@ export default function DashboardEntrevistador() {
         const res = await fetch(`/api/notifications?email=${session.user.email}`);
         const data = await res.json();
         if (data.notificaciones) setNotificaciones(data.notificaciones);
-      } catch (error) {
-        console.error("Error cargando notificaciones", error);
-      }
+      } catch (error) {}
     }
   };
 
@@ -82,11 +96,7 @@ export default function DashboardEntrevistador() {
         }
       }
       hasLoadedSchedule.current = true;
-    } catch (error) {
-      console.error("Error cargando horario", error);
-    } finally {
-      setIsLoadingSchedule(false);
-    }
+    } catch (error) {} finally { setIsLoadingSchedule(false); }
   };
 
   const checkGlobalLock = async () => {
@@ -94,9 +104,7 @@ export default function DashboardEntrevistador() {
       const res = await fetch("/api/admin/toggle-lock");
       const data = await res.json();
       setIsGlobalLockActive(data.isLocked);
-    } catch (error) {
-      console.error("Error revisando bloqueo global:", error);
-    }
+    } catch (error) {}
   };
 
   const fetchMisEntrevistas = async () => {
@@ -106,25 +114,16 @@ export default function DashboardEntrevistador() {
       const res = await fetch(`/api/entrevistas/mis-asignaciones?entrevistador=${encodeURIComponent(session.user.name)}`);
       const data = await res.json();
       if (data.success) setMisEntrevistas(data.entrevistas);
-    } catch (error) {
-      console.error("Error al cargar mis entrevistas:", error);
-    } finally {
-      setIsLoadingEntrevistas(false);
-    }
+    } catch (error) {} finally { setIsLoadingEntrevistas(false); }
   };
 
-  // ✅ FUNCIÓN PARA CARGAR INTERCAMBIOS PENDIENTES
   const fetchIntercambios = async () => {
     setIsLoadingIntercambios(true);
     try {
       const res = await fetch("/api/entrevistas/intercambios");
       const data = await res.json();
       if (data.success) setIntercambios(data.intercambios);
-    } catch (error) {
-      console.error("Error al cargar intercambios:", error);
-    } finally {
-      setIsLoadingIntercambios(false);
-    }
+    } catch (error) {} finally { setIsLoadingIntercambios(false); }
   };
 
   useEffect(() => {
@@ -140,40 +139,83 @@ export default function DashboardEntrevistador() {
     if (activeTab === "intercambios" && status === "authenticated") fetchIntercambios();
   }, [activeTab, status]);
 
-  // ✅ FUNCIÓN PARA SOLICITAR INTERCAMBIO (Botón Rojo)
-  const solicitarIntercambio = async (idBloque: string) => {
-    if (!confirm("¿Estás seguro de solicitar un intercambio para esta entrevista? Quedará en espera hasta que alguien la acepte.")) return;
+  // =========================================================
+  // ✅ LOGICA DE MODALES DE INTERCAMBIO
+  // =========================================================
+  
+  const handleSwapAction = async (action: "solicitar" | "cancelar" | "aceptar", idBloque: string, saliente?: string) => {
     setIsProcessingSwap(true);
     try {
-      await fetch("/api/entrevistas/intercambios", {
+      const res = await fetch("/api/entrevistas/intercambios", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "solicitar", idBloque, miNombre: session?.user?.name })
+        body: JSON.stringify({
+          action,
+          idBloque,
+          miNombre: session?.user?.name,
+          entrevistadorSaliente: saliente
+        })
       });
-      fetchMisEntrevistas(); // Recargamos para actualizar el botón
+      const data = await res.json();
+
+      if (!data.success) {
+        // En caso de error (ej. Si ya es el otro entrevistador)
+        setModalInfo({
+          isOpen: true,
+          title: "Acción Denegada",
+          message: data.error || "No se pudo procesar la solicitud.",
+          icon: "❌",
+          confirmText: "Entendido",
+          isError: true,
+          onConfirm: () => setModalInfo(prev => ({ ...prev, isOpen: false }))
+        });
+        setIsProcessingSwap(false);
+        return;
+      }
+
+      // ✅ RECARGA AUTOMÁTICA DE LA PÁGINA PARA ACTUALIZAR TODO
+      window.location.reload();
+      
     } catch (error) {
-      console.error("Error solicitando intercambio:", error);
-    } finally {
+      console.error("Error procesando intercambio:", error);
       setIsProcessingSwap(false);
     }
   };
 
-  // ✅ FUNCIÓN PARA ACEPTAR INTERCAMBIO (Pestaña Intercambios)
-  const aceptarIntercambio = async (idBloque: string, saliente: string) => {
-    if (!confirm(`¿Estás seguro de cubrir a ${saliente} en esta entrevista? Se agregará a tu agenda.`)) return;
-    setIsProcessingSwap(true);
-    try {
-      await fetch("/api/entrevistas/intercambios", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "aceptar", idBloque, miNombre: session?.user?.name, entrevistadorSaliente: saliente })
-      });
-      fetchIntercambios(); // Quitamos la tarjeta de la lista
-    } catch (error) {
-      console.error("Error aceptando intercambio:", error);
-    } finally {
-      setIsProcessingSwap(false);
-    }
+  const solicitarIntercambio = (idBloque: string) => {
+    setModalInfo({
+      isOpen: true,
+      title: "Solicitar Intercambio",
+      message: "¿Estás seguro de solicitar un intercambio? Tu entrevista quedará en el Sistema de Cambios hasta que alguien más la acepte.",
+      icon: "🔄",
+      confirmText: "Solicitar Intercambio",
+      isError: false,
+      onConfirm: () => handleSwapAction("solicitar", idBloque)
+    });
+  };
+
+  const cancelarIntercambio = (idBloque: string) => {
+    setModalInfo({
+      isOpen: true,
+      title: "Cancelar Solicitud",
+      message: "¿Deseas cancelar tu solicitud de intercambio? Recuperarás la entrevista y ya no será visible en el Sistema de Cambios.",
+      icon: "↩️",
+      confirmText: "Sí, Cancelar",
+      isError: false,
+      onConfirm: () => handleSwapAction("cancelar", idBloque)
+    });
+  };
+
+  const aceptarIntercambio = (idBloque: string, saliente: string) => {
+    setModalInfo({
+      isOpen: true,
+      title: "Aceptar Intercambio",
+      message: `¿Estás seguro de cubrir a ${saliente} en esta entrevista? Se agregará a tu agenda de forma inmediata.`,
+      icon: "✅",
+      confirmText: "Aceptar Entrevista",
+      isError: false,
+      onConfirm: () => handleSwapAction("aceptar", idBloque, saliente)
+    });
   };
 
   useEffect(() => {
@@ -390,9 +432,7 @@ export default function DashboardEntrevistador() {
           </main>
         );
 
-      // ✅ NUEVA PESTAÑA DE INTERCAMBIOS
       case "intercambios":
-        // Filtramos para no mostrar en el feed las entrevistas de las que ya eres dueño o de las que te quieres salir
         const intercambiosVisibles = intercambios.filter(ent => 
           ent.entrevistadorSaliente !== session?.user?.name && 
           ent.entrevistador1 !== session?.user?.name && 
@@ -403,7 +443,7 @@ export default function DashboardEntrevistador() {
           <main className="pt-24 pb-32 px-5 max-w-lg mx-auto min-h-screen animate-in fade-in duration-500">
             <div className="bg-[#111111] border border-gray-800 rounded-2xl p-6 shadow-xl relative overflow-hidden shrink-0 mb-6">
               <div className="absolute top-0 left-0 w-1 h-full bg-purple-500"></div>
-              <h2 className="text-xl font-bold mb-1">Mercado de Cambios 🔄</h2>
+              <h2 className="text-xl font-bold mb-1">Sistema de Cambios 🔄</h2>
               <p className="text-sm text-gray-400">Apoya a tus compañeros cubriendo entrevistas.</p>
             </div>
 
@@ -432,17 +472,16 @@ export default function DashboardEntrevistador() {
                       </div>
                     </div>
                     
-                    <div className="mb-4">
+                    <div className="mb-5">
                       <p className="text-[10px] text-gray-500 uppercase tracking-widest font-bold mb-1">Candidato a evaluar</p>
                       <h3 className="text-lg font-black text-white">{entrevista.postulante}</h3>
                     </div>
 
                     <button 
                       onClick={() => aceptarIntercambio(entrevista.idBloque, entrevista.entrevistadorSaliente)}
-                      disabled={isProcessingSwap}
                       className="w-full py-3 bg-purple-600/10 text-purple-400 hover:bg-purple-600 hover:text-white border border-purple-600/30 font-bold text-xs uppercase tracking-wider rounded-xl transition-all shadow-lg active:scale-95"
                     >
-                      {isProcessingSwap ? "Procesando..." : "✅ Aceptar y Cubrir Entrevista"}
+                      ✅ Aceptar y Cubrir Entrevista
                     </button>
                   </div>
                 ))}
@@ -490,34 +529,25 @@ export default function DashboardEntrevistador() {
                     
                     <div className="flex gap-2 mt-4 pt-4 border-t border-gray-800">
                       {entrevista.meetLink && (
-                        <a 
-                          href={entrevista.meetLink} 
-                          target="_blank" 
-                          rel="noreferrer" 
-                          className="flex-1 py-3 bg-gray-800 hover:bg-gray-700 text-center text-white text-xs font-bold uppercase tracking-wider rounded-xl transition-colors flex items-center justify-center gap-2"
-                        >
+                        <a href={entrevista.meetLink} target="_blank" rel="noreferrer" className="flex-1 py-3 bg-gray-800 hover:bg-gray-700 text-center text-white text-xs font-bold uppercase tracking-wider rounded-xl transition-colors flex items-center justify-center gap-2">
                           <span>📹</span> Meet
                         </a>
                       )}
-                      <Link 
-                        href={`/dashboard/entrevistador/postulante/${entrevista.idBloque}?email=${encodeURIComponent(entrevista.correoPostulante)}&dia=${entrevista.dia}&fecha=${entrevista.fecha}&hora=${entrevista.hora}`} 
-                        className="flex-[2] py-3 bg-gradient-to-r from-[#0051ff] to-[#00baff] hover:from-[#00baff] hover:to-[#0051ff] text-center text-white text-xs font-black uppercase tracking-wider rounded-xl transition-all shadow-lg shadow-[#0051ff]/20 flex items-center justify-center gap-2 active:scale-95"
-                      >
+                      <Link href={`/dashboard/entrevistador/postulante/${entrevista.idBloque}?email=${encodeURIComponent(entrevista.correoPostulante)}&dia=${entrevista.dia}&fecha=${entrevista.fecha}&hora=${entrevista.hora}`} className="flex-[2] py-3 bg-gradient-to-r from-[#0051ff] to-[#00baff] hover:from-[#00baff] hover:to-[#0051ff] text-center text-white text-xs font-black uppercase tracking-wider rounded-xl transition-all shadow-lg shadow-[#0051ff]/20 flex items-center justify-center gap-2 active:scale-95">
                         Ver Perfil <span>→</span>
                       </Link>
                     </div>
 
-                    {/* ✅ BOTÓN DE SOLICITAR INTERCAMBIO */}
                     <button 
-                      onClick={() => solicitarIntercambio(entrevista.idBloque)}
-                      disabled={entrevista.solicitaIntercambio || isProcessingSwap}
+                      onClick={() => entrevista.solicitaIntercambio ? cancelarIntercambio(entrevista.idBloque) : solicitarIntercambio(entrevista.idBloque)}
                       className={`w-full mt-3 py-2.5 rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-2 border ${
                         entrevista.solicitaIntercambio
-                          ? "bg-red-500/10 text-red-500 border-red-500/30 cursor-not-allowed opacity-60"
+                          ? "bg-orange-500/10 text-orange-500 border-orange-500/30 hover:bg-orange-500 hover:text-white active:scale-95"
                           : "bg-red-600/5 text-red-500 border-red-600/20 hover:bg-red-600 hover:text-white hover:border-red-600 active:scale-95"
                       }`}
                     >
-                      <span>🔄</span> {entrevista.solicitaIntercambio ? "Intercambio Solicitado (En Espera)" : "Intercambiar Entrevista"}
+                      <span>{entrevista.solicitaIntercambio ? "↩️" : "🔄"}</span> 
+                      {entrevista.solicitaIntercambio ? "Cancelar Solicitud de Cambio" : "Intercambiar Entrevista"}
                     </button>
                     
                   </div>
@@ -532,7 +562,6 @@ export default function DashboardEntrevistador() {
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white font-sans overflow-hidden">
       
-      {/* HEADER SUPERIOR */}
       <header className="fixed top-0 w-full h-16 bg-[#111111]/90 backdrop-blur-md border-b border-gray-800 z-40 flex items-center justify-between px-5">
         <button onClick={() => setIsNotifMenuOpen(true)} className="relative p-2 text-gray-400 hover:text-white transition-colors">
           <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -552,8 +581,8 @@ export default function DashboardEntrevistador() {
       </header>
 
       {/* OVERLAYS */}
-      {(isMenuOpen || isNotifMenuOpen || showConfirmModal) && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-40 transition-opacity" onClick={() => { setIsMenuOpen(false); setIsNotifMenuOpen(false); setShowConfirmModal(false); }} />
+      {(isMenuOpen || isNotifMenuOpen || showConfirmModal || modalInfo.isOpen) && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-40 transition-opacity" onClick={() => { setIsMenuOpen(false); setIsNotifMenuOpen(false); setShowConfirmModal(false); !isProcessingSwap && setModalInfo(prev => ({...prev, isOpen: false})); }} />
       )}
       
       {/* MODAL DE CONFIRMACIÓN DE HORARIO */}
@@ -561,14 +590,10 @@ export default function DashboardEntrevistador() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
           <div className="bg-[#111111] border border-[#0051ff]/30 rounded-3xl w-full max-w-sm shadow-2xl flex flex-col pointer-events-auto overflow-hidden animate-in zoom-in-95 duration-200">
             <div className="p-5 border-b border-gray-800 bg-[#0a0a0a] text-center">
-              <h3 className="text-white font-bold text-lg flex items-center justify-center gap-2">
-                <span className="text-[#00baff]">⚠️</span> Confirmar Horario
-              </h3>
+              <h3 className="text-white font-bold text-lg flex items-center justify-center gap-2"><span className="text-[#00baff]">⚠️</span> Confirmar Horario</h3>
             </div>
             <div className="p-6">
-              <p className="text-sm text-gray-300 leading-relaxed text-center mb-5">
-                ¿Estás seguro de que deseas guardar estos cambios en tu disponibilidad? Una vez guardado, tu horario quedará registrado en el sistema.
-              </p>
+              <p className="text-sm text-gray-300 leading-relaxed text-center mb-5">¿Estás seguro de que deseas guardar estos cambios en tu disponibilidad? Una vez guardado, tu horario quedará registrado en el sistema.</p>
               <div className="bg-[#00baff]/10 border border-[#00baff]/30 rounded-2xl p-4 text-center shadow-inner">
                 <p className="text-[#00baff] font-black text-2xl">{disponibilidad.length * 0.25} hrs</p>
                 <p className="text-[10px] text-gray-400 uppercase tracking-widest mt-1 font-bold">Total de Disponibilidad</p>
@@ -577,6 +602,44 @@ export default function DashboardEntrevistador() {
             <div className="p-4 border-t border-gray-800 bg-[#0a0a0a] flex gap-3">
               <button onClick={() => setShowConfirmModal(false)} className="flex-1 py-3.5 bg-gray-800 hover:bg-gray-700 text-white font-bold text-sm uppercase tracking-wider rounded-xl transition-all">Cancelar</button>
               <button onClick={guardarHorario} className="flex-1 py-3.5 bg-gradient-to-r from-[#0051ff] to-[#00baff] hover:from-[#00baff] hover:to-[#0051ff] text-white font-bold text-sm uppercase tracking-wider rounded-xl transition-all shadow-lg shadow-[#0051ff]/20 active:scale-95">Guardar</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ✅ MODAL GENÉRICO DEL SISTEMA DE CAMBIOS */}
+      {modalInfo.isOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
+          <div className="bg-[#111111] border border-[#0051ff]/30 rounded-3xl w-full max-w-sm shadow-2xl flex flex-col pointer-events-auto overflow-hidden animate-in zoom-in-95 duration-200">
+            <div className="p-5 border-b border-gray-800 bg-[#0a0a0a] text-center">
+              <h3 className="text-white font-bold text-lg flex items-center justify-center gap-2">
+                <span>{modalInfo.icon}</span> {modalInfo.title}
+              </h3>
+            </div>
+            <div className="p-6 text-center">
+              <p className="text-sm text-gray-300 leading-relaxed">{modalInfo.message}</p>
+            </div>
+            <div className="p-4 border-t border-gray-800 bg-[#0a0a0a] flex gap-3">
+              {!modalInfo.isError && (
+                <button 
+                  onClick={() => setModalInfo(prev => ({ ...prev, isOpen: false }))}
+                  disabled={isProcessingSwap}
+                  className="flex-1 py-3.5 bg-gray-800 hover:bg-gray-700 text-white font-bold text-sm uppercase tracking-wider rounded-xl transition-all disabled:opacity-50"
+                >
+                  Cancelar
+                </button>
+              )}
+              <button 
+                onClick={modalInfo.onConfirm}
+                disabled={isProcessingSwap}
+                className={`flex-1 py-3.5 text-white font-bold text-sm uppercase tracking-wider rounded-xl transition-all shadow-lg active:scale-95 disabled:opacity-50 ${
+                  modalInfo.isError 
+                    ? 'bg-red-600 hover:bg-red-500 shadow-red-600/20' 
+                    : 'bg-gradient-to-r from-[#0051ff] to-[#00baff] hover:from-[#00baff] hover:to-[#0051ff] shadow-[#0051ff]/20'
+                }`}
+              >
+                {isProcessingSwap ? "Procesando..." : modalInfo.confirmText}
+              </button>
             </div>
           </div>
         </div>
@@ -670,7 +733,6 @@ export default function DashboardEntrevistador() {
             <span className="text-[9px] font-medium tracking-wide">Cursos</span>
           </button>
 
-          {/* ✅ NUEVO BOTÓN: INTERCAMBIOS (Reemplaza a Calendario) */}
           <button onClick={() => setActiveTab("intercambios")} className={`flex flex-col items-center justify-center w-12 transition-colors ${activeTab === "intercambios" ? "text-purple-400" : "text-gray-400 hover:text-gray-200"}`}>
             <svg className="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />

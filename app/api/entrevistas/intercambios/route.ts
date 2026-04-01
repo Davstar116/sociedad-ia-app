@@ -50,13 +50,13 @@ export async function GET(request: Request) {
   }
 }
 
-// 2. POST / PATCH: Solicitar o Aceptar Intercambio
+// 2. POST: Solicitar, Cancelar o Aceptar Intercambio
 export async function POST(request: Request) {
   try {
     const { action, idBloque, miNombre, entrevistadorSaliente } = await request.json();
 
+    // 🔴 ACCIÓN: SOLICITAR (Poner en el mercado)
     if (action === "solicitar") {
-      // El entrevistador actual levanta la mano pidiendo un cambio
       await fetch(`https://api.notion.com/v1/pages/${idBloque}`, {
         method: "PATCH", headers: notionHeaders,
         body: JSON.stringify({
@@ -69,12 +69,33 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: true });
     } 
     
+    // 🟡 ACCIÓN: CANCELAR SOLICITUD (Arrepentirse y quitar del mercado)
+    else if (action === "cancelar") {
+      await fetch(`https://api.notion.com/v1/pages/${idBloque}`, {
+        method: "PATCH", headers: notionHeaders,
+        body: JSON.stringify({
+          properties: {
+            "Solicita Intercambio": { checkbox: false },
+            "Entrevistador Saliente": { rich_text: [] } // Lo vaciamos
+          }
+        })
+      });
+      return NextResponse.json({ success: true });
+    }
+    
+    // 🟢 ACCIÓN: ACEPTAR (Rescatar a un compañero)
     else if (action === "aceptar") {
-      // Alguien más acepta la entrevista. Hay que saber a quién reemplazar (Entrevistador 1 o 2)
-      const pageRes = await fetch(`https://api.notion.com/v1/pages/${idBloque}`, { method: "GET", headers: notionHeaders });
+      const pageRes = await fetch(`https://api.notion.com/v1/pages/${idBloque}`, { method: "GET", headers: notionHeaders, cache: 'no-store' });
       const pageData = await pageRes.json();
-      const e1 = pageData.properties["Entrevistador 1"]?.rich_text[0]?.plain_text;
+      const e1 = pageData.properties["Entrevistador 1"]?.rich_text[0]?.plain_text || "";
+      const e2 = pageData.properties["Entrevistador 2"]?.rich_text[0]?.plain_text || "";
       
+      // ✅ VALIDACIÓN CRÍTICA: Impedir que un evaluador acepte una entrevista donde ya está asignado
+      if (e1 === miNombre || e2 === miNombre) {
+        return NextResponse.json({ success: false, error: "Ya estás asignado a esta entrevista como el otro evaluador. No puedes ocupar ambos puestos." }, { status: 400 });
+      }
+
+      // Reemplazamos exactamente al que solicitó salir
       const columnaAReemplazar = (e1 === entrevistadorSaliente) ? "Entrevistador 1" : "Entrevistador 2";
 
       await fetch(`https://api.notion.com/v1/pages/${idBloque}`, {
@@ -83,7 +104,7 @@ export async function POST(request: Request) {
           properties: {
             [columnaAReemplazar]: { rich_text: [{ text: { content: miNombre } }] },
             "Solicita Intercambio": { checkbox: false },
-            "Entrevistador Saliente": { rich_text: [] } // Vaciamos el campo
+            "Entrevistador Saliente": { rich_text: [] }
           }
         })
       });

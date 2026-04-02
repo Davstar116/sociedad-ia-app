@@ -10,23 +10,23 @@ const FECHAS_S1 = [6, 7, 8, 9, 10, 11, 12];
 const FECHAS_S2 = [13, 14, 15, 16, 17, 18, 19];
 
 // =========================================================
-// BANCO DE PREGUNTAS SINTETIZADO DE LOS GUIONES OFICIALES
+// 🧠 BANCO DE PREGUNTAS (EXTRAÍDO ÍNTEGRO DE LOS PDFs)
 // =========================================================
 const GUIONES: Record<string, Record<string, string[]>> = {
   "Proyectos": {
-    "Relax (Rompehielo)": [
-      "1. Nombre.",
-      "2. Semestre y unidad académica.",
-      "3. ¿Cuál es y por qué elegiste tu carrera? (Metas y visión personal).",
-      "4. ¿Cuál es tu animal favorito? (Percepción personal sutil).",
-      "5. Hobbies e información variada."
+    "Relax": [
+      "1. Nombre",
+      "2. Semestre y unidad académica",
+      "3. ¿Cuál es y por qué elegiste tu carrera?: Metas y visión personal",
+      "4. ¿Cuál es tu animal favorito?: Percepción personal sutil",
+      "5. Hobbies: Información variada"
     ],
-    "Preguntas Personales": [
-      "1. ¿Cuál es tu mayor fortaleza? ¿Tu mayor debilidad? (Evaluar sinceridad, no se dice).",
-      "2. ¿Cuáles son tus habilidades? (Si responde fundamentando la habilidad, se le da un plus. Si no elabora más se le pregunta).",
+    "Preguntas personales": [
+      "1. ¿Cuál es tu mayor fortaleza? ¿Tu mayor debilidad? (No se dice: evaluar sinceridad)",
+      "2. ¿Cuáles son tus habilidades? (No se dice: Si la persona responde fundamentando la habilidad, se le da un plus. Si no elabora más se le pregunta.)",
       "3. ¿Cuál es tu superpoder?",
-      "4. ¿Cuál es el valor que más te distingue? (Si responde fundamentando el por qué, se le da un plus).",
-      "5. Supongamos que tienes que entregar dos trabajos a la misma hora, un trabajo personal importante y una parte de un trabajo en equipo, por procrastinar ahora solo tienes tiempo para hacer uno. ¿Qué es lo que harías? (Evaluar responsabilidad hacia el equipo y comunicación).",
+      "4. ¿Cuál es el valor que más te distingue? (No se dice: Si la persona responde fundamentando el por qué, se le da un plus.)",
+      "5. Supongamos que tienes que entregar dos trabajos a la misma hora, un trabajo personal importante y una parte de un trabajo en equipo, por procrastinar ahora solo tienes tiempo para hacer uno. ¿Qué es lo que harías? (No se dice: Evaluar las respuestas tomando en cuenta la responsabilidad hacia el equipo y la comunicación.)",
       "6. Cuéntanos una experiencia donde hayas asumido el rol de líder. ¿Cómo resultó?",
       "7. Tienes 3 proyectos finales y el proyecto de SIAFI, todos se entregan en 2 meses. ¿Cómo te organizas?",
       "8. ¿Consideras el trabajo remoto como una opción viable para el trabajo dentro de la sociedad?",
@@ -34,41 +34,41 @@ const GUIONES: Record<string, Record<string, string[]>> = {
     ],
     "Preguntas de SIAFI": [
       "1. ¿Cómo conociste a SIAFI?",
-      "2. ¿Nos sigues en redes sociales? a. ¿Has visto nuestras publicaciones y contenido? i. ¿Qué mejorarías de nuestras redes? (Evaluar interés y proactividad).",
-      "3. ¿Por qué de todas las asociaciones elegiste a SIAFI, que te animó?",
+      "2. ¿Nos sigues en redes sociales? (No se dice: Evaluar interés, filtro importante.) a. ¿Has visto nuestras publicaciones y contenido? i. ¿Qué mejorarías de nuestras redes? (No se dice: Proactividad y nosotros tomar nota.)",
+      "3. ¿Por qué de todas las asociaciones elegiste a SIAFI, que te animó? (No se dice: Pregunta para conocer el contexto en el que el público tiene a SIAFI, y evaluar su meta, ya sea aprender IA, mejorar sus habilidades blandas, o ambas.)",
       "4. ¿Conoces los proyectos que se realizaron en SIAFI en semestres pasados? ¿Cuál te interesó más?",
-      "5. ¿Tienes alguna idea para realizar dentro del núcleo de Proyectos? (Se evaluará si fundamenta la metodología que emplearía o las herramientas).",
+      "5. ¿Tienes alguna idea para realizar dentro del núcleo de Proyectos/Capacitación? (No se dice: Se evaluará si fundamenta la metodología que emplearía o las herramientas).",
       "6. ¿Qué podrías aportar a SIAFI y en particular a tu/s núcleo/s?",
       "7. ¿Qué esperas de unirte a SIAFI?",
       "8. ¿Cuánto tiempo le planeas dedicar a la sociedad?"
     ],
-    "Preguntas Técnicas": [
+    "Preguntas técnicas": [
       "1. Con tus propias palabras, ¿Nos puedes decir qué es la inteligencia artificial?",
-      "2. ¿Cómo describirías tus conocimientos y habilidades de inteligencia artificial? (Si son pocos o nulos, preguntar ¿Qué es lo que te gusta de la inteligencia artificial?).",
+      "2. ¿Cómo describirías tus conocimientos y habilidades de inteligencia artificial? a. (No se dice: Si son pocos o nulos, preguntar) ¿Qué es lo que te gusta de la inteligencia artificial?",
       "3. ¿Qué es lo que más te intriga de la inteligencia artificial de camino al futuro?",
       "4. ¿Qué aplicaciones conoces de la IA? Pueden ser aplicaciones de la vida diaria o aplicaciones más técnicas a la industria.",
       "5. Dentro de tus áreas de interés profesional, ¿te gustaría poder aplicar la IA en algún aspecto?"
     ],
     "Parte Práctica": [
-      "CASO A (Evaluación de código - 3 min): El candidato explicará el código que eligió presentar. Se espera que explique el propósito del código, su lógica, y cualquier decisión clave de diseño que haya tomado.",
-      "CASO B (Resolución de Problemas - Si no trae código): ¿Cómo resolverías el problema de encontrar el número más frecuente en una lista de números? (Respuesta esperada: Uso de un diccionario/mapa para contar la frecuencia, complejidad O(n)).",
-      "CASO C (Explicación de un Algoritmo - Si no trae código): ¿Puedes explicarnos cómo funciona el algoritmo de ordenamiento por burbuja (bubble sort)? (Respuesta esperada: Comparar pares adyacentes y los intercambia si están en orden incorrecto, complejidad O(n^2))."
+      "Evaluación técnica de codificación (3 minutos máximo): El candidato explicará el código que eligió para mostrarlo durante la entrevista. Se espera que explique el propósito del código, su lógica, y cualquier decisión clave de diseño que haya tomado.",
+      "Resolución de Problemas (Si no llevó código): ¿Cómo resolverías el problema de encontrar el número más frecuente en una lista de números? • Respuesta Esperada (No se dice): Una forma de resolver este problema es utilizando un diccionario o mapa. Recorrería la lista y usaría el diccionario para contar la frecuencia de cada número. La complejidad de este enfoque es O(n).",
+      "Explicación de un Algoritmo Básico (Si no llevó código): ¿Puedes explicarnos cómo funciona el algoritmo de ordenamiento por burbuja (bubble sort)? • Respuesta Esperada (No se dice): El algoritmo de ordenamiento por burbuja es un método sencillo para ordenar una lista. Funciona comparando pares adyacentes de elementos y los intercambia si están en el orden incorrecto."
     ]
   },
   "Capacitación": {
-    "Relax (Rompehielo)": [
-      "1. Nombre.",
-      "2. Semestre y unidad académica.",
-      "3. ¿Cuál es y por qué elegiste tu carrera? (Metas y visión personal).",
-      "4. ¿Cuál es tu animal favorito? (Percepción personal sutil).",
-      "5. Hobbies e información variada."
+    "Relax": [
+      "1. Nombre",
+      "2. Semestre y unidad académica",
+      "3. ¿Cuál es y por qué elegiste tu carrera?: Metas y visión personal",
+      "4. ¿Cuál es tu animal favorito?: Percepción personal sutil",
+      "5. Hobbies: Información variada"
     ],
-    "Preguntas Personales": [
-      "1. ¿Cuál es tu mayor fortaleza? ¿Tu mayor debilidad? (Evaluar sinceridad, no se dice).",
-      "2. ¿Cuáles son tus habilidades? (Si responde fundamentando la habilidad, se le da un plus. Si no elabora más se le pregunta).",
+    "Preguntas personales": [
+      "1. ¿Cuál es tu mayor fortaleza? ¿Tu mayor debilidad? (No se dice: evaluar sinceridad)",
+      "2. ¿Cuáles son tus habilidades? (No se dice: Si la persona responde fundamentando la habilidad, se le da un plus. Si no elabora más se le pregunta.)",
       "3. ¿Cuál es tu superpoder?",
-      "4. ¿Cuál es el valor que más te distingue? (Si responde fundamentando el por qué, se le da un plus).",
-      "5. Supongamos que tienes que entregar dos trabajos a la misma hora, un trabajo personal importante y una parte de un trabajo en equipo, por procrastinar ahora solo tienes tiempo para hacer uno. ¿Qué es lo que harías? (Evaluar responsabilidad hacia el equipo y comunicación).",
+      "4. ¿Cuál es el valor que más te distingue? (No se dice: Si la persona responde fundamentando el por qué, se le da un plus.)",
+      "5. Supongamos que tienes que entregar dos trabajos a la misma hora, un trabajo personal importante y una parte de un trabajo en equipo, por procrastinar ahora solo tienes tiempo para hacer uno. ¿Qué es lo que harías? (No se dice: Evaluar las respuestas tomando en cuenta la responsabilidad hacia el equipo y la comunicación.)",
       "6. Cuéntanos una experiencia donde hayas asumido el rol de líder. ¿Cómo resultó?",
       "7. Tienes 3 proyectos finales y el proyecto de SIAFI, todos se entregan en 2 meses. ¿Cómo te organizas?",
       "8. ¿Consideras el trabajo remoto como una opción viable para el trabajo dentro de la sociedad?",
@@ -76,81 +76,82 @@ const GUIONES: Record<string, Record<string, string[]>> = {
     ],
     "Preguntas de SIAFI": [
       "1. ¿Cómo conociste a SIAFI?",
-      "2. ¿Nos sigues en redes sociales? a. ¿Has visto nuestras publicaciones y contenido? i. ¿Qué mejorarías de nuestras redes? (Evaluar interés y proactividad).",
-      "3. ¿Por qué de todas las asociaciones elegiste a SIAFI, que te animó?",
+      "2. ¿Nos sigues en redes sociales? (No se dice: Evaluar interés, filtro importante.) a. ¿Has visto nuestras publicaciones y contenido? i. ¿Qué mejorarías de nuestras redes? (No se dice: Proactividad y nosotros tomar nota.)",
+      "3. ¿Por qué de todas las asociaciones elegiste a SIAFI, que te animó? (No se dice: Pregunta para conocer el contexto en el que el público tiene a SIAFI, y evaluar su meta, ya sea aprender IA, mejorar sus habilidades blandas, o ambas.)",
       "4. ¿Conoces los cursos o talleres que SIAFI ha impartido en semestres pasados? ¿Cuál te interesó más?",
-      "5. ¿Tienes alguna idea para realizar dentro del núcleo de Capacitación? (Se evaluará si fundamenta la metodología que emplearía o las herramientas).",
+      "5. ¿Tienes alguna idea para realizar dentro del núcleo de Capacitación? (No se dice: Se evaluará si fundamenta la metodología que emplearía o las herramientas).",
       "6. ¿Qué podrías aportar a SIAFI y en particular a tu/s núcleo/s?",
       "7. ¿Qué esperas de unirte a SIAFI?",
       "8. ¿Cuánto tiempo le planeas dedicar a la sociedad?"
     ],
-    "Preguntas Técnicas": [
+    "Preguntas técnicas": [
       "1. Con tus propias palabras, ¿Nos puedes decir qué es la inteligencia artificial?",
-      "2. ¿Cómo describirías tus conocimientos y habilidades de inteligencia artificial? (Si son pocos o nulos, preguntar ¿Qué es lo que te gusta de la inteligencia artificial?).",
+      "2. ¿Cómo describirías tus conocimientos y habilidades de inteligencia artificial? a. (No se dice: Si son pocos o nulos, preguntar) ¿Qué es lo que te gusta de la inteligencia artificial?",
       "3. ¿Qué es lo que más te intriga de la inteligencia artificial de camino al futuro?",
       "4. ¿Qué aplicaciones conoces de la IA? Pueden ser aplicaciones de la vida diaria o aplicaciones más técnicas a la industria.",
       "5. Dentro de tus áreas de interés profesional, ¿te gustaría poder aplicar la IA en algún aspecto?"
     ],
     "Parte Práctica": [
-      "CASO A (Explicación de código - 3 min): Por favor, explícanos el código que elegiste traer. Enséñanoslo como si fuéramos alumnos de tu curso, evaluaremos tu capacidad de transmitir conocimiento.",
-      "CASO B (Didáctica - Si no trajo código): Imagina que un alumno te pregunta cómo funciona una Red Neuronal Básica pero no sabe nada de matemáticas avanzadas. ¿Cómo se lo explicarías usando una analogía de la vida real?"
+      "Evaluación técnica de codificación (3 minutos máximo): El candidato explicará el código que eligió para mostrarlo durante la entrevista. Se espera que explique el propósito del código, su lógica, y cualquier decisión clave de diseño que haya tomado.",
+      "Resolución de Problemas (Si no llevó código): ¿Cómo resolverías el problema de encontrar el número más frecuente en una lista de números? • Respuesta Esperada (No se dice): Una forma de resolver este problema es utilizando un diccionario o mapa. Recorrería la lista y usaría el diccionario para contar la frecuencia de cada número. La complejidad de este enfoque es O(n).",
+      "Explicación de un Algoritmo Básico (Si no llevó código): ¿Puedes explicarnos cómo funciona el algoritmo de ordenamiento por burbuja (bubble sort)? • Respuesta Esperada (No se dice): El algoritmo de ordenamiento por burbuja es un método sencillo para ordenar una lista. Funciona comparando pares adyacentes de elementos y los intercambia si están en el orden incorrecto."
     ]
   },
   "Organización": {
     "Introducción y Preguntas Personales": [
-      "1. Nombre, semestre y carrera.",
-      "2. ¿Por qué elegiste tu carrera?",
-      "3. ¿Cuáles son tus hobbies?",
-      "4. ¿Cuáles son tus habilidades?",
-      "5. ¿Cuál es el valor que más te distingue? ¿Por qué?"
+      "Nombre, semestre y carrera",
+      "¿Por qué elegiste tú carrera?",
+      "¿Cuáles son tus hobbies?",
+      "¿Cuáles son tus habilidades?",
+      "¿Cuál es el valor que más te distingue? ¿Por qué?"
     ],
-    "Forma de Trabajo": [
-      "1. En organización trabajamos constantemente en equipo. ¿Cuáles crees que sean las claves para poder realizarlo de la mejor forma?",
-      "2. ¿Qué harías si surge un inconveniente con un miembro de tu equipo que frena el avance del trabajo asignado?",
-      "3. Si requieres dar avances del trabajo que has realizado a lo largo de los días ¿Cómo lo presentarías? Es decir, ¿qué elementos y material incluirías?",
-      "4. Debido a los diferentes horarios de los miembros, solemos trabajar a distancia. ¿Cómo te sientes con esta dinámica de trabajo?",
-      "5. En organización constantemente tenemos que hablar con directivos, profesores, patrocinadores y otros compañeros de la sociedad. ¿Te consideras alguien con facilidad de palabra?"
+    "Forma de trabajo": [
+      "En organización trabajamos constantemente en equipo. ¿Cuáles crees que sean las claves para poder realizarlo de la mejor forma?",
+      "¿Qué harías si surge un inconveniente con un miembro de tu equipo que frena el avance del trabajo asignado?",
+      "Si requieres dar avances del trabajo que has realizado a lo largo de los días ¿Cómo lo presentarías? Es decir, ¿qué elementos y material incluirías?",
+      "Debido a los diferentes horarios de los miembros, solemos trabajar a distancia. ¿Cómo te sientes con esta dinámica de trabajo?",
+      "En organización constantemente tenemos que hablar con directivos, profesores, patrocinadores y otros compañeros de la sociedad. ¿Te consideras alguien con facilidad de palabra?"
     ],
-    "Preguntas Técnicas": [
-      "1. Con tus propias palabras, ¿Nos puedes decir qué es la inteligencia artificial?",
-      "2. ¿Qué es lo que más te atrae de la inteligencia artificial de camino al futuro?",
-      "3. ¿Por qué te interesa profundizar e impulsar el desarrollo de la IA?"
+    "Preguntas de técnicas": [
+      "Con tus propias palabras, ¿Nos puedes decir qué es la inteligencia artificial?",
+      "¿Qué es lo que más te atrae de la inteligencia artificial de camino al futuro?",
+      "¿Por qué te interesa profundizar e impulsar el desarrollo de la IA?"
     ],
     "Preguntas de SIAFI": [
-      "1. ¿Cómo conociste a SIAFI?",
-      "2. En la facultad hay diversas asociaciones, ¿Por qué elegiste SIAFI?, ¿Por qué el núcleo de organización?",
-      "3. ¿Qué esperas de unirte a SIAFI?",
-      "4. ¿Qué crees que puedas aportar a la sociedad, en específico a organización?",
-      "5. ¿Cuánto tiempo crees que podrías dedicarle a la sociedad por semana?"
+      "¿Cómo conociste a SIAFI?",
+      "En la facultad hay diversas asociaciones, ¿Por qué elegiste SIAFI?, ¿Por qué el núcleo de organización?",
+      "¿Qué esperas de unirte a SIAFI?",
+      "¿Qué crees que puedas aportar a la sociedad, en específico a organización?",
+      "¿Cuánto tiempo crees que podrías dedicarle a la sociedad por semana?"
     ],
-    "Preguntas del Núcleo": [
-      "1. ¿Por qué te gustaría ingresar al núcleo de organización? Cuéntanos en detalle las razones.",
-      "2. ¿Cuál crees que es la base para una correcta organización? (Ya sea en la vida personal, escolar o laboral).",
-      "3. ¿Has coordinado algún equipo de trabajo o algún evento? Cuéntanos al respecto, no importa que sean pequeños o escolares.",
-      "4. ¿Ocupas alguna herramienta para organizarte? Mencionanos cuál o cuáles utilizas.",
-      "5. A la hora de organizar un evento, ¿cuál crees que es uno de los detalles que la mayoría de la gente olvida y puede hacer que el evento falle?"
+    "Preguntas del núcleo": [
+      "¿Por qué te gustaría ingresar al núcleo de organización?. Cuéntanos en detalle las razones.",
+      "¿Cuál crees que es la base para una correcta organización? (Ya sea en la vida personal, escolar o laboral)",
+      "¿Has coordinado algún equipo de trabajo o algún evento?. Cuéntanos al respecto, no importa que sean pequeños o escolares.",
+      "¿Ocupas alguna herramienta para organizarte?. Mencionanos cuál o cuáles utilizas",
+      "A la hora de organizar un evento, ¿cuál crees que es uno de los detalles que la mayoría de la gente olvida y puede hacer que el evento falle?"
     ],
     "Parte Práctica": [
-      "CASO PRÁCTICO 1: Imagina que eres parte del núcleo de Organización y estamos a una semana de nuestro evento de bienvenida. Un miembro de tu equipo, que tiene tareas urgentes asignadas, te deja en 'visto' durante tres días y no avanza. ¿Cómo manejas la situación para que el evento se lleve a cabo sin problemas?",
-      "CASO PRÁCTICO 2: ¿Qué harías si necesitas información urgente de algún otro núcleo (Difusión, Capacitación o Proyectos) para poder avanzar con un evento, pero no te están respondiendo los mensajes?"
+      "Imagina que eres parte del núcleo de Organización y estamos a una semana de nuestro evento de bienvenida. Un miembro de tu equipo, que tiene tareas urgentes asignadas, te deja en \"visto\" durante tres días y no avanza. ¿Cómo manejas la situación para que el evento se lleve a cabo sin problemas?",
+      "¿Qué harías si necesitas información urgente de algún otro núcleo (Difusión, Capacitación o Proyectos) para poder avanzar con un evento, pero no te están respondiendo los mensajes?"
     ]
   },
   "Difusión": {
-    "Relax (Rompehielo)": [
-      "1. Nombre.",
-      "2. Semestre y facultad a la que perteneces.",
-      "3. ¿Cuál es y por qué elegiste tu carrera?: Metas y visión personal.",
-      "4. ¿Cual es tu animal favorito?: Percepción personal sutil.",
-      "5. Hobbies: Información variada."
+    "Relax": [
+      "1. Nombre",
+      "2. Semestre y facultad a la que perteneces",
+      "3. ¿Cuál es y por qué elegiste tu carrera?: Metas y visión personal",
+      "4. ¿Cual es tu animal favorito?: Percepción personal sutil",
+      "5. Hobbies: Información variada"
     ],
-    "Preguntas Personales": [
-      "1. ¿Cuál es tu mayor fortaleza? ¿Tu mayor debilidad? (Sinceridad).",
-      "2. ¿Cuáles son tus habilidades? (Si responde fundamentando la habilidad, se le da un plus).",
+    "Preguntas personales": [
+      "1. ¿Cuál es tu mayor fortaleza? ¿Tu mayor debilidad?: Sinceridad",
+      "2. ¿Cuáles son tus habilidades? Si la persona responde fundamentando la habilidad, se le da un plus. Si no elabora más se le pregunta.",
       "3. ¿Cuál es tu superpoder?",
-      "4. ¿Cuál es el valor que más te distingue? (Si fundamenta el por qué, se le da un plus).",
+      "4. ¿Cuál es el valor que más te distingue? a. Si la persona responde fundamentando el por qué, se le da un plus.",
       "5. ¿Qué tan bueno eres para comunicar tus ideas?",
       "6. ¿Cuál es tu habilidad blanda más fuerte?",
-      "7. Supongamos que tienes que entregar dos trabajos a la misma hora, un trabajo personal importante y una parte de un trabajo en equipo, por procrastinar ahora solo tienes tiempo para hacer uno. ¿Qué es lo que harías?",
+      "7. Supongamos que tienes que entregar dos trabajos a la misma hora, un trabajo personal importante y una parte de un trabajo en equipo, por procrastinar ahora solo tienes tiempo para hacer uno. ¿Qué es lo que harías?: Evaluar las respuestas tomando en cuenta la responsabilidad hacia el equipo y la comunicación.",
       "8. ¿Qué tan cómodo te sientes trabajando en equipo?",
       "9. ¿Qué es lo que más valoras en el trabajo en equipo?",
       "10. Tienes 3 proyectos finales y el proyecto de SIAFI, todos se entregan en 2 meses. ¿Cómo te organizas?",
@@ -158,29 +159,30 @@ const GUIONES: Record<string, Record<string, string[]>> = {
     ],
     "Preguntas de SIAFI": [
       "1. ¿Cómo conociste a SIAFI?",
-      "2. ¿Nos sigues en redes sociales? a. ¿Has visto nuestras publicaciones y contenido? i. ¿Qué mejorarías de nuestras redes?",
-      "3. ¿Por qué de todas las asociaciones elegiste a SIAFI, que te animó?",
+      "2. ¿Nos sigues en redes sociales?: Evaluar interés, filtro importante. a. ¿Has visto nuestras publicaciones y contenido? i. ¿Qué mejorarías de nuestras redes?: Proactividad y nosotros tomar nota.",
+      "3. ¿Por qué de todas las asociaciones elegiste a SIAFI, que te animó? Pregunta para conocer el contexto en el que el público tiene a SIAFI, y evaluar su meta.",
       "4. ¿Conoces los proyectos que se realizaron en SIAFI en semestres pasados? ¿Cuál te interesó más?",
       "5. ¿Qué podrías aportar a SIAFI y en particular a tu/s núcleo/s?",
       "6. ¿Qué esperas de unirte a SIAFI?",
       "7. ¿Cuánto tiempo le planeas dedicar a la sociedad?"
     ],
-    "Preguntas Técnicas": [
+    "Preguntas técnicas": [
       "1. Con tus propias palabras, ¿Nos puedes decir qué es la inteligencia artificial?",
-      "2. ¿Cómo describirías tus conocimientos y habilidades de inteligencia artificial? (Si son pocos o nulos, preguntar ¿Qué es lo que te gusta de la inteligencia artificial?).",
+      "2. ¿Cómo describirías tus conocimientos y habilidades de inteligencia artificial? a. Si son pocos o nulos, preguntar ¿Qué es lo que te gusta de la inteligencia artificial?",
       "3. ¿Por qué te interesa difundir la IA?",
       "4. ¿Te consideras una persona creativa?",
       "5. Cuando te han pedido exponer un tema ¿cómo te sientes?",
       "6. ¿Has manejado algún tipo de red social antes? ¿Cuáles y con qué propósito?",
-      "7. ¿Cuál es tu red social favorita y por qué?",
+      "7. ¿Cuál es tu red social favorita y porque?",
       "8. ¿Has aplicado alguna estrategia de mercadotecnia en algún proyecto escolar o de trabajo?",
       "9. ¿Tienes alguna noción en diseño? ¿Cuál es?",
       "10. ¿Qué herramientas de edición de video o imagen sabes usar?"
     ],
     "Parte Práctica": [
-      "CASO PRÁCTICO 1: Supón que eres parte del núcleo de Difusión y estás encargado de promover un nuevo proyecto. Te enteras de que la campaña de promoción actual no está generando el interés esperado y las métricas están por debajo de lo previsto. ¿Qué pasos tomarías para mejorar la visibilidad y el alcance de la campaña? (Evaluar si identifica problemas, herramientas y mide el éxito).",
-      "CASO PRÁCTICO 2: Te asignaron elaborar una publicación para redes sociales sobre un evento importante. El día de la publicación, te das cuenta que el material gráfico casi no tiene interacción (nadie da like o comparte) y además hay un error menor en el texto. ¿Qué harías en ese momento para resolver de inmediato? ¿Qué medidas tomarías después para aprender y mejorar?",
-      "CASO PRÁCTICO 3: Tienes una semana de plazo para entregar un post de SIAFI. Sin embargo, a mitad de semana te das cuenta que también tienes proyectos propios y tareas de la escuela que requieren bastante tiempo. ¿Cómo organizarías tus actividades para cumplir sin descuidar la escuela? En caso de sentir que no alcanzarías a terminarlo, ¿qué pasos tomarías para asegurar que el equipo no se vea afectado?"
+      "Supón que eres parte del núcleo de Difusión y estás encargado de promover un nuevo proyecto. Te enteras de que la campaña de promoción actual no está generando el interés esperado y las métricas están por debajo de lo previsto. ¿Qué pasos tomarías para mejorar la visibilidad y el alcance de la campaña?",
+      "Supón que eres parte del equipo de Difusión y te asignaron elaborar una publicación para redes sociales sobre un evento importante de SIAFI. El día de la publicación, te das cuenta que el material gráfico que preparaste no está teniendo interacción (casi nadie le da like, comentar o compartir), y además detectamos que hay un error menor en el texto. ¿Qué harías en ese momento para resolver la situación de inmediato? ¿Qué medidas tomarías después para aprender de lo ocurrido y mejorar las próximas publicaciones?",
+      "Supón que formas parte de Difusión y se te asigna la creación de un post para redes sociales sobre un evento importante de SIAFI. Tienes una semana de plazo para entregarlo. Sin embargo, a mitad de semana te das cuenta que también tienes proyectos propios y tareas de la escuela que requieren bastante tiempo. ¿Cómo organizarías tus actividades para cumplir con la entrega del post sin descuidar tus responsabilidades académicas? En caso de sentir que no alcanzarías a terminarlo, ¿qué pasos tomarías para asegurar que el equipo no se vea afectado?",
+      "NO SE DICE (Guía de evaluación): ¿El candidato identifica adecuadamente los problemas en la campaña de promoción? ¿Proporciona el candidato un enfoque claro para ajustar la estrategia de promoción? ¿Considera el candidato herramientas y canales adicionales para mejorar la visibilidad del proyecto? ¿Cómo planea el candidato medir el éxito de las estrategias implementadas?"
     ]
   }
 };
@@ -248,7 +250,7 @@ export default function DashboardEntrevistador() {
       try {
         const res = await fetch(`/api/notifications?email=${session.user.email}`);
         const data = await res.json();
-        if (data.notificaciones) setNotificaciones(data.notificaciones);
+        if (data.notificaciones) setNotificaciones(Array.isArray(data.notificaciones) ? data.notificaciones : []);
       } catch (error) {}
     }
   };
@@ -260,9 +262,9 @@ export default function DashboardEntrevistador() {
       const res = await fetch(`/api/availability?email=${session.user.email}`);
       if (res.ok) {
         const data = await res.json();
-        if (data.horarios && data.horarios.length > 0) {
+        if (data.horarios && Array.isArray(data.horarios)) {
           setDisponibilidad(data.horarios);
-          setIsLocked(true); 
+          if (data.horarios.length > 0) setIsLocked(true); 
         }
       }
       hasLoadedSchedule.current = true;
@@ -273,7 +275,7 @@ export default function DashboardEntrevistador() {
     try {
       const res = await fetch("/api/admin/toggle-lock");
       const data = await res.json();
-      setIsGlobalLockActive(data.isLocked);
+      setIsGlobalLockActive(data.isLocked === true);
     } catch (error) {}
   };
 
@@ -283,7 +285,7 @@ export default function DashboardEntrevistador() {
     try {
       const res = await fetch(`/api/entrevistas/mis-asignaciones?entrevistador=${encodeURIComponent(session.user.name)}`);
       const data = await res.json();
-      if (data.success) setMisEntrevistas(data.entrevistas);
+      if (data.success) setMisEntrevistas(Array.isArray(data.entrevistas) ? data.entrevistas : []);
     } catch (error) {} finally { setIsLoadingEntrevistas(false); }
   };
 
@@ -292,7 +294,7 @@ export default function DashboardEntrevistador() {
     try {
       const res = await fetch("/api/entrevistas/intercambios");
       const data = await res.json();
-      if (data.success) setIntercambios(data.intercambios);
+      if (data.success) setIntercambios(Array.isArray(data.intercambios) ? data.intercambios : []);
     } catch (error) {} finally { setIsLoadingIntercambios(false); }
   };
 
@@ -302,7 +304,7 @@ export default function DashboardEntrevistador() {
       const res = await fetch(`/api/entrevistas/intercambios/alertas?entrevistador=${encodeURIComponent(session.user.name)}`);
       const data = await res.json();
       
-      if (data.success && data.alertas.length > 0) {
+      if (data.success && Array.isArray(data.alertas) && data.alertas.length > 0) {
         const alerta = data.alertas[0];
         setModalInfo({
           isOpen: true,
@@ -318,9 +320,7 @@ export default function DashboardEntrevistador() {
           }
         });
       }
-    } catch (error) {
-      console.error("Error verificando alertas:", error);
-    }
+    } catch (error) {}
   };
 
   useEffect(() => {
@@ -361,7 +361,6 @@ export default function DashboardEntrevistador() {
 
       window.location.reload();
     } catch (error) {
-      console.error("Error procesando intercambio:", error);
       setIsProcessingSwap(false);
     }
   };
@@ -415,14 +414,18 @@ export default function DashboardEntrevistador() {
       const res = await fetch("/api/cursos");
       if (res.ok) {
         const data = await res.json();
-        setCursos(data.cursos || []);
+        setCursos(Array.isArray(data.cursos) ? data.cursos : []);
       }
     } catch (error) {} finally { setIsLoadingCursos(false); }
   };
 
   useEffect(() => { if (activeTab === "cursos") fetchCursos(); }, [activeTab]);
 
-  const unreadCount = notificaciones.filter(n => !n.leida).length;
+  // ✅ GUARDAS DE SEGURIDAD EXTREMA PARA ARREGLOS
+  const safeNotificaciones = Array.isArray(notificaciones) ? notificaciones : [];
+  const unreadCount = safeNotificaciones.filter(n => !n.leida).length;
+  const safeMisEntrevistas = Array.isArray(misEntrevistas) ? misEntrevistas : [];
+  const safeIntercambios = Array.isArray(intercambios) ? intercambios : [];
 
   const marcarComoLeida = async (id: string, leidaActual: boolean) => {
     if (leidaActual) return; 
@@ -460,7 +463,7 @@ export default function DashboardEntrevistador() {
     } catch (error) {} finally { setIsSaving(false); }
   };
 
-  if (status === "loading") return <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center text-white animate-pulse">Cargando tu perfil...</div>;
+  if (status === "loading") return <div className="min-h-screen flex items-center justify-center text-purple-400 animate-pulse" style={{ backgroundColor: '#0a0a0a' }}>Cargando tu perfil...</div>;
 
   const userName = session?.user?.name || "Entrevistador";
   const userEmail = session?.user?.email || "Sin correo";
@@ -472,7 +475,7 @@ export default function DashboardEntrevistador() {
 
   const AvatarCircle = ({ size }: { size: string }) => (
     <div className={`${size} rounded-full p-[2px] shrink-0`} style={{ backgroundImage: 'linear-gradient(to top right, #9333ea, #c084fc)' }}>
-      <div className="w-full h-full rounded-full bg-[#111111] overflow-hidden flex items-center justify-center">
+      <div className="w-full h-full rounded-full overflow-hidden flex items-center justify-center" style={{ backgroundColor: '#111111' }}>
         {userAvatar ? <img src={userAvatar} alt="Perfil" className="w-full h-full object-cover" /> : <span className={`${size === 'w-9 h-9' ? 'text-xs' : 'text-sm'} font-bold text-white`}>{iniciales}</span>}
       </div>
     </div>
@@ -557,7 +560,10 @@ export default function DashboardEntrevistador() {
       case "guias": 
         return (
           <main className="pt-24 pb-28 px-5 max-w-lg mx-auto min-h-screen animate-in fade-in duration-300">
-            <h2 className="text-2xl font-black text-white mb-6">Guías de Entrevista</h2>
+            <div className="text-center mb-6">
+              <h2 className="text-2xl font-black text-white">Guías de Entrevista</h2>
+              <p className="text-[10px] text-gray-500 uppercase tracking-widest font-bold mt-1">Duración Oficial: 40 a 45 minutos</p>
+            </div>
 
             {!guiaActiva ? (
               <div className="flex flex-col gap-4">
@@ -590,8 +596,8 @@ export default function DashboardEntrevistador() {
                   <span>📝</span> Guión de {guiaActiva}
                 </h3>
 
-                {/* ✅ ESTO ES LO QUE CAUSABA EL CRASH. AHORA RECORRE DINÁMICAMENTE EL OBJETO */}
-                {Object.entries(GUIONES[guiaActiva]).map(([seccion, preguntas], idxSeccion) => (
+                {/* ✅ RECORRIDO DINÁMICO BLINDADO */}
+                {Object.entries(GUIONES[guiaActiva] || {}).map(([seccion, preguntas], idxSeccion) => (
                   <div key={idxSeccion} className="space-y-6 mt-10">
                     <h4 className="text-sm font-bold text-gray-400 uppercase tracking-widest border-b border-gray-800 pb-2">{seccion}</h4>
                     {preguntas.map((q, idxQ) => (
@@ -650,7 +656,7 @@ export default function DashboardEntrevistador() {
         );
 
       case "intercambios":
-        const intercambiosVisibles = intercambios.filter(ent => 
+        const intercambiosVisibles = safeIntercambios.filter(ent => 
           ent.entrevistadorSaliente !== session?.user?.name && 
           ent.entrevistador1 !== session?.user?.name && 
           ent.entrevistador2 !== session?.user?.name
@@ -723,7 +729,7 @@ export default function DashboardEntrevistador() {
                 <div className="w-8 h-8 border-2 border-t-transparent rounded-full animate-spin mb-3" style={{ borderColor: '#a855f7', borderTopColor: 'transparent' }}></div>
                 <p className="text-xs text-gray-400 font-bold uppercase tracking-widest">Cargando agenda...</p>
               </div>
-            ) : misEntrevistas.length === 0 ? (
+            ) : safeMisEntrevistas.length === 0 ? (
               <div className="border border-gray-800 rounded-2xl p-8 text-center shadow-xl" style={{ backgroundColor: '#111111' }}>
                 <div className="text-4xl mb-4 opacity-50" style={{ color: '#a855f7' }}>☕</div>
                 <p className="text-gray-400 text-sm">No tienes entrevistas asignadas por el momento.</p>
@@ -731,8 +737,8 @@ export default function DashboardEntrevistador() {
               </div>
             ) : (
               <div className="flex flex-col gap-4">
-                <h3 className="text-sm font-bold text-gray-300 uppercase tracking-wider mb-2">Tus Próximas Citas ({misEntrevistas.length})</h3>
-                {misEntrevistas.map((entrevista, idx) => (
+                <h3 className="text-sm font-bold text-gray-300 uppercase tracking-wider mb-2">Tus Próximas Citas ({safeMisEntrevistas.length})</h3>
+                {safeMisEntrevistas.map((entrevista, idx) => (
                   <div key={idx} className="border border-gray-800 rounded-2xl overflow-hidden shadow-lg p-5" style={{ backgroundColor: '#111111' }}>
                     <div className="flex justify-between items-start mb-4">
                       <div>
@@ -781,7 +787,7 @@ export default function DashboardEntrevistador() {
   return (
     <div className="min-h-screen text-white font-sans overflow-x-hidden pb-20" style={{ backgroundColor: '#0a0a0a' }}>
       
-      <header className="fixed top-0 w-full h-16 border-b border-gray-800 z-40 flex items-center justify-between px-5" style={{ backgroundColor: 'rgba(17,17,17,0.9)', backdropFilter: 'blur(10px)' }}>
+      <header className="fixed top-0 w-full h-16 border-b z-40 flex items-center justify-between px-5" style={{ backgroundColor: 'rgba(17,17,17,0.9)', backdropFilter: 'blur(10px)', borderColor: '#1f2937' }}>
         <button onClick={() => setIsNotifMenuOpen(true)} className="relative p-2 text-gray-400 hover:text-white transition-colors">
           <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
@@ -885,13 +891,13 @@ export default function DashboardEntrevistador() {
           <button onClick={() => setIsNotifMenuOpen(false)} className="text-gray-400 hover:text-white shrink-0">✕</button>
         </div>
         <div className="flex-grow overflow-y-auto" style={{ backgroundColor: '#111111' }}>
-          {notificaciones.length === 0 ? (
+          {safeNotificaciones.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full text-center p-8 opacity-50">
               <svg className="w-12 h-12 mb-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" /></svg>
               <p className="text-sm font-medium text-gray-400">No tienes notificaciones nuevas.</p>
             </div>
           ) : (
-            notificaciones.map(notif => (
+            safeNotificaciones.map(notif => (
               <div key={notif.id} onClick={() => marcarComoLeida(notif.id, notif.leida)} className="p-5 border-b border-gray-800/50 cursor-pointer transition-all relative group flex gap-4 items-start" style={!notif.leida ? { backgroundColor: 'rgba(168,85,247,0.1)' } : {}}>
                 {!notif.leida && <div className="absolute left-0 top-0 w-1 h-full" style={{ backgroundColor: '#a855f7' }}></div>}
                 <div className="w-10 h-10 rounded-full flex items-center justify-center shrink-0" style={!notif.leida ? { backgroundColor: 'rgba(168,85,247,0.2)', color: '#c084fc' } : { backgroundColor: '#1f2937', color: '#9ca3af' }}>
@@ -910,7 +916,7 @@ export default function DashboardEntrevistador() {
       </div>
 
       {/* CINTILLO INFERIOR DE ENTREVISTADOR */}
-      <nav className="fixed bottom-0 w-full border-t border-gray-800 z-40 pb-safe" style={{ backgroundColor: 'rgba(17,17,17,0.9)', backdropFilter: 'blur(10px)' }}>
+      <nav className="fixed bottom-0 w-full border-t z-40 pb-safe" style={{ backgroundColor: 'rgba(17,17,17,0.95)', backdropFilter: 'blur(10px)', borderColor: '#1f2937' }}>
         <div className="flex justify-between items-center h-16 px-6 relative max-w-lg mx-auto">
           
           <button onClick={() => setActiveTab("mi-horario")} className="flex flex-col items-center justify-center w-12 transition-colors" style={{ color: activeTab === "mi-horario" ? '#c084fc' : '#9ca3af' }}>

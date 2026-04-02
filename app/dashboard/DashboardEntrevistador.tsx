@@ -9,6 +9,87 @@ const DIAS_SEMANA = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sáb
 const FECHAS_S1 = [6, 7, 8, 9, 10, 11, 12];
 const FECHAS_S2 = [13, 14, 15, 16, 17, 18, 19];
 
+// =========================================================
+// BANCO DE PREGUNTAS SINTETIZADO DE LOS GUIONES OFICIALES
+// =========================================================
+const GUIONES: Record<string, { generales: string[], tecnicas: string[], practico: string[] }> = {
+  "Proyectos": {
+    generales: [
+      "¿Cuál es tu mayor fortaleza y tu mayor debilidad?",
+      "¿Cuáles consideras que son tus habilidades principales y cuál es tu superpoder?",
+      "Supongamos que tienes que entregar un trabajo personal importante y una parte de un trabajo en equipo a la misma hora. Por procrastinar solo puedes hacer uno. ¿Qué harías?",
+      "Cuéntanos una experiencia donde hayas asumido el rol de líder. ¿Cómo resultó?",
+      "Tienes 3 proyectos finales de la carrera y el proyecto de SIAFI, todos para entregar en 2 meses. ¿Cómo te organizas?"
+    ],
+    tecnicas: [
+      "Con tus propias palabras, ¿qué es la Inteligencia Artificial y cómo describirías tus conocimientos en ella?",
+      "¿Qué aplicaciones reales conoces de la IA enfocadas a la industria?",
+      "¿Tienes alguna idea de un proyecto de IA que te gustaría desarrollar dentro de este núcleo?",
+      "¿Qué metodologías o herramientas utilizarías para llevar a cabo ese proyecto?"
+    ],
+    practico: [
+      "CASO A (Código): Por favor, explícanos el código que elegiste traer. ¿Cuál es su propósito, lógica y qué decisiones de diseño tomaste? (3 min)",
+      "CASO B (Algoritmia - Si no trajo código): ¿Cómo resolverías el problema de encontrar el número más frecuente en una lista enorme de números? ¿O cómo explicarías el ordenamiento de Burbuja (Bubble Sort)?"
+    ]
+  },
+  "Capacitación": {
+    generales: [
+      "¿Cuál es tu mayor fortaleza y tu mayor debilidad?",
+      "¿Cuáles consideras que son tus habilidades principales y cuál es tu superpoder?",
+      "Supongamos que tienes que entregar un trabajo personal importante y una parte de un trabajo en equipo a la misma hora. ¿Qué harías?",
+      "Cuéntanos una experiencia donde hayas asumido el rol de líder. ¿Cómo resultó?",
+      "Tienes 3 proyectos finales de la carrera y el proyecto de SIAFI, todos para entregar en 2 meses. ¿Cómo te organizas?"
+    ],
+    tecnicas: [
+      "Con tus propias palabras, ¿qué es la Inteligencia Artificial y qué es lo que más te intriga de su futuro?",
+      "¿Conoces los cursos o talleres que SIAFI ha impartido en el pasado?",
+      "¿Qué tema de Inteligencia Artificial o Programación te gustaría enseñar o estructurar como curso en este núcleo?",
+      "¿Cómo asegurarías que los estudiantes realmente están aprendiendo y no solo copiando código?"
+    ],
+    practico: [
+      "CASO A (Código): Por favor, explícanos el código que elegiste traer. Enséñanoslo como si fuéramos alumnos de tu curso. (3 min)",
+      "CASO B (Didáctica - Si no trajo código): Imagina que un alumno te pregunta cómo funciona una Red Neuronal Básica pero no sabe nada de matemáticas avanzadas. ¿Cómo se lo explicarías usando una analogía de la vida real?"
+    ]
+  },
+  "Organización": {
+    generales: [
+      "En organización trabajamos constantemente en equipo. ¿Cuáles crees que sean las claves para poder realizarlo de la mejor forma?",
+      "¿Has coordinado algún equipo de trabajo o algún evento antes? Cuéntanos al respecto.",
+      "Si requieres dar avances del trabajo que has realizado a lo largo de la semana, ¿cómo y con qué material lo presentarías?",
+      "Constantemente hablamos con directivos, profesores y patrocinadores. ¿Te consideras alguien con facilidad de palabra?",
+      "A la hora de organizar un evento, ¿cuál crees que es el detalle que la mayoría olvida y hace que todo falle?"
+    ],
+    tecnicas: [
+      "Con tus propias palabras, ¿qué es la Inteligencia Artificial?",
+      "¿Por qué te interesa profundizar e impulsar el desarrollo de la IA desde la gestión y organización?",
+      "¿Qué herramientas de gestión (Notion, Trello, Excel, etc.) utilizas para organizarte?"
+    ],
+    practico: [
+      "CASO PRÁCTICO 1: Estamos a una semana del evento de bienvenida. Un miembro de tu equipo te deja en 'visto' por 3 días y no avanza con sus tareas urgentes. ¿Cómo manejas la situación?",
+      "CASO PRÁCTICO 2: Necesitas información urgente de Difusión o Proyectos para avanzar con la logística de un evento, pero los líderes no te responden los mensajes. ¿Qué haces?"
+    ]
+  },
+  "Difusión": {
+    generales: [
+      "¿Qué tan bueno eres para comunicar tus ideas? ¿Cuál es tu habilidad blanda más fuerte?",
+      "Supongamos que tienes que entregar un trabajo personal importante y una parte de un trabajo en equipo a la misma hora. ¿Qué harías?",
+      "¿Qué es lo que más valoras en el trabajo en equipo y qué tan cómodo te sientes delegando?",
+      "Tienes 3 proyectos finales de la carrera y el proyecto de SIAFI, todos para entregar en 2 meses. ¿Cómo te organizas?"
+    ],
+    tecnicas: [
+      "Con tus propias palabras, ¿qué es la Inteligencia Artificial y por qué te interesa difundirla?",
+      "¿Has manejado redes sociales de algún proyecto o negocio antes? ¿Qué mejorarías de las redes actuales de SIAFI?",
+      "¿Has aplicado alguna estrategia de marketing en algún proyecto? ¿Qué herramientas de diseño o edición de video sabes usar?"
+    ],
+    practico: [
+      "CASO PRÁCTICO 1: Eres el encargado de promover un nuevo proyecto de SIAFI, pero las métricas están por debajo de lo previsto y nadie interactúa. ¿Qué pasos tomas para mejorar el alcance?",
+      "CASO PRÁCTICO 2: El día de una publicación importante, te das cuenta de que tu material gráfico no tiene likes y además tiene un error ortográfico en el texto. ¿Qué haces en ese momento y qué medidas tomas para el futuro?"
+    ]
+  }
+};
+
+const OPCIONES_NUCLEO = ["Proyectos", "Capacitación", "Organización", "Difusión"];
+
 export default function DashboardEntrevistador() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isNotifMenuOpen, setIsNotifMenuOpen] = useState(false);
@@ -46,6 +127,9 @@ export default function DashboardEntrevistador() {
   }>({
     isOpen: false, title: "", message: "", icon: "", confirmText: "Confirmar", isError: false, onConfirm: () => {}
   });
+
+  // ESTADO PARA LA PESTAÑA DE GUÍAS
+  const [guiaActiva, setGuiaActiva] = useState<string | null>(null);
   
   const hasLoadedSchedule = useRef(false);
   const { data: session, status } = useSession();
@@ -373,13 +457,78 @@ export default function DashboardEntrevistador() {
           </main>
         );
 
-      case "material":
+      case "guias": // ✅ NUEVA LÓGICA DE LA PESTAÑA GUÍAS
         return (
           <main className="pt-24 pb-28 px-5 max-w-lg mx-auto min-h-screen animate-in fade-in duration-300">
-            <h2 className="text-xl font-bold mb-4">Material de Apoyo</h2>
-            <div className="bg-[#111111] border border-gray-800 rounded-2xl p-6 text-center text-gray-500 text-sm">
-              <p>Rúbricas de evaluación, guías de preguntas y documentación oficial.</p>
-            </div>
+            <h2 className="text-2xl font-black text-white mb-6">Guías de Entrevista</h2>
+
+            {/* SELECCIÓN DE NÚCLEO */}
+            {!guiaActiva ? (
+              <div className="flex flex-col gap-4">
+                {OPCIONES_NUCLEO.map((nucleo) => (
+                  <button 
+                    key={nucleo}
+                    onClick={() => setGuiaActiva(nucleo)}
+                    className="w-full bg-[#111111] hover:bg-purple-900/20 border border-gray-800 hover:border-purple-500/50 p-6 rounded-2xl flex items-center justify-between transition-all group shadow-sm hover:shadow-lg"
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 bg-purple-500/10 rounded-xl flex items-center justify-center text-xl group-hover:scale-110 transition-transform">
+                        {nucleo === "Proyectos" ? "💡" : nucleo === "Capacitación" ? "📚" : nucleo === "Organización" ? "⚙️" : "📣"}
+                      </div>
+                      <span className="text-lg font-bold text-gray-200 group-hover:text-purple-400 transition-colors">{nucleo}</span>
+                    </div>
+                    <span className="text-gray-600 group-hover:text-purple-400 transition-colors">→</span>
+                  </button>
+                ))}
+              </div>
+            ) : (
+              // RENDERIZADO DEL GUIÓN SELECCIONADO
+              <div className="animate-in slide-in-from-right-4 fade-in duration-300 pb-10">
+                <button 
+                  onClick={() => setGuiaActiva(null)}
+                  className="flex items-center gap-2 text-gray-400 hover:text-white text-sm font-bold mb-6"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" /></svg>
+                  Volver a Guías
+                </button>
+
+                <h3 className="text-xl font-black text-purple-400 mb-6 border-b border-purple-500/30 pb-3 flex items-center gap-2">
+                  <span>📝</span> Guión de {guiaActiva}
+                </h3>
+
+                <div className="space-y-6">
+                  <h4 className="text-sm font-bold text-gray-400 uppercase tracking-widest">Preguntas Generales y de Perfil</h4>
+                  {GUIONES[guiaActiva].generales.map((q, idx) => (
+                    <div key={idx} className="bg-[#111111] border border-gray-800 rounded-2xl p-5 shadow-sm">
+                      <div className="flex gap-3 items-start">
+                        <span className="text-purple-500 font-black text-lg leading-none mt-0.5">Q.</span>
+                        <p className="text-sm text-gray-200 font-bold leading-relaxed">{q}</p>
+                      </div>
+                    </div>
+                  ))}
+
+                  <h4 className="text-sm font-bold text-gray-400 uppercase tracking-widest mt-10">Preguntas Técnicas</h4>
+                  {GUIONES[guiaActiva].tecnicas.map((q, idx) => (
+                    <div key={idx} className="bg-[#111111] border border-gray-800 rounded-2xl p-5 shadow-sm">
+                      <div className="flex gap-3 items-start">
+                        <span className="text-purple-500 font-black text-lg leading-none mt-0.5">Q.</span>
+                        <p className="text-sm text-gray-200 font-bold leading-relaxed">{q}</p>
+                      </div>
+                    </div>
+                  ))}
+
+                  <h4 className="text-sm font-bold text-gray-400 uppercase tracking-widest mt-10">Casos Prácticos</h4>
+                  {GUIONES[guiaActiva].practico.map((q, idx) => (
+                    <div key={idx} className="bg-purple-900/10 border border-purple-500/20 rounded-2xl p-5 shadow-sm">
+                      <div className="flex gap-3 items-start">
+                        <span className="text-purple-400 font-black text-lg leading-none mt-0.5">Q.</span>
+                        <p className="text-sm text-purple-200 font-bold leading-relaxed">{q}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </main>
         );
 
@@ -697,8 +846,6 @@ export default function DashboardEntrevistador() {
         </div>
       </div>
 
-      {renderActiveContent()}
-
       {/* CINTILLO INFERIOR DE ENTREVISTADOR */}
       <nav className="fixed bottom-0 w-full bg-[#111111]/90 backdrop-blur-md border-t border-gray-800 z-40 pb-safe">
         <div className="flex justify-between items-center h-16 px-6 relative max-w-lg mx-auto">
@@ -708,9 +855,10 @@ export default function DashboardEntrevistador() {
             <span className="text-[9px] font-medium tracking-wide">Horario</span>
           </button>
           
-          <button onClick={() => setActiveTab("material")} className={`flex flex-col items-center justify-center w-12 mr-6 transition-colors ${activeTab === "material" ? "text-purple-400" : "text-gray-400 hover:text-gray-200"}`}>
+          {/* ✅ PESTAÑA DE GUÍAS ACTUALIZADA */}
+          <button onClick={() => { setActiveTab("guias"); setGuiaActiva(null); }} className={`flex flex-col items-center justify-center w-12 mr-6 transition-colors ${activeTab === "guias" ? "text-purple-400" : "text-gray-400 hover:text-gray-200"}`}>
             <svg className="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
-            <span className="text-[9px] font-medium tracking-wide">Material</span>
+            <span className="text-[9px] font-medium tracking-wide">Guías</span>
           </button>
 
           <div className="absolute left-1/2 -translate-x-1/2 -top-4">

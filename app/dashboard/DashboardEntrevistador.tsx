@@ -217,6 +217,7 @@ export default function DashboardEntrevistador() {
           onConfirm: async () => {
             setModalInfo(prev => ({ ...prev, isOpen: false }));
             await fetch(`/api/entrevistas/intercambios/alertas?idBloque=${alerta.idBloque}`, { method: 'DELETE' });
+            fetchMisEntrevistas(); // Recargar entrevistas al cerrar alerta
           }
         });
       }
@@ -362,7 +363,7 @@ export default function DashboardEntrevistador() {
     } catch (error) {} finally { setIsSaving(false); }
   };
 
-  if (status === "loading") return <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center text-purple-400 animate-pulse">Cargando tu perfil...</div>;
+  if (status === "loading") return <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center text-white animate-pulse">Cargando tu perfil...</div>;
 
   const userName = session?.user?.name || "Entrevistador";
   const userEmail = session?.user?.email || "Sin correo";
@@ -373,7 +374,7 @@ export default function DashboardEntrevistador() {
   const iniciales = userName.split(" ").map(n => n[0]).slice(0, 2).join("").toUpperCase();
 
   const AvatarCircle = ({ size }: { size: string }) => (
-    <div className={`${size} rounded-full bg-gradient-to-tr from-purple-600 to-purple-400 p-[2px] shrink-0 shadow-[0_0_15px_rgba(168,85,247,0.3)]`}>
+    <div className={`${size} rounded-full p-[2px] shrink-0`} style={{ backgroundImage: 'linear-gradient(to top right, #9333ea, #c084fc)' }}>
       <div className="w-full h-full rounded-full bg-[#111111] overflow-hidden flex items-center justify-center">
         {userAvatar ? <img src={userAvatar} alt="Perfil" className="w-full h-full object-cover" /> : <span className={`${size === 'w-9 h-9' ? 'text-xs' : 'text-sm'} font-bold text-white`}>{iniciales}</span>}
       </div>
@@ -390,25 +391,25 @@ export default function DashboardEntrevistador() {
               <div>
                 <h2 className="text-xl font-black text-white tracking-tight">Mi Disponibilidad</h2>
                 {(isLocked || isGlobalLockActive) && (
-                  <p className={`text-[10px] ${isGlobalLockActive ? 'text-orange-500' : 'text-green-400'} font-bold uppercase tracking-widest mt-0.5 flex items-center gap-1`}>
+                  <p style={{ color: isGlobalLockActive ? '#f97316' : '#4ade80' }} className="text-[10px] font-bold uppercase tracking-widest mt-0.5 flex items-center gap-1">
                     <span>🔒</span> {isGlobalLockActive ? 'Bloqueado por Sistema' : 'Registrado'}
                   </p>
                 )}
               </div>
               <div className="text-right">
-                <p className="text-2xl font-black text-purple-400">{disponibilidad.length * 0.25}<span className="text-sm text-gray-500 font-medium"> hrs</span></p>
+                <p className="text-2xl font-black" style={{ color: '#c084fc' }}>{disponibilidad.length * 0.25}<span className="text-sm text-gray-500 font-medium"> hrs</span></p>
               </div>
             </div>
 
-            <div className="flex gap-2 mb-4 bg-[#111111] p-1.5 rounded-xl border border-gray-800">
-              <button onClick={() => setSemana(1)} className={`flex-1 py-2 text-[11px] font-bold rounded-lg transition-colors ${semana === 1 ? 'bg-gradient-to-r from-purple-600 to-purple-400 text-white shadow-lg' : 'text-gray-400 hover:text-white'}`}>Semana 1 (6-12 Abr)</button>
-              <button onClick={() => setSemana(2)} className={`flex-1 py-2 text-[11px] font-bold rounded-lg transition-colors ${semana === 2 ? 'bg-gradient-to-r from-purple-600 to-purple-400 text-white shadow-lg' : 'text-gray-400 hover:text-white'}`}>Semana 2 (13-19 Abr)</button>
+            <div className="flex gap-2 mb-4 p-1.5 rounded-xl border border-gray-800" style={{ backgroundColor: '#111111' }}>
+              <button onClick={() => setSemana(1)} className={`flex-1 py-2 text-[11px] font-bold rounded-lg transition-colors ${semana === 1 ? 'text-white shadow-lg' : 'text-gray-400 hover:text-white'}`} style={semana === 1 ? { backgroundImage: 'linear-gradient(to right, #9333ea, #c084fc)' } : {}}>Semana 1 (6-12 Abr)</button>
+              <button onClick={() => setSemana(2)} className={`flex-1 py-2 text-[11px] font-bold rounded-lg transition-colors ${semana === 2 ? 'text-white shadow-lg' : 'text-gray-400 hover:text-white'}`} style={semana === 2 ? { backgroundImage: 'linear-gradient(to right, #9333ea, #c084fc)' } : {}}>Semana 2 (13-19 Abr)</button>
             </div>
 
-            <div className={`bg-[#111111] border rounded-3xl p-3 sm:p-5 shadow-2xl overflow-hidden relative transition-all ${(isLocked || isGlobalLockActive) ? 'border-green-500/30' : 'border-gray-800'} ${isGlobalLockActive ? 'border-orange-500/30' : ''}`}>
+            <div className={`border rounded-3xl p-3 sm:p-5 shadow-2xl overflow-hidden relative transition-all ${(isLocked || isGlobalLockActive) ? 'border-green-500/30' : 'border-gray-800'}`} style={{ backgroundColor: '#111111' }}>
               {isLoadingSchedule ? (
                 <div className="flex flex-col items-center justify-center py-10 opacity-50">
-                  <div className="w-8 h-8 border-2 border-purple-500 border-t-transparent rounded-full animate-spin mb-3"></div>
+                  <div className="w-8 h-8 border-2 border-t-transparent rounded-full animate-spin mb-3" style={{ borderColor: '#a855f7', borderTopColor: 'transparent' }}></div>
                   <p className="text-xs text-gray-400">Cargando horario...</p>
                 </div>
               ) : (
@@ -430,7 +431,7 @@ export default function DashboardEntrevistador() {
                           const slotId = `S${semana}-${dia}-${fechasActivas[idx]}-${hora}`;
                           const isSelected = disponibilidad.includes(slotId);
                           return (
-                            <div key={slotId} onClick={() => toggleSlot(slotId)} className={`h-4 sm:h-5 rounded-[2px] transition-all border-[0.5px] ${(isLocked || isGlobalLockActive) ? (isSelected ? 'bg-green-500 border-green-400 opacity-90 cursor-default shadow-[0_0_8px_rgba(34,197,94,0.3)]' : 'bg-[#151515] border-gray-800 opacity-30 cursor-default') : (isSelected ? 'bg-purple-500 border-purple-500 shadow-[0_0_8px_rgba(168,85,247,0.4)] cursor-pointer' : 'bg-[#1a1a1a] border-gray-800 hover:bg-gray-800/80 cursor-pointer')}`}></div>
+                            <div key={slotId} onClick={() => toggleSlot(slotId)} className={`h-4 sm:h-5 rounded-[2px] transition-all border-[0.5px] ${(isLocked || isGlobalLockActive) ? (isSelected ? 'bg-green-500 border-green-400 opacity-90 cursor-default' : 'border-gray-800 opacity-30 cursor-default') : (isSelected ? 'cursor-pointer' : 'border-gray-800 cursor-pointer')}`} style={(!isLocked && !isGlobalLockActive && isSelected) ? { backgroundColor: '#a855f7', borderColor: '#a855f7', boxShadow: '0 0 8px rgba(168,85,247,0.4)' } : (!isLocked && !isGlobalLockActive && !isSelected) ? { backgroundColor: '#1a1a1a' } : (isLocked || isGlobalLockActive) && !isSelected ? { backgroundColor: '#151515' } : {}}></div>
                           );
                         })}
                       </div>
@@ -442,13 +443,13 @@ export default function DashboardEntrevistador() {
 
             <div className="mt-6 flex justify-center">
               {isGlobalLockActive ? (
-                <div className="w-full text-center py-4 bg-orange-500/10 border border-orange-500/30 rounded-xl">
-                  <p className="text-orange-500 font-bold text-xs uppercase tracking-widest">🔒 Sistema Bloqueado</p>
+                <div className="w-full text-center py-4 rounded-xl" style={{ backgroundColor: 'rgba(249, 115, 22, 0.1)', border: '1px solid rgba(249, 115, 22, 0.3)' }}>
+                  <p className="font-bold text-xs uppercase tracking-widest" style={{ color: '#f97316' }}>🔒 Sistema Bloqueado</p>
                 </div>
               ) : isLocked ? (
-                <button onClick={() => setIsLocked(false)} className="w-full max-w-xs py-4 font-black text-sm uppercase tracking-wider rounded-xl transition-all shadow-lg active:scale-95 bg-gray-800 text-gray-300 hover:bg-gray-700 hover:text-white">Realizar Cambios</button>
+                <button onClick={() => setIsLocked(false)} className="w-full max-w-xs py-4 font-black text-sm uppercase tracking-wider rounded-xl transition-all shadow-lg active:scale-95 text-gray-300 hover:text-white" style={{ backgroundColor: '#1f2937' }}>Realizar Cambios</button>
               ) : (
-                <button onClick={confirmarYGuardar} disabled={isSaving || isLoadingSchedule} className={`w-full max-w-xs py-4 font-black text-sm uppercase tracking-wider rounded-xl transition-all shadow-lg active:scale-95 ${saveSuccess ? 'bg-green-500 text-[#0a0a0a] shadow-green-500/20' : 'bg-gradient-to-r from-purple-600 to-purple-400 text-white shadow-purple-600/20 hover:from-purple-400 hover:to-purple-600'}`}>
+                <button onClick={confirmarYGuardar} disabled={isSaving || isLoadingSchedule} className={`w-full max-w-xs py-4 font-black text-sm uppercase tracking-wider rounded-xl transition-all shadow-lg active:scale-95 ${saveSuccess ? 'text-[#0a0a0a]' : 'text-white'}`} style={saveSuccess ? { backgroundColor: '#22c55e' } : { backgroundImage: 'linear-gradient(to right, #9333ea, #c084fc)' }}>
                   {isSaving ? 'Guardando...' : saveSuccess ? '¡Guardado Exitoso!' : 'Guardar Horario'}
                 </button>
               )}
@@ -467,15 +468,16 @@ export default function DashboardEntrevistador() {
                   <button 
                     key={nucleo}
                     onClick={() => setGuiaActiva(nucleo)}
-                    className="w-full bg-[#111111] hover:bg-purple-900/40 border border-gray-800 hover:border-purple-500 p-6 rounded-2xl flex items-center justify-between transition-all group shadow-md"
+                    className="w-full border border-gray-800 p-6 rounded-2xl flex items-center justify-between transition-all shadow-md"
+                    style={{ backgroundColor: '#111111' }}
                   >
                     <div className="flex items-center gap-4">
-                      <div className="w-14 h-14 bg-[#1a1a1a] group-hover:bg-purple-500/20 border border-gray-800 group-hover:border-purple-500/50 rounded-xl flex items-center justify-center text-2xl group-hover:scale-110 transition-all">
+                      <div className="w-14 h-14 rounded-xl flex items-center justify-center text-2xl border border-gray-800" style={{ backgroundColor: '#1a1a1a' }}>
                         {nucleo === "Proyectos" ? "💡" : nucleo === "Capacitación" ? "📚" : nucleo === "Organización" ? "⚙️" : "📣"}
                       </div>
-                      <span className="text-xl font-black text-white group-hover:text-purple-400 transition-colors">{nucleo}</span>
+                      <span className="text-xl font-black text-white">{nucleo}</span>
                     </div>
-                    <span className="text-gray-500 group-hover:text-purple-400 transition-colors">
+                    <span className="text-gray-500">
                       <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" /></svg>
                     </span>
                   </button>
@@ -483,24 +485,20 @@ export default function DashboardEntrevistador() {
               </div>
             ) : (
               <div className="animate-in slide-in-from-right-4 fade-in duration-300 pb-10">
-                <button 
-                  onClick={() => setGuiaActiva(null)}
-                  className="flex items-center gap-2 text-gray-400 hover:text-white text-sm font-bold mb-6"
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" /></svg>
-                  Volver a Guías
+                <button onClick={() => setGuiaActiva(null)} className="flex items-center gap-2 text-gray-400 hover:text-white text-sm font-bold mb-6">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" /></svg> Volver a Guías
                 </button>
 
-                <h3 className="text-xl font-black text-purple-400 mb-6 border-b border-purple-500/30 pb-3 flex items-center gap-2">
+                <h3 className="text-xl font-black mb-6 border-b pb-3 flex items-center gap-2" style={{ color: '#c084fc', borderColor: 'rgba(168,85,247,0.3)' }}>
                   <span>📝</span> Guión de {guiaActiva}
                 </h3>
 
                 <div className="space-y-6">
                   <h4 className="text-sm font-bold text-gray-400 uppercase tracking-widest">Preguntas Generales y de Perfil</h4>
                   {GUIONES[guiaActiva].generales.map((q, idx) => (
-                    <div key={idx} className="bg-[#111111] border border-gray-800 rounded-2xl p-5 shadow-sm">
+                    <div key={idx} className="border border-gray-800 rounded-2xl p-5 shadow-sm" style={{ backgroundColor: '#111111' }}>
                       <div className="flex gap-3 items-start">
-                        <span className="text-purple-500 font-black text-lg leading-none mt-0.5">Q.</span>
+                        <span className="font-black text-lg leading-none mt-0.5" style={{ color: '#a855f7' }}>Q.</span>
                         <p className="text-sm text-gray-200 font-bold leading-relaxed">{q}</p>
                       </div>
                     </div>
@@ -508,9 +506,9 @@ export default function DashboardEntrevistador() {
 
                   <h4 className="text-sm font-bold text-gray-400 uppercase tracking-widest mt-10">Preguntas Técnicas</h4>
                   {GUIONES[guiaActiva].tecnicas.map((q, idx) => (
-                    <div key={idx} className="bg-[#111111] border border-gray-800 rounded-2xl p-5 shadow-sm">
+                    <div key={idx} className="border border-gray-800 rounded-2xl p-5 shadow-sm" style={{ backgroundColor: '#111111' }}>
                       <div className="flex gap-3 items-start">
-                        <span className="text-purple-500 font-black text-lg leading-none mt-0.5">Q.</span>
+                        <span className="font-black text-lg leading-none mt-0.5" style={{ color: '#a855f7' }}>Q.</span>
                         <p className="text-sm text-gray-200 font-bold leading-relaxed">{q}</p>
                       </div>
                     </div>
@@ -518,10 +516,10 @@ export default function DashboardEntrevistador() {
 
                   <h4 className="text-sm font-bold text-gray-400 uppercase tracking-widest mt-10">Casos Prácticos</h4>
                   {GUIONES[guiaActiva].practico.map((q, idx) => (
-                    <div key={idx} className="bg-purple-900/10 border border-purple-500/20 rounded-2xl p-5 shadow-sm">
+                    <div key={idx} className="rounded-2xl p-5 shadow-sm" style={{ backgroundColor: 'rgba(88,28,135,0.1)', border: '1px solid rgba(168,85,247,0.2)' }}>
                       <div className="flex gap-3 items-start">
-                        <span className="text-purple-400 font-black text-lg leading-none mt-0.5">Q.</span>
-                        <p className="text-sm text-purple-200 font-bold leading-relaxed">{q}</p>
+                        <span className="font-black text-lg leading-none mt-0.5" style={{ color: '#c084fc' }}>Q.</span>
+                        <p className="text-sm font-bold leading-relaxed" style={{ color: '#e9d5ff' }}>{q}</p>
                       </div>
                     </div>
                   ))}
@@ -537,11 +535,11 @@ export default function DashboardEntrevistador() {
             <h2 className="text-2xl font-black text-white mb-6">Cursos de Capacitación</h2>
             {isLoadingCursos ? (
               <div className="flex flex-col items-center justify-center py-20 opacity-50">
-                <div className="w-8 h-8 border-2 border-purple-500 border-t-transparent rounded-full animate-spin mb-3"></div>
+                <div className="w-8 h-8 border-2 border-t-transparent rounded-full animate-spin mb-3" style={{ borderColor: '#a855f7', borderTopColor: 'transparent' }}></div>
                 <p className="text-sm text-gray-400 font-bold uppercase tracking-widest">Cargando módulos...</p>
               </div>
             ) : cursos.length === 0 ? (
-              <div className="bg-[#111111] border border-gray-800 rounded-2xl p-8 text-center shadow-xl">
+              <div className="border border-gray-800 rounded-2xl p-8 text-center shadow-xl" style={{ backgroundColor: '#111111' }}>
                 <div className="text-4xl mb-4">📹</div>
                 <p className="text-gray-400 text-sm">Pronto publicaremos los videos de capacitación aquí.</p>
               </div>
@@ -550,7 +548,7 @@ export default function DashboardEntrevistador() {
                 {cursos.map((curso) => {
                   const embedUrl = getYouTubeEmbedUrl(curso.url);
                   return (
-                    <div key={curso.id} className="bg-[#111111] border border-gray-800 rounded-2xl overflow-hidden shadow-xl group hover:border-purple-500/50 transition-colors">
+                    <div key={curso.id} className="border border-gray-800 rounded-2xl overflow-hidden shadow-xl" style={{ backgroundColor: '#111111' }}>
                       {embedUrl ? (
                         <div className="aspect-video w-full bg-black relative">
                           <iframe src={embedUrl} title={curso.titulo} className="absolute top-0 left-0 w-full h-full" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen></iframe>
@@ -580,29 +578,29 @@ export default function DashboardEntrevistador() {
 
         return (
           <main className="pt-24 pb-32 px-5 max-w-lg mx-auto min-h-screen animate-in fade-in duration-500">
-            <div className="bg-[#111111] border border-gray-800 rounded-2xl p-6 shadow-xl relative overflow-hidden shrink-0 mb-6">
-              <div className="absolute top-0 left-0 w-1 h-full bg-purple-500"></div>
+            <div className="border border-gray-800 rounded-2xl p-6 shadow-xl relative overflow-hidden shrink-0 mb-6" style={{ backgroundColor: '#111111' }}>
+              <div className="absolute top-0 left-0 w-1 h-full" style={{ backgroundColor: '#a855f7' }}></div>
               <h2 className="text-xl font-bold mb-1 text-white">Sistema de Cambios 🔄</h2>
               <p className="text-sm text-gray-400">Apoya a tus compañeros cubriendo entrevistas.</p>
             </div>
 
             {isLoadingIntercambios ? (
               <div className="flex flex-col items-center justify-center py-10 opacity-50">
-                <div className="w-8 h-8 border-2 border-purple-500 border-t-transparent rounded-full animate-spin mb-3"></div>
+                <div className="w-8 h-8 border-2 border-t-transparent rounded-full animate-spin mb-3" style={{ borderColor: '#a855f7', borderTopColor: 'transparent' }}></div>
                 <p className="text-xs text-gray-400 font-bold uppercase tracking-widest">Buscando solicitudes...</p>
               </div>
             ) : intercambiosVisibles.length === 0 ? (
-              <div className="bg-[#111111] border border-gray-800 rounded-2xl p-8 text-center shadow-xl">
+              <div className="border border-gray-800 rounded-2xl p-8 text-center shadow-xl" style={{ backgroundColor: '#111111' }}>
                 <div className="text-4xl mb-4 opacity-50">🍃</div>
                 <p className="text-gray-400 text-sm">Nadie necesita ayuda por el momento.</p>
               </div>
             ) : (
               <div className="flex flex-col gap-4">
                 {intercambiosVisibles.map((entrevista, idx) => (
-                  <div key={idx} className="bg-[#111111] border border-gray-800 rounded-2xl overflow-hidden shadow-lg hover:border-purple-500/50 transition-all group p-5">
+                  <div key={idx} className="border border-gray-800 rounded-2xl overflow-hidden shadow-lg p-5" style={{ backgroundColor: '#111111' }}>
                     <div className="flex justify-between items-start mb-4 border-b border-gray-800 pb-4">
                       <div>
-                        <p className="text-[10px] text-purple-400 uppercase tracking-widest font-bold mb-1">Entrevistador que solicita</p>
+                        <p className="text-[10px] uppercase tracking-widest font-bold mb-1" style={{ color: '#c084fc' }}>Entrevistador que solicita</p>
                         <h3 className="text-sm font-bold text-gray-300 leading-tight">{entrevista.entrevistadorSaliente}</h3>
                       </div>
                       <div className="text-right">
@@ -618,7 +616,8 @@ export default function DashboardEntrevistador() {
 
                     <button 
                       onClick={() => aceptarIntercambio(entrevista.idBloque, entrevista.entrevistadorSaliente, entrevista.postulante)}
-                      className="w-full py-3 bg-purple-600/10 text-purple-400 hover:bg-purple-600 hover:text-white border border-purple-600/30 font-bold text-xs uppercase tracking-wider rounded-xl transition-all shadow-lg active:scale-95"
+                      className="w-full py-3 font-bold text-xs uppercase tracking-wider rounded-xl transition-all shadow-lg active:scale-95"
+                      style={{ backgroundColor: 'rgba(147,51,234,0.1)', color: '#c084fc', border: '1px solid rgba(147,51,234,0.3)' }}
                     >
                       ✅ Aceptar y Cubrir Entrevista
                     </button>
@@ -633,20 +632,20 @@ export default function DashboardEntrevistador() {
       default:
         return (
           <main className="pt-24 pb-32 px-5 max-w-lg mx-auto min-h-screen flex flex-col gap-6 animate-in fade-in duration-500">
-            <div className="bg-[#111111] border border-gray-800 rounded-2xl p-6 shadow-xl relative overflow-hidden shrink-0">
-              <div className="absolute top-0 left-0 w-1 h-full bg-purple-500"></div>
+            <div className="border border-gray-800 rounded-2xl p-6 shadow-xl relative overflow-hidden shrink-0" style={{ backgroundColor: '#111111' }}>
+              <div className="absolute top-0 left-0 w-1 h-full" style={{ backgroundColor: '#a855f7' }}></div>
               <h2 className="text-xl font-bold text-white mb-1">Hola, {primerNombre} 👋</h2>
               <p className="text-sm text-gray-400">Entrevistas programadas:</p>
             </div>
 
             {isLoadingEntrevistas ? (
               <div className="flex flex-col items-center justify-center py-10 opacity-50">
-                <div className="w-8 h-8 border-2 border-purple-500 border-t-transparent rounded-full animate-spin mb-3"></div>
+                <div className="w-8 h-8 border-2 border-t-transparent rounded-full animate-spin mb-3" style={{ borderColor: '#a855f7', borderTopColor: 'transparent' }}></div>
                 <p className="text-xs text-gray-400 font-bold uppercase tracking-widest">Cargando agenda...</p>
               </div>
             ) : misEntrevistas.length === 0 ? (
-              <div className="bg-[#111111] border border-gray-800 rounded-2xl p-8 text-center shadow-xl">
-                <div className="text-4xl mb-4 text-purple-500 opacity-50">☕</div>
+              <div className="border border-gray-800 rounded-2xl p-8 text-center shadow-xl" style={{ backgroundColor: '#111111' }}>
+                <div className="text-4xl mb-4 opacity-50" style={{ color: '#a855f7' }}>☕</div>
                 <p className="text-gray-400 text-sm">No tienes entrevistas asignadas por el momento.</p>
                 <p className="text-[10px] text-gray-500 mt-2 uppercase tracking-widest">El sistema te notificará cuando tengas una.</p>
               </div>
@@ -654,10 +653,10 @@ export default function DashboardEntrevistador() {
               <div className="flex flex-col gap-4">
                 <h3 className="text-sm font-bold text-gray-300 uppercase tracking-wider mb-2">Tus Próximas Citas ({misEntrevistas.length})</h3>
                 {misEntrevistas.map((entrevista, idx) => (
-                  <div key={idx} className="bg-[#111111] border border-gray-800 rounded-2xl overflow-hidden shadow-lg hover:border-purple-500/50 transition-all group p-5">
+                  <div key={idx} className="border border-gray-800 rounded-2xl overflow-hidden shadow-lg p-5" style={{ backgroundColor: '#111111' }}>
                     <div className="flex justify-between items-start mb-4">
                       <div>
-                        <p className="text-[10px] text-purple-400 uppercase tracking-widest font-bold mb-1">Candidato</p>
+                        <p className="text-[10px] uppercase tracking-widest font-bold mb-1" style={{ color: '#c084fc' }}>Candidato</p>
                         <h3 className="text-lg font-bold text-white leading-tight">{entrevista.postulante}</h3>
                       </div>
                       <div className="text-right">
@@ -668,22 +667,23 @@ export default function DashboardEntrevistador() {
                     
                     <div className="flex gap-2 mt-4 pt-4 border-t border-gray-800">
                       {entrevista.meetLink && (
-                        <a href={entrevista.meetLink} target="_blank" rel="noreferrer" className="flex-1 py-3 bg-gray-800 hover:bg-gray-700 text-center text-white text-xs font-bold uppercase tracking-wider rounded-xl transition-colors flex items-center justify-center gap-2">
+                        <a href={entrevista.meetLink} target="_blank" rel="noreferrer" className="flex-1 py-3 text-center text-white text-xs font-bold uppercase tracking-wider rounded-xl transition-colors flex items-center justify-center gap-2" style={{ backgroundColor: '#1f2937' }}>
                           <span>📹</span> Meet
                         </a>
                       )}
-                      <Link href={`/dashboard/entrevistador/postulante/${entrevista.idBloque}?email=${encodeURIComponent(entrevista.correoPostulante)}&dia=${entrevista.dia}&fecha=${entrevista.fecha}&hora=${entrevista.hora}`} className="flex-[2] py-3 bg-gradient-to-r from-purple-600 to-purple-400 hover:from-purple-400 hover:to-purple-600 text-center text-white text-xs font-black uppercase tracking-wider rounded-xl transition-all shadow-lg shadow-purple-600/20 flex items-center justify-center gap-2 active:scale-95">
+                      <Link href={`/dashboard/entrevistador/postulante/${entrevista.idBloque}?email=${encodeURIComponent(entrevista.correoPostulante)}&dia=${entrevista.dia}&fecha=${entrevista.fecha}&hora=${entrevista.hora}`} className="flex-[2] py-3 text-center text-white text-xs font-black uppercase tracking-wider rounded-xl transition-all shadow-lg flex items-center justify-center gap-2 active:scale-95" style={{ backgroundImage: 'linear-gradient(to right, #9333ea, #c084fc)' }}>
                         Ver Perfil <span>→</span>
                       </Link>
                     </div>
 
                     <button 
                       onClick={() => entrevista.solicitaIntercambio ? cancelarIntercambio(entrevista.idBloque) : solicitarIntercambio(entrevista.idBloque)}
-                      className={`w-full mt-3 py-2.5 rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-2 border ${
+                      className="w-full mt-3 py-2.5 rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-2 border active:scale-95"
+                      style={
                         entrevista.solicitaIntercambio
-                          ? "bg-orange-500/10 text-orange-500 border-orange-500/30 hover:bg-orange-500 hover:text-white active:scale-95"
-                          : "bg-red-600/5 text-red-500 border-red-600/20 hover:bg-red-600 hover:text-white hover:border-red-600 active:scale-95"
-                      }`}
+                          ? { backgroundColor: 'rgba(249,115,22,0.1)', color: '#f97316', borderColor: 'rgba(249,115,22,0.3)' }
+                          : { backgroundColor: 'rgba(220,38,38,0.05)', color: '#ef4444', borderColor: 'rgba(220,38,38,0.2)' }
+                      }
                     >
                       <span>{entrevista.solicitaIntercambio ? "↩️" : "🔄"}</span> 
                       {entrevista.solicitaIntercambio ? "Cancelar Solicitud de Cambio" : "Intercambiar Entrevista"}
@@ -699,18 +699,18 @@ export default function DashboardEntrevistador() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] text-white font-sans overflow-x-hidden pb-20">
+    <div className="min-h-screen text-white font-sans overflow-hidden pb-20" style={{ backgroundColor: '#0a0a0a' }}>
       
-      <header className="fixed top-0 w-full h-16 bg-[#111111]/90 backdrop-blur-md border-b border-gray-800 z-40 flex items-center justify-between px-5">
+      <header className="fixed top-0 w-full h-16 border-b border-gray-800 z-40 flex items-center justify-between px-5" style={{ backgroundColor: 'rgba(17,17,17,0.9)', backdropFilter: 'blur(10px)' }}>
         <button onClick={() => setIsNotifMenuOpen(true)} className="relative p-2 text-gray-400 hover:text-white transition-colors">
           <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
           </svg>
-          {unreadCount > 0 && <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-red-500 border-2 border-[#111111] rounded-full animate-pulse"></span>}
+          {unreadCount > 0 && <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-red-500 border-2 rounded-full animate-pulse" style={{ borderColor: '#111111' }}></span>}
         </button>
 
         <div className="flex flex-col items-center justify-center leading-none mt-1 cursor-pointer" onClick={() => setActiveTab("panel")}>
-          <h1 className="text-xl font-black tracking-tight">Soph<span className="text-purple-400">IA</span></h1>
+          <h1 className="text-xl font-black tracking-tight">Soph<span style={{ color: '#c084fc' }}>IA</span></h1>
           <span className="text-[8px] text-gray-500 font-bold uppercase tracking-widest mt-0.5">by SIAFI</span>
         </div>
 
@@ -727,20 +727,20 @@ export default function DashboardEntrevistador() {
       {/* MODAL DE CONFIRMACIÓN DE HORARIO */}
       {showConfirmModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
-          <div className="bg-[#111111] border border-purple-500/30 rounded-3xl w-full max-w-sm shadow-2xl flex flex-col pointer-events-auto overflow-hidden animate-in zoom-in-95 duration-200">
-            <div className="p-5 border-b border-gray-800 bg-[#0a0a0a] text-center">
-              <h3 className="text-white font-bold text-lg flex items-center justify-center gap-2"><span className="text-purple-400">⚠️</span> Confirmar Horario</h3>
+          <div className="border rounded-3xl w-full max-w-sm shadow-2xl flex flex-col pointer-events-auto overflow-hidden animate-in zoom-in-95 duration-200" style={{ backgroundColor: '#111111', borderColor: 'rgba(168,85,247,0.3)' }}>
+            <div className="p-5 border-b border-gray-800 text-center" style={{ backgroundColor: '#0a0a0a' }}>
+              <h3 className="text-white font-bold text-lg flex items-center justify-center gap-2"><span style={{ color: '#c084fc' }}>⚠️</span> Confirmar Horario</h3>
             </div>
             <div className="p-6">
               <p className="text-sm text-gray-300 leading-relaxed text-center mb-5">¿Estás seguro de que deseas guardar estos cambios en tu disponibilidad? Una vez guardado, tu horario quedará registrado en el sistema.</p>
-              <div className="bg-purple-500/10 border border-purple-500/30 rounded-2xl p-4 text-center shadow-inner">
-                <p className="text-purple-400 font-black text-2xl">{disponibilidad.length * 0.25} hrs</p>
+              <div className="border rounded-2xl p-4 text-center shadow-inner" style={{ backgroundColor: 'rgba(168,85,247,0.1)', borderColor: 'rgba(168,85,247,0.3)' }}>
+                <p className="font-black text-2xl" style={{ color: '#c084fc' }}>{disponibilidad.length * 0.25} hrs</p>
                 <p className="text-[10px] text-gray-400 uppercase tracking-widest mt-1 font-bold">Total de Disponibilidad</p>
               </div>
             </div>
-            <div className="p-4 border-t border-gray-800 bg-[#0a0a0a] flex gap-3">
-              <button onClick={() => setShowConfirmModal(false)} className="flex-1 py-3.5 bg-gray-800 hover:bg-gray-700 text-white font-bold text-sm uppercase tracking-wider rounded-xl transition-all">Cancelar</button>
-              <button onClick={guardarHorario} className="flex-1 py-3.5 bg-gradient-to-r from-purple-600 to-purple-400 hover:from-purple-400 hover:to-purple-600 text-white font-bold text-sm uppercase tracking-wider rounded-xl transition-all shadow-lg shadow-purple-600/20 active:scale-95">Guardar</button>
+            <div className="p-4 border-t border-gray-800 flex gap-3" style={{ backgroundColor: '#0a0a0a' }}>
+              <button onClick={() => setShowConfirmModal(false)} className="flex-1 py-3.5 text-white font-bold text-sm uppercase tracking-wider rounded-xl transition-all" style={{ backgroundColor: '#1f2937' }}>Cancelar</button>
+              <button onClick={guardarHorario} className="flex-1 py-3.5 text-white font-bold text-sm uppercase tracking-wider rounded-xl transition-all shadow-lg active:scale-95" style={{ backgroundImage: 'linear-gradient(to right, #9333ea, #c084fc)' }}>Guardar</button>
             </div>
           </div>
         </div>
@@ -749,8 +749,8 @@ export default function DashboardEntrevistador() {
       {/* MODAL GENÉRICO DEL SISTEMA DE CAMBIOS */}
       {modalInfo.isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
-          <div className="bg-[#111111] border border-purple-500/30 rounded-3xl w-full max-w-sm shadow-2xl flex flex-col pointer-events-auto overflow-hidden animate-in zoom-in-95 duration-200">
-            <div className="p-5 border-b border-gray-800 bg-[#0a0a0a] text-center">
+          <div className="border rounded-3xl w-full max-w-sm shadow-2xl flex flex-col pointer-events-auto overflow-hidden animate-in zoom-in-95 duration-200" style={{ backgroundColor: '#111111', borderColor: 'rgba(168,85,247,0.3)' }}>
+            <div className="p-5 border-b border-gray-800 text-center" style={{ backgroundColor: '#0a0a0a' }}>
               <h3 className="text-white font-bold text-lg flex items-center justify-center gap-2">
                 <span>{modalInfo.icon}</span> {modalInfo.title}
               </h3>
@@ -758,25 +758,11 @@ export default function DashboardEntrevistador() {
             <div className="p-6 text-center">
               <p className="text-sm text-gray-300 leading-relaxed">{modalInfo.message}</p>
             </div>
-            <div className="p-4 border-t border-gray-800 bg-[#0a0a0a] flex gap-3">
+            <div className="p-4 border-t border-gray-800 flex gap-3" style={{ backgroundColor: '#0a0a0a' }}>
               {!modalInfo.isError && (
-                <button 
-                  onClick={() => setModalInfo(prev => ({ ...prev, isOpen: false }))}
-                  disabled={isProcessingSwap}
-                  className="flex-1 py-3.5 bg-gray-800 hover:bg-gray-700 text-white font-bold text-sm uppercase tracking-wider rounded-xl transition-all disabled:opacity-50"
-                >
-                  Cerrar
-                </button>
+                <button onClick={() => setModalInfo(prev => ({ ...prev, isOpen: false }))} disabled={isProcessingSwap} className="flex-1 py-3.5 text-white font-bold text-sm uppercase tracking-wider rounded-xl transition-all disabled:opacity-50" style={{ backgroundColor: '#1f2937' }}>Cerrar</button>
               )}
-              <button 
-                onClick={modalInfo.onConfirm}
-                disabled={isProcessingSwap}
-                className={`flex-1 py-3.5 text-white font-bold text-sm uppercase tracking-wider rounded-xl transition-all shadow-lg active:scale-95 disabled:opacity-50 ${
-                  modalInfo.isError 
-                    ? 'bg-red-600 hover:bg-red-500 shadow-red-600/20' 
-                    : 'bg-gradient-to-r from-purple-600 to-purple-400 hover:from-purple-400 hover:to-purple-600 shadow-purple-600/20'
-                }`}
-              >
+              <button onClick={modalInfo.onConfirm} disabled={isProcessingSwap} className="flex-1 py-3.5 text-white font-bold text-sm uppercase tracking-wider rounded-xl transition-all shadow-lg active:scale-95 disabled:opacity-50" style={modalInfo.isError ? { backgroundColor: '#dc2626' } : { backgroundImage: 'linear-gradient(to right, #9333ea, #c084fc)' }}>
                 {isProcessingSwap ? "Procesando..." : modalInfo.confirmText}
               </button>
             </div>
@@ -785,42 +771,40 @@ export default function DashboardEntrevistador() {
       )}
 
       {/* MENÚ PERFIL (DERECHO) */}
-      <div className={`fixed top-0 right-0 h-full w-72 bg-[#111111] border-l border-gray-800 z-50 transform transition-transform duration-300 ease-in-out flex flex-col ${isMenuOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+      <div className={`fixed top-0 right-0 h-full w-72 border-l border-gray-800 z-50 transform transition-transform duration-300 ease-in-out flex flex-col ${isMenuOpen ? 'translate-x-0' : 'translate-x-full'}`} style={{ backgroundColor: '#111111' }}>
         <div className="p-6 border-b border-gray-800 flex justify-between items-start">
           <div className="flex items-center gap-4 pr-4">
             <AvatarCircle size="w-12 h-12" />
             <div>
               <p className="font-bold text-white text-lg leading-tight truncate">{primerNombre}</p>
               <p className="text-xs text-gray-400 truncate mt-1">{userEmail}</p>
-              <div className="mt-2 inline-block px-2 py-1 bg-purple-500/20 border border-purple-500/30 rounded-md">
-                  <p className="text-[10px] uppercase tracking-wider font-bold text-purple-400">Entrevistador</p>
+              <div className="mt-2 inline-block px-2 py-1 border rounded-md" style={{ backgroundColor: 'rgba(168,85,247,0.2)', borderColor: 'rgba(168,85,247,0.3)' }}>
+                  <p className="text-[10px] uppercase tracking-wider font-bold" style={{ color: '#c084fc' }}>Entrevistador</p>
               </div>
             </div>
           </div>
           <button onClick={() => setIsMenuOpen(false)} className="text-gray-400 hover:text-white mt-1 shrink-0">✕</button>
         </div>
         <div className="p-4 flex flex-col gap-2 flex-grow">
-          <Link href="/dashboard/settings" className="text-left px-4 py-3 text-sm text-gray-300 hover:bg-white/5 hover:text-white rounded-xl transition-colors">Configuración</Link>
-          <Link href="/dashboard/support" className="text-left px-4 py-3 text-sm text-gray-300 hover:bg-white/5 hover:text-white rounded-xl transition-colors">Soporte Técnico</Link>
+          <Link href="/dashboard/settings" className="text-left px-4 py-3 text-sm text-gray-300 hover:text-white rounded-xl transition-colors">Configuración</Link>
+          <Link href="/dashboard/support" className="text-left px-4 py-3 text-sm text-gray-300 hover:text-white rounded-xl transition-colors">Soporte Técnico</Link>
         </div>
         <div className="p-4 border-t border-gray-800">
-          <button onClick={() => signOut({ callbackUrl: '/login' })} className="w-full px-4 py-3 text-sm font-bold text-red-400 hover:bg-red-500/10 rounded-xl transition-colors flex items-center gap-3">
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
-            Cerrar Sesión
+          <button onClick={() => signOut({ callbackUrl: '/login' })} className="w-full px-4 py-3 text-sm font-bold text-red-400 rounded-xl transition-colors flex items-center gap-3">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg> Cerrar Sesión
           </button>
         </div>
       </div>
 
       {/* MENÚ NOTIFICACIONES (IZQUIERDO) */}
-      <div className={`fixed top-0 left-0 h-full w-80 bg-[#111111] border-r border-gray-800 z-50 transform transition-transform duration-300 ease-in-out flex flex-col ${isNotifMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}>
-        <div className="p-5 border-b border-gray-800 flex justify-between items-center bg-[#0a0a0a]">
+      <div className={`fixed top-0 left-0 h-full w-80 border-r border-gray-800 z-50 transform transition-transform duration-300 ease-in-out flex flex-col ${isNotifMenuOpen ? 'translate-x-0' : '-translate-x-full'}`} style={{ backgroundColor: '#111111' }}>
+        <div className="p-5 border-b border-gray-800 flex justify-between items-center" style={{ backgroundColor: '#0a0a0a' }}>
           <h2 className="text-lg font-bold text-white flex items-center gap-2">
-            <svg className="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
-            Notificaciones
+            <svg className="w-5 h-5" style={{ color: '#c084fc' }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg> Notificaciones
           </h2>
           <button onClick={() => setIsNotifMenuOpen(false)} className="text-gray-400 hover:text-white shrink-0">✕</button>
         </div>
-        <div className="flex-grow overflow-y-auto bg-[#111111]">
+        <div className="flex-grow overflow-y-auto" style={{ backgroundColor: '#111111' }}>
           {notificaciones.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full text-center p-8 opacity-50">
               <svg className="w-12 h-12 mb-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" /></svg>
@@ -828,9 +812,9 @@ export default function DashboardEntrevistador() {
             </div>
           ) : (
             notificaciones.map(notif => (
-              <div key={notif.id} onClick={() => marcarComoLeida(notif.id, notif.leida)} className={`p-5 border-b border-gray-800/50 cursor-pointer transition-all relative group flex gap-4 items-start ${!notif.leida ? 'bg-purple-500/10' : 'hover:bg-[#1f2937]/30'}`}>
-                {!notif.leida && <div className="absolute left-0 top-0 w-1 h-full bg-purple-500"></div>}
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${!notif.leida ? 'bg-purple-500/20 text-purple-400' : 'bg-gray-800 text-gray-400'}`}>
+              <div key={notif.id} onClick={() => marcarComoLeida(notif.id, notif.leida)} className="p-5 border-b border-gray-800/50 cursor-pointer transition-all relative group flex gap-4 items-start" style={!notif.leida ? { backgroundColor: 'rgba(168,85,247,0.1)' } : {}}>
+                {!notif.leida && <div className="absolute left-0 top-0 w-1 h-full" style={{ backgroundColor: '#a855f7' }}></div>}
+                <div className="w-10 h-10 rounded-full flex items-center justify-center shrink-0" style={!notif.leida ? { backgroundColor: 'rgba(168,85,247,0.2)', color: '#c084fc' } : { backgroundColor: '#1f2937', color: '#9ca3af' }}>
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                 </div>
                 <div className="flex-1 pr-6">
@@ -838,39 +822,41 @@ export default function DashboardEntrevistador() {
                   <p className={`text-xs leading-relaxed ${!notif.leida ? 'text-gray-300' : 'text-gray-500'}`}>{notif.mensaje}</p>
                   <p className="text-[10px] text-gray-600 mt-2 uppercase font-bold tracking-wider">{new Date(notif.fecha).toLocaleDateString('es-MX', { day: 'numeric', month: 'short', hour: '2-digit', minute:'2-digit' })}</p>
                 </div>
-                <button onClick={(e) => { e.stopPropagation(); borrarNotificacion(notif.id); }} className="absolute right-3 top-1/2 -translate-y-1/2 p-2 text-gray-500 hover:text-red-400 hover:bg-red-400/10 rounded-xl transition-all opacity-0 group-hover:opacity-100"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button>
+                <button onClick={(e) => { e.stopPropagation(); borrarNotificacion(notif.id); }} className="absolute right-3 top-1/2 -translate-y-1/2 p-2 text-gray-500 hover:text-red-400 opacity-0 group-hover:opacity-100"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button>
               </div>
             ))
           )}
         </div>
       </div>
 
+      {renderActiveContent()}
+
       {/* CINTILLO INFERIOR DE ENTREVISTADOR */}
-      <nav className="fixed bottom-0 w-full bg-[#111111]/90 backdrop-blur-md border-t border-gray-800 z-40 pb-safe">
+      <nav className="fixed bottom-0 w-full border-t border-gray-800 z-40 pb-safe" style={{ backgroundColor: 'rgba(17,17,17,0.9)', backdropFilter: 'blur(10px)' }}>
         <div className="flex justify-between items-center h-16 px-6 relative max-w-lg mx-auto">
           
-          <button onClick={() => setActiveTab("mi-horario")} className={`flex flex-col items-center justify-center w-12 transition-colors ${activeTab === "mi-horario" ? "text-purple-400" : "text-gray-400 hover:text-gray-200"}`}>
+          <button onClick={() => setActiveTab("mi-horario")} className="flex flex-col items-center justify-center w-12 transition-colors" style={{ color: activeTab === "mi-horario" ? '#c084fc' : '#9ca3af' }}>
             <svg className="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
             <span className="text-[9px] font-medium tracking-wide">Horario</span>
           </button>
           
-          <button onClick={() => { setActiveTab("guias"); setGuiaActiva(null); }} className={`flex flex-col items-center justify-center w-12 mr-6 transition-colors ${activeTab === "guias" ? "text-purple-400" : "text-gray-400 hover:text-gray-200"}`}>
+          <button onClick={() => { setActiveTab("guias"); setGuiaActiva(null); }} className="flex flex-col items-center justify-center w-12 mr-6 transition-colors" style={{ color: activeTab === "guias" ? '#c084fc' : '#9ca3af' }}>
             <svg className="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
             <span className="text-[9px] font-medium tracking-wide">Guías</span>
           </button>
 
           <div className="absolute left-1/2 -translate-x-1/2 -top-4">
-            <button onClick={() => setActiveTab("panel")} className={`w-16 h-16 rounded-full flex items-center justify-center border-[6px] border-[#0a0a0a] transition-all duration-300 ${activeTab === "panel" ? "bg-gradient-to-tr from-purple-600 to-purple-400 shadow-[0_0_20px_rgba(168,85,247,0.4)] scale-105" : "bg-gray-800 text-gray-400 hover:bg-gray-700 hover:text-white"}`}>
+            <button onClick={() => setActiveTab("panel")} className="w-16 h-16 rounded-full flex items-center justify-center border-[6px] transition-all duration-300" style={activeTab === "panel" ? { backgroundImage: 'linear-gradient(to top right, #9333ea, #c084fc)', borderColor: '#0a0a0a', boxShadow: '0 0 20px rgba(168,85,247,0.4)', transform: 'scale(1.05)' } : { backgroundColor: '#1f2937', borderColor: '#0a0a0a', color: '#9ca3af' }}>
               <svg className={`w-7 h-7 ${activeTab === "panel" ? "text-white" : "currentColor"}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>
             </button>
           </div>
 
-          <button onClick={() => setActiveTab("cursos")} className={`flex flex-col items-center justify-center w-12 ml-6 transition-colors ${activeTab === "cursos" ? "text-purple-400" : "text-gray-400 hover:text-gray-200"}`}>
+          <button onClick={() => setActiveTab("cursos")} className="flex flex-col items-center justify-center w-12 ml-6 transition-colors" style={{ color: activeTab === "cursos" ? '#c084fc' : '#9ca3af' }}>
             <svg className="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
             <span className="text-[9px] font-medium tracking-wide">Cursos</span>
           </button>
 
-          <button onClick={() => setActiveTab("intercambios")} className={`flex flex-col items-center justify-center w-12 transition-colors ${activeTab === "intercambios" ? "text-purple-400" : "text-gray-400 hover:text-gray-200"}`}>
+          <button onClick={() => setActiveTab("intercambios")} className="flex flex-col items-center justify-center w-12 transition-colors" style={{ color: activeTab === "intercambios" ? '#c084fc' : '#9ca3af' }}>
             <svg className="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
             </svg>

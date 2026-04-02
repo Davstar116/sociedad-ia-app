@@ -9,19 +9,12 @@ const notionHeaders = {
   "Content-Type": "application/json",
 };
 
-// 1. GET: Obtener todas las entrevistas que están buscando un reemplazo
 export async function GET(request: Request) {
   try {
     const res = await fetch(`https://api.notion.com/v1/databases/${ENTREVISTAS_DB_ID}/query`, {
-      method: "POST",
-      headers: notionHeaders,
+      method: "POST", headers: notionHeaders,
       body: JSON.stringify({
-        filter: {
-          and: [
-            { property: "Estatus", select: { equals: "Reservado" } },
-            { property: "Solicita Intercambio", checkbox: { equals: true } }
-          ]
-        },
+        filter: { and: [{ property: "Estatus", select: { equals: "Reservado" } }, { property: "Solicita Intercambio", checkbox: { equals: true } }] },
         sorts: [{ property: "Fecha", direction: "ascending" }]
       }),
       cache: 'no-store'
@@ -50,61 +43,47 @@ export async function GET(request: Request) {
   }
 }
 
-// 2. POST: Solicitar, Cancelar o Aceptar Intercambio
 export async function POST(request: Request) {
   try {
-    const { action, idBloque, miNombre, entrevistadorSaliente } = await request.json();
+    const { action, idBloque, miNombre, entrevistadorSaliente, postulante } = await request.json();
 
-    // 🔴 ACCIÓN: SOLICITAR (Poner en el mercado)
     if (action === "solicitar") {
       await fetch(`https://api.notion.com/v1/pages/${idBloque}`, {
         method: "PATCH", headers: notionHeaders,
-        body: JSON.stringify({
-          properties: {
-            "Solicita Intercambio": { checkbox: true },
-            "Entrevistador Saliente": { rich_text: [{ text: { content: miNombre } }] }
-          }
-        })
+        body: JSON.stringify({ properties: { "Solicita Intercambio": { checkbox: true }, "Entrevistador Saliente": { rich_text: [{ text: { content: miNombre } }] } } })
       });
       return NextResponse.json({ success: true });
     } 
     
-    // 🟡 ACCIÓN: CANCELAR SOLICITUD (Arrepentirse y quitar del mercado)
     else if (action === "cancelar") {
       await fetch(`https://api.notion.com/v1/pages/${idBloque}`, {
         method: "PATCH", headers: notionHeaders,
-        body: JSON.stringify({
-          properties: {
-            "Solicita Intercambio": { checkbox: false },
-            "Entrevistador Saliente": { rich_text: [] } // Lo vaciamos
-          }
-        })
+        body: JSON.stringify({ properties: { "Solicita Intercambio": { checkbox: false }, "Entrevistador Saliente": { rich_text: [] } } })
       });
       return NextResponse.json({ success: true });
     }
     
-    // 🟢 ACCIÓN: ACEPTAR (Rescatar a un compañero)
     else if (action === "aceptar") {
       const pageRes = await fetch(`https://api.notion.com/v1/pages/${idBloque}`, { method: "GET", headers: notionHeaders, cache: 'no-store' });
       const pageData = await pageRes.json();
       const e1 = pageData.properties["Entrevistador 1"]?.rich_text[0]?.plain_text || "";
       const e2 = pageData.properties["Entrevistador 2"]?.rich_text[0]?.plain_text || "";
       
-      // ✅ VALIDACIÓN CRÍTICA: Impedir que un evaluador acepte una entrevista donde ya está asignado
       if (e1 === miNombre || e2 === miNombre) {
         return NextResponse.json({ success: false, error: "Ya estás asignado a esta entrevista como el otro evaluador. No puedes ocupar ambos puestos." }, { status: 400 });
       }
 
-      // Reemplazamos exactamente al que solicitó salir
       const columnaAReemplazar = (e1 === entrevistadorSaliente) ? "Entrevistador 1" : "Entrevistador 2";
 
+      // ✅ AQUÍ SETEAMOS LA ALERTA PARA EL ENTREVISTADOR SALIENTE
       await fetch(`https://api.notion.com/v1/pages/${idBloque}`, {
         method: "PATCH", headers: notionHeaders,
         body: JSON.stringify({
           properties: {
             [columnaAReemplazar]: { rich_text: [{ text: { content: miNombre } }] },
             "Solicita Intercambio": { checkbox: false },
-            "Entrevistador Saliente": { rich_text: [] }
+            "Entrevistador Saliente": { rich_text: [] },
+            "Alerta Cambio": { rich_text: [{ text: { content: `${entrevistadorSaliente}|${miNombre}|${postulante}` } }] }
           }
         })
       });

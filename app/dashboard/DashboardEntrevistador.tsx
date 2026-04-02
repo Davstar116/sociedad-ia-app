@@ -16,7 +16,6 @@ export default function DashboardEntrevistador() {
   
   const [activeTab, setActiveTab] = useState("panel");
   
-  // ESTADOS DEL HORARIO Y BLOQUEO
   const [semana, setSemana] = useState(1);
   const [disponibilidad, setDisponibilidad] = useState<string[]>([]);
   const [isSaving, setIsSaving] = useState(false);
@@ -36,7 +35,6 @@ export default function DashboardEntrevistador() {
   const [isLoadingIntercambios, setIsLoadingIntercambios] = useState(false);
   const [isProcessingSwap, setIsProcessingSwap] = useState(false);
 
-  // ✅ ESTADO DEL MODAL GENÉRICO PARA INTERCAMBIOS
   const [modalInfo, setModalInfo] = useState<{
     isOpen: boolean;
     title: string;
@@ -46,13 +44,7 @@ export default function DashboardEntrevistador() {
     isError?: boolean;
     onConfirm: () => void;
   }>({
-    isOpen: false,
-    title: "",
-    message: "",
-    icon: "",
-    confirmText: "Confirmar",
-    isError: false,
-    onConfirm: () => {}
+    isOpen: false, title: "", message: "", icon: "", confirmText: "Confirmar", isError: false, onConfirm: () => {}
   });
   
   const hasLoadedSchedule = useRef(false);
@@ -61,9 +53,7 @@ export default function DashboardEntrevistador() {
   const HORAS = useMemo(() => {
     const h = [];
     for (let i = 9; i < 21; i++) {
-      for (let m of ["00", "15", "30", "45"]) {
-        h.push(`${i.toString().padStart(2, '0')}:${m}`);
-      }
+      for (let m of ["00", "15", "30", "45"]) h.push(`${i.toString().padStart(2, '0')}:${m}`);
     }
     return h;
   }, []);
@@ -126,6 +116,33 @@ export default function DashboardEntrevistador() {
     } catch (error) {} finally { setIsLoadingIntercambios(false); }
   };
 
+  // ✅ NUEVA FUNCIÓN: LEER ALERTAS DE INTERCAMBIO ACEPTADO
+  const fetchAlertasCambio = async () => {
+    if (!session?.user?.name) return;
+    try {
+      const res = await fetch(`/api/entrevistas/intercambios/alertas?entrevistador=${encodeURIComponent(session.user.name)}`);
+      const data = await res.json();
+      
+      if (data.success && data.alertas.length > 0) {
+        const alerta = data.alertas[0]; // Mostramos la primera alerta
+        setModalInfo({
+          isOpen: true,
+          title: "¡Intercambio Aceptado!",
+          message: `El entrevistador ${alerta.entrante} ha aceptado cubrir tu entrevista con el candidato ${alerta.postulante}. Ya ha sido removida de tu agenda.`,
+          icon: "🎉",
+          confirmText: "Entendido",
+          isError: false,
+          onConfirm: async () => {
+            setModalInfo(prev => ({ ...prev, isOpen: false }));
+            await fetch(`/api/entrevistas/intercambios/alertas?idBloque=${alerta.idBloque}`, { method: 'DELETE' });
+          }
+        });
+      }
+    } catch (error) {
+      console.error("Error verificando alertas:", error);
+    }
+  };
+
   useEffect(() => {
     if (status === "authenticated") {
       fetchNotificaciones();
@@ -134,48 +151,40 @@ export default function DashboardEntrevistador() {
     }
   }, [status, session]);
 
+  // ✅ DISPARAMOS TAMBIÉN LA BÚSQUEDA DE ALERTAS AL ENTRAR AL PANEL
   useEffect(() => {
-    if (activeTab === "panel" && status === "authenticated") fetchMisEntrevistas();
+    if (activeTab === "panel" && status === "authenticated") {
+      fetchMisEntrevistas();
+      fetchAlertasCambio(); 
+    }
     if (activeTab === "intercambios" && status === "authenticated") fetchIntercambios();
   }, [activeTab, status]);
 
   // =========================================================
-  // ✅ LOGICA DE MODALES DE INTERCAMBIO
+  // LÓGICA DE MODALES DE INTERCAMBIO
   // =========================================================
   
-  const handleSwapAction = async (action: "solicitar" | "cancelar" | "aceptar", idBloque: string, saliente?: string) => {
+  const handleSwapAction = async (action: "solicitar" | "cancelar" | "aceptar", idBloque: string, saliente?: string, postulante?: string) => {
     setIsProcessingSwap(true);
     try {
       const res = await fetch("/api/entrevistas/intercambios", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          action,
-          idBloque,
-          miNombre: session?.user?.name,
-          entrevistadorSaliente: saliente
-        })
+        body: JSON.stringify({ action, idBloque, miNombre: session?.user?.name, entrevistadorSaliente: saliente, postulante })
       });
       const data = await res.json();
 
       if (!data.success) {
-        // En caso de error (ej. Si ya es el otro entrevistador)
         setModalInfo({
-          isOpen: true,
-          title: "Acción Denegada",
-          message: data.error || "No se pudo procesar la solicitud.",
-          icon: "❌",
-          confirmText: "Entendido",
-          isError: true,
+          isOpen: true, title: "Acción Denegada", message: data.error || "No se pudo procesar la solicitud.",
+          icon: "❌", confirmText: "Entendido", isError: true,
           onConfirm: () => setModalInfo(prev => ({ ...prev, isOpen: false }))
         });
         setIsProcessingSwap(false);
         return;
       }
 
-      // ✅ RECARGA AUTOMÁTICA DE LA PÁGINA PARA ACTUALIZAR TODO
       window.location.reload();
-      
     } catch (error) {
       console.error("Error procesando intercambio:", error);
       setIsProcessingSwap(false);
@@ -184,37 +193,25 @@ export default function DashboardEntrevistador() {
 
   const solicitarIntercambio = (idBloque: string) => {
     setModalInfo({
-      isOpen: true,
-      title: "Solicitar Intercambio",
-      message: "¿Estás seguro de solicitar un intercambio? Tu entrevista quedará en el Sistema de Cambios hasta que alguien más la acepte.",
-      icon: "🔄",
-      confirmText: "Solicitar Intercambio",
-      isError: false,
+      isOpen: true, title: "Solicitar Intercambio", message: "¿Estás seguro de solicitar un intercambio? Tu entrevista quedará en el Sistema de Cambios hasta que alguien más la acepte.",
+      icon: "🔄", confirmText: "Solicitar Intercambio", isError: false,
       onConfirm: () => handleSwapAction("solicitar", idBloque)
     });
   };
 
   const cancelarIntercambio = (idBloque: string) => {
     setModalInfo({
-      isOpen: true,
-      title: "Cancelar Solicitud",
-      message: "¿Deseas cancelar tu solicitud de intercambio? Recuperarás la entrevista y ya no será visible en el Sistema de Cambios.",
-      icon: "↩️",
-      confirmText: "Sí, Cancelar",
-      isError: false,
+      isOpen: true, title: "Cancelar Solicitud", message: "¿Deseas cancelar tu solicitud de intercambio? Recuperarás la entrevista y ya no será visible en el Sistema de Cambios.",
+      icon: "↩️", confirmText: "Sí, Cancelar", isError: false,
       onConfirm: () => handleSwapAction("cancelar", idBloque)
     });
   };
 
-  const aceptarIntercambio = (idBloque: string, saliente: string) => {
+  const aceptarIntercambio = (idBloque: string, saliente: string, postulante: string) => {
     setModalInfo({
-      isOpen: true,
-      title: "Aceptar Intercambio",
-      message: `¿Estás seguro de cubrir a ${saliente} en esta entrevista? Se agregará a tu agenda de forma inmediata.`,
-      icon: "✅",
-      confirmText: "Aceptar Entrevista",
-      isError: false,
-      onConfirm: () => handleSwapAction("aceptar", idBloque, saliente)
+      isOpen: true, title: "Aceptar Intercambio", message: `¿Estás seguro de cubrir a ${saliente} en esta entrevista? Se agregará a tu agenda de forma inmediata.`,
+      icon: "✅", confirmText: "Aceptar Entrevista", isError: false,
+      onConfirm: () => handleSwapAction("aceptar", idBloque, saliente, postulante)
     });
   };
 
@@ -477,8 +474,9 @@ export default function DashboardEntrevistador() {
                       <h3 className="text-lg font-black text-white">{entrevista.postulante}</h3>
                     </div>
 
+                    {/* ✅ BOTÓN CONECTADO AL MODAL */}
                     <button 
-                      onClick={() => aceptarIntercambio(entrevista.idBloque, entrevista.entrevistadorSaliente)}
+                      onClick={() => aceptarIntercambio(entrevista.idBloque, entrevista.entrevistadorSaliente, entrevista.postulante)}
                       className="w-full py-3 bg-purple-600/10 text-purple-400 hover:bg-purple-600 hover:text-white border border-purple-600/30 font-bold text-xs uppercase tracking-wider rounded-xl transition-all shadow-lg active:scale-95"
                     >
                       ✅ Aceptar y Cubrir Entrevista
@@ -626,7 +624,7 @@ export default function DashboardEntrevistador() {
                   disabled={isProcessingSwap}
                   className="flex-1 py-3.5 bg-gray-800 hover:bg-gray-700 text-white font-bold text-sm uppercase tracking-wider rounded-xl transition-all disabled:opacity-50"
                 >
-                  Cancelar
+                  Cerrar
                 </button>
               )}
               <button 

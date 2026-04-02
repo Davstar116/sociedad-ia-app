@@ -702,7 +702,6 @@ export default function DashboardEntrevistador() {
   };
 
   return (
-    {/* ✅ AQUÍ CAMBIAMOS OVERFLOW-HIDDEN POR OVERFLOW-X-HIDDEN */}
     <div className="min-h-screen bg-black text-white font-sans overflow-x-hidden pb-20">
       
       <header className="fixed top-0 w-full h-16 bg-[#111111]/90 backdrop-blur-md border-b border-gray-800 z-40 flex items-center justify-between px-5">

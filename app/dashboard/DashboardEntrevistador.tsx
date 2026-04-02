@@ -116,7 +116,6 @@ export default function DashboardEntrevistador() {
     } catch (error) {} finally { setIsLoadingIntercambios(false); }
   };
 
-  // ✅ NUEVA FUNCIÓN: LEER ALERTAS DE INTERCAMBIO ACEPTADO
   const fetchAlertasCambio = async () => {
     if (!session?.user?.name) return;
     try {
@@ -124,7 +123,7 @@ export default function DashboardEntrevistador() {
       const data = await res.json();
       
       if (data.success && data.alertas.length > 0) {
-        const alerta = data.alertas[0]; // Mostramos la primera alerta
+        const alerta = data.alertas[0];
         setModalInfo({
           isOpen: true,
           title: "¡Intercambio Aceptado!",
@@ -151,7 +150,6 @@ export default function DashboardEntrevistador() {
     }
   }, [status, session]);
 
-  // ✅ DISPARAMOS TAMBIÉN LA BÚSQUEDA DE ALERTAS AL ENTRAR AL PANEL
   useEffect(() => {
     if (activeTab === "panel" && status === "authenticated") {
       fetchMisEntrevistas();
@@ -160,10 +158,6 @@ export default function DashboardEntrevistador() {
     if (activeTab === "intercambios" && status === "authenticated") fetchIntercambios();
   }, [activeTab, status]);
 
-  // =========================================================
-  // LÓGICA DE MODALES DE INTERCAMBIO
-  // =========================================================
-  
   const handleSwapAction = async (action: "solicitar" | "cancelar" | "aceptar", idBloque: string, saliente?: string, postulante?: string) => {
     setIsProcessingSwap(true);
     try {
@@ -285,7 +279,7 @@ export default function DashboardEntrevistador() {
     } catch (error) {} finally { setIsSaving(false); }
   };
 
-  if (status === "loading") return <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center text-[#00baff] animate-pulse">Cargando tu perfil...</div>;
+  if (status === "loading") return <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center text-purple-400 animate-pulse">Cargando tu perfil...</div>;
 
   const userName = session?.user?.name || "Entrevistador";
   const userEmail = session?.user?.email || "Sin correo";
@@ -296,7 +290,7 @@ export default function DashboardEntrevistador() {
   const iniciales = userName.split(" ").map(n => n[0]).slice(0, 2).join("").toUpperCase();
 
   const AvatarCircle = ({ size }: { size: string }) => (
-    <div className={`${size} rounded-full bg-gradient-to-tr from-[#0051ff] to-[#00baff] p-[2px] shrink-0 shadow-[0_0_15px_rgba(0,186,255,0.3)]`}>
+    <div className={`${size} rounded-full bg-gradient-to-tr from-purple-600 to-purple-400 p-[2px] shrink-0 shadow-[0_0_15px_rgba(168,85,247,0.3)]`}>
       <div className="w-full h-full rounded-full bg-[#111111] overflow-hidden flex items-center justify-center">
         {userAvatar ? <img src={userAvatar} alt="Perfil" className="w-full h-full object-cover" /> : <span className={`${size === 'w-9 h-9' ? 'text-xs' : 'text-sm'} font-bold text-white`}>{iniciales}</span>}
       </div>
@@ -319,19 +313,19 @@ export default function DashboardEntrevistador() {
                 )}
               </div>
               <div className="text-right">
-                <p className="text-2xl font-black text-[#00baff]">{disponibilidad.length * 0.25}<span className="text-sm text-gray-500 font-medium"> hrs</span></p>
+                <p className="text-2xl font-black text-purple-400">{disponibilidad.length * 0.25}<span className="text-sm text-gray-500 font-medium"> hrs</span></p>
               </div>
             </div>
 
             <div className="flex gap-2 mb-4 bg-[#111111] p-1.5 rounded-xl border border-gray-800">
-              <button onClick={() => setSemana(1)} className={`flex-1 py-2 text-[11px] font-bold rounded-lg transition-colors ${semana === 1 ? 'bg-gradient-to-r from-[#0051ff] to-[#00baff] text-white shadow-lg' : 'text-gray-400 hover:text-white'}`}>Semana 1 (6-12 Abr)</button>
-              <button onClick={() => setSemana(2)} className={`flex-1 py-2 text-[11px] font-bold rounded-lg transition-colors ${semana === 2 ? 'bg-gradient-to-r from-[#0051ff] to-[#00baff] text-white shadow-lg' : 'text-gray-400 hover:text-white'}`}>Semana 2 (13-19 Abr)</button>
+              <button onClick={() => setSemana(1)} className={`flex-1 py-2 text-[11px] font-bold rounded-lg transition-colors ${semana === 1 ? 'bg-gradient-to-r from-purple-600 to-purple-400 text-white shadow-lg' : 'text-gray-400 hover:text-white'}`}>Semana 1 (6-12 Abr)</button>
+              <button onClick={() => setSemana(2)} className={`flex-1 py-2 text-[11px] font-bold rounded-lg transition-colors ${semana === 2 ? 'bg-gradient-to-r from-purple-600 to-purple-400 text-white shadow-lg' : 'text-gray-400 hover:text-white'}`}>Semana 2 (13-19 Abr)</button>
             </div>
 
             <div className={`bg-[#111111] border rounded-3xl p-3 sm:p-5 shadow-2xl overflow-hidden relative transition-all ${(isLocked || isGlobalLockActive) ? 'border-green-500/30' : 'border-gray-800'} ${isGlobalLockActive ? 'border-orange-500/30' : ''}`}>
               {isLoadingSchedule ? (
                 <div className="flex flex-col items-center justify-center py-10 opacity-50">
-                  <div className="w-8 h-8 border-2 border-[#00baff] border-t-transparent rounded-full animate-spin mb-3"></div>
+                  <div className="w-8 h-8 border-2 border-purple-500 border-t-transparent rounded-full animate-spin mb-3"></div>
                   <p className="text-xs text-gray-400">Cargando horario...</p>
                 </div>
               ) : (
@@ -353,7 +347,7 @@ export default function DashboardEntrevistador() {
                           const slotId = `S${semana}-${dia}-${fechasActivas[idx]}-${hora}`;
                           const isSelected = disponibilidad.includes(slotId);
                           return (
-                            <div key={slotId} onClick={() => toggleSlot(slotId)} className={`h-4 sm:h-5 rounded-[2px] transition-all border-[0.5px] ${(isLocked || isGlobalLockActive) ? (isSelected ? 'bg-green-500 border-green-400 opacity-90 cursor-default shadow-[0_0_8px_rgba(34,197,94,0.3)]' : 'bg-[#151515] border-gray-800 opacity-30 cursor-default') : (isSelected ? 'bg-[#00baff] border-[#00baff] shadow-[0_0_8px_rgba(0,186,255,0.4)] cursor-pointer' : 'bg-[#1a1a1a] border-gray-800 hover:bg-gray-800/80 cursor-pointer')}`}></div>
+                            <div key={slotId} onClick={() => toggleSlot(slotId)} className={`h-4 sm:h-5 rounded-[2px] transition-all border-[0.5px] ${(isLocked || isGlobalLockActive) ? (isSelected ? 'bg-green-500 border-green-400 opacity-90 cursor-default shadow-[0_0_8px_rgba(34,197,94,0.3)]' : 'bg-[#151515] border-gray-800 opacity-30 cursor-default') : (isSelected ? 'bg-purple-500 border-purple-500 shadow-[0_0_8px_rgba(168,85,247,0.4)] cursor-pointer' : 'bg-[#1a1a1a] border-gray-800 hover:bg-gray-800/80 cursor-pointer')}`}></div>
                           );
                         })}
                       </div>
@@ -371,7 +365,7 @@ export default function DashboardEntrevistador() {
               ) : isLocked ? (
                 <button onClick={() => setIsLocked(false)} className="w-full max-w-xs py-4 font-black text-sm uppercase tracking-wider rounded-xl transition-all shadow-lg active:scale-95 bg-gray-800 text-gray-300 hover:bg-gray-700 hover:text-white">Realizar Cambios</button>
               ) : (
-                <button onClick={confirmarYGuardar} disabled={isSaving || isLoadingSchedule} className={`w-full max-w-xs py-4 font-black text-sm uppercase tracking-wider rounded-xl transition-all shadow-lg active:scale-95 ${saveSuccess ? 'bg-green-500 text-[#0a0a0a] shadow-green-500/20' : 'bg-gradient-to-r from-[#0051ff] to-[#00baff] text-white shadow-[#0051ff]/20 hover:from-[#00baff] hover:to-[#0051ff]'}`}>
+                <button onClick={confirmarYGuardar} disabled={isSaving || isLoadingSchedule} className={`w-full max-w-xs py-4 font-black text-sm uppercase tracking-wider rounded-xl transition-all shadow-lg active:scale-95 ${saveSuccess ? 'bg-green-500 text-[#0a0a0a] shadow-green-500/20' : 'bg-gradient-to-r from-purple-600 to-purple-400 text-white shadow-purple-600/20 hover:from-purple-400 hover:to-purple-600'}`}>
                   {isSaving ? 'Guardando...' : saveSuccess ? '¡Guardado Exitoso!' : 'Guardar Horario'}
                 </button>
               )}
@@ -395,7 +389,7 @@ export default function DashboardEntrevistador() {
             <h2 className="text-2xl font-black text-white mb-6">Cursos de Capacitación</h2>
             {isLoadingCursos ? (
               <div className="flex flex-col items-center justify-center py-20 opacity-50">
-                <div className="w-8 h-8 border-2 border-[#00baff] border-t-transparent rounded-full animate-spin mb-3"></div>
+                <div className="w-8 h-8 border-2 border-purple-500 border-t-transparent rounded-full animate-spin mb-3"></div>
                 <p className="text-sm text-gray-400 font-bold uppercase tracking-widest">Cargando módulos...</p>
               </div>
             ) : cursos.length === 0 ? (
@@ -408,7 +402,7 @@ export default function DashboardEntrevistador() {
                 {cursos.map((curso) => {
                   const embedUrl = getYouTubeEmbedUrl(curso.url);
                   return (
-                    <div key={curso.id} className="bg-[#111111] border border-gray-800 rounded-2xl overflow-hidden shadow-xl group hover:border-[#0051ff]/50 transition-colors">
+                    <div key={curso.id} className="bg-[#111111] border border-gray-800 rounded-2xl overflow-hidden shadow-xl group hover:border-purple-500/50 transition-colors">
                       {embedUrl ? (
                         <div className="aspect-video w-full bg-black relative">
                           <iframe src={embedUrl} title={curso.titulo} className="absolute top-0 left-0 w-full h-full" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen></iframe>
@@ -474,7 +468,6 @@ export default function DashboardEntrevistador() {
                       <h3 className="text-lg font-black text-white">{entrevista.postulante}</h3>
                     </div>
 
-                    {/* ✅ BOTÓN CONECTADO AL MODAL */}
                     <button 
                       onClick={() => aceptarIntercambio(entrevista.idBloque, entrevista.entrevistadorSaliente, entrevista.postulante)}
                       className="w-full py-3 bg-purple-600/10 text-purple-400 hover:bg-purple-600 hover:text-white border border-purple-600/30 font-bold text-xs uppercase tracking-wider rounded-xl transition-all shadow-lg active:scale-95"
@@ -493,19 +486,19 @@ export default function DashboardEntrevistador() {
         return (
           <main className="pt-24 pb-32 px-5 max-w-lg mx-auto min-h-screen flex flex-col gap-6 animate-in fade-in duration-500">
             <div className="bg-[#111111] border border-gray-800 rounded-2xl p-6 shadow-xl relative overflow-hidden shrink-0">
-              <div className="absolute top-0 left-0 w-1 h-full bg-[#00baff]"></div>
+              <div className="absolute top-0 left-0 w-1 h-full bg-purple-500"></div>
               <h2 className="text-xl font-bold mb-1">Hola, {primerNombre} 👋</h2>
               <p className="text-sm text-gray-400">Entrevistas programadas:</p>
             </div>
 
             {isLoadingEntrevistas ? (
               <div className="flex flex-col items-center justify-center py-10 opacity-50">
-                <div className="w-8 h-8 border-2 border-[#00baff] border-t-transparent rounded-full animate-spin mb-3"></div>
+                <div className="w-8 h-8 border-2 border-purple-500 border-t-transparent rounded-full animate-spin mb-3"></div>
                 <p className="text-xs text-gray-400 font-bold uppercase tracking-widest">Cargando agenda...</p>
               </div>
             ) : misEntrevistas.length === 0 ? (
               <div className="bg-[#111111] border border-gray-800 rounded-2xl p-8 text-center shadow-xl">
-                <div className="text-4xl mb-4 text-[#00baff] opacity-50">☕</div>
+                <div className="text-4xl mb-4 text-purple-500 opacity-50">☕</div>
                 <p className="text-gray-400 text-sm">No tienes entrevistas asignadas por el momento.</p>
                 <p className="text-[10px] text-gray-500 mt-2 uppercase tracking-widest">El sistema te notificará cuando tengas una.</p>
               </div>
@@ -513,10 +506,10 @@ export default function DashboardEntrevistador() {
               <div className="flex flex-col gap-4">
                 <h3 className="text-sm font-bold text-gray-300 uppercase tracking-wider mb-2">Tus Próximas Citas ({misEntrevistas.length})</h3>
                 {misEntrevistas.map((entrevista, idx) => (
-                  <div key={idx} className="bg-[#111111] border border-gray-800 rounded-2xl overflow-hidden shadow-lg hover:border-[#00baff]/50 transition-all group p-5">
+                  <div key={idx} className="bg-[#111111] border border-gray-800 rounded-2xl overflow-hidden shadow-lg hover:border-purple-500/50 transition-all group p-5">
                     <div className="flex justify-between items-start mb-4">
                       <div>
-                        <p className="text-[10px] text-[#00baff] uppercase tracking-widest font-bold mb-1">Candidato</p>
+                        <p className="text-[10px] text-purple-400 uppercase tracking-widest font-bold mb-1">Candidato</p>
                         <h3 className="text-lg font-bold text-white leading-tight">{entrevista.postulante}</h3>
                       </div>
                       <div className="text-right">
@@ -531,7 +524,7 @@ export default function DashboardEntrevistador() {
                           <span>📹</span> Meet
                         </a>
                       )}
-                      <Link href={`/dashboard/entrevistador/postulante/${entrevista.idBloque}?email=${encodeURIComponent(entrevista.correoPostulante)}&dia=${entrevista.dia}&fecha=${entrevista.fecha}&hora=${entrevista.hora}`} className="flex-[2] py-3 bg-gradient-to-r from-[#0051ff] to-[#00baff] hover:from-[#00baff] hover:to-[#0051ff] text-center text-white text-xs font-black uppercase tracking-wider rounded-xl transition-all shadow-lg shadow-[#0051ff]/20 flex items-center justify-center gap-2 active:scale-95">
+                      <Link href={`/dashboard/entrevistador/postulante/${entrevista.idBloque}?email=${encodeURIComponent(entrevista.correoPostulante)}&dia=${entrevista.dia}&fecha=${entrevista.fecha}&hora=${entrevista.hora}`} className="flex-[2] py-3 bg-gradient-to-r from-purple-600 to-purple-400 hover:from-purple-400 hover:to-purple-600 text-center text-white text-xs font-black uppercase tracking-wider rounded-xl transition-all shadow-lg shadow-purple-600/20 flex items-center justify-center gap-2 active:scale-95">
                         Ver Perfil <span>→</span>
                       </Link>
                     </div>
@@ -569,7 +562,7 @@ export default function DashboardEntrevistador() {
         </button>
 
         <div className="flex flex-col items-center justify-center leading-none mt-1 cursor-pointer" onClick={() => setActiveTab("panel")}>
-          <h1 className="text-xl font-black tracking-tight">Soph<span className="text-[#00baff]">IA</span></h1>
+          <h1 className="text-xl font-black tracking-tight">Soph<span className="text-purple-400">IA</span></h1>
           <span className="text-[8px] text-gray-500 font-bold uppercase tracking-widest mt-0.5">by SIAFI</span>
         </div>
 
@@ -586,20 +579,20 @@ export default function DashboardEntrevistador() {
       {/* MODAL DE CONFIRMACIÓN DE HORARIO */}
       {showConfirmModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
-          <div className="bg-[#111111] border border-[#0051ff]/30 rounded-3xl w-full max-w-sm shadow-2xl flex flex-col pointer-events-auto overflow-hidden animate-in zoom-in-95 duration-200">
+          <div className="bg-[#111111] border border-purple-500/30 rounded-3xl w-full max-w-sm shadow-2xl flex flex-col pointer-events-auto overflow-hidden animate-in zoom-in-95 duration-200">
             <div className="p-5 border-b border-gray-800 bg-[#0a0a0a] text-center">
-              <h3 className="text-white font-bold text-lg flex items-center justify-center gap-2"><span className="text-[#00baff]">⚠️</span> Confirmar Horario</h3>
+              <h3 className="text-white font-bold text-lg flex items-center justify-center gap-2"><span className="text-purple-400">⚠️</span> Confirmar Horario</h3>
             </div>
             <div className="p-6">
               <p className="text-sm text-gray-300 leading-relaxed text-center mb-5">¿Estás seguro de que deseas guardar estos cambios en tu disponibilidad? Una vez guardado, tu horario quedará registrado en el sistema.</p>
-              <div className="bg-[#00baff]/10 border border-[#00baff]/30 rounded-2xl p-4 text-center shadow-inner">
-                <p className="text-[#00baff] font-black text-2xl">{disponibilidad.length * 0.25} hrs</p>
+              <div className="bg-purple-500/10 border border-purple-500/30 rounded-2xl p-4 text-center shadow-inner">
+                <p className="text-purple-400 font-black text-2xl">{disponibilidad.length * 0.25} hrs</p>
                 <p className="text-[10px] text-gray-400 uppercase tracking-widest mt-1 font-bold">Total de Disponibilidad</p>
               </div>
             </div>
             <div className="p-4 border-t border-gray-800 bg-[#0a0a0a] flex gap-3">
               <button onClick={() => setShowConfirmModal(false)} className="flex-1 py-3.5 bg-gray-800 hover:bg-gray-700 text-white font-bold text-sm uppercase tracking-wider rounded-xl transition-all">Cancelar</button>
-              <button onClick={guardarHorario} className="flex-1 py-3.5 bg-gradient-to-r from-[#0051ff] to-[#00baff] hover:from-[#00baff] hover:to-[#0051ff] text-white font-bold text-sm uppercase tracking-wider rounded-xl transition-all shadow-lg shadow-[#0051ff]/20 active:scale-95">Guardar</button>
+              <button onClick={guardarHorario} className="flex-1 py-3.5 bg-gradient-to-r from-purple-600 to-purple-400 hover:from-purple-400 hover:to-purple-600 text-white font-bold text-sm uppercase tracking-wider rounded-xl transition-all shadow-lg shadow-purple-600/20 active:scale-95">Guardar</button>
             </div>
           </div>
         </div>
@@ -608,7 +601,7 @@ export default function DashboardEntrevistador() {
       {/* ✅ MODAL GENÉRICO DEL SISTEMA DE CAMBIOS */}
       {modalInfo.isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
-          <div className="bg-[#111111] border border-[#0051ff]/30 rounded-3xl w-full max-w-sm shadow-2xl flex flex-col pointer-events-auto overflow-hidden animate-in zoom-in-95 duration-200">
+          <div className="bg-[#111111] border border-purple-500/30 rounded-3xl w-full max-w-sm shadow-2xl flex flex-col pointer-events-auto overflow-hidden animate-in zoom-in-95 duration-200">
             <div className="p-5 border-b border-gray-800 bg-[#0a0a0a] text-center">
               <h3 className="text-white font-bold text-lg flex items-center justify-center gap-2">
                 <span>{modalInfo.icon}</span> {modalInfo.title}
@@ -633,7 +626,7 @@ export default function DashboardEntrevistador() {
                 className={`flex-1 py-3.5 text-white font-bold text-sm uppercase tracking-wider rounded-xl transition-all shadow-lg active:scale-95 disabled:opacity-50 ${
                   modalInfo.isError 
                     ? 'bg-red-600 hover:bg-red-500 shadow-red-600/20' 
-                    : 'bg-gradient-to-r from-[#0051ff] to-[#00baff] hover:from-[#00baff] hover:to-[#0051ff] shadow-[#0051ff]/20'
+                    : 'bg-gradient-to-r from-purple-600 to-purple-400 hover:from-purple-400 hover:to-purple-600 shadow-purple-600/20'
                 }`}
               >
                 {isProcessingSwap ? "Procesando..." : modalInfo.confirmText}
@@ -651,8 +644,8 @@ export default function DashboardEntrevistador() {
             <div>
               <p className="font-bold text-white text-lg leading-tight truncate">{primerNombre}</p>
               <p className="text-xs text-gray-400 truncate mt-1">{userEmail}</p>
-              <div className="mt-2 inline-block px-2 py-1 bg-[#00baff]/20 border border-[#00baff]/30 rounded-md">
-                  <p className="text-[10px] uppercase tracking-wider font-bold text-[#00baff]">Entrevistador</p>
+              <div className="mt-2 inline-block px-2 py-1 bg-purple-500/20 border border-purple-500/30 rounded-md">
+                  <p className="text-[10px] uppercase tracking-wider font-bold text-purple-400">Entrevistador</p>
               </div>
             </div>
           </div>
@@ -674,7 +667,7 @@ export default function DashboardEntrevistador() {
       <div className={`fixed top-0 left-0 h-full w-80 bg-[#111111] border-r border-gray-800 z-50 transform transition-transform duration-300 ease-in-out flex flex-col ${isNotifMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         <div className="p-5 border-b border-gray-800 flex justify-between items-center bg-[#0a0a0a]">
           <h2 className="text-lg font-bold text-white flex items-center gap-2">
-            <svg className="w-5 h-5 text-[#00baff]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
+            <svg className="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
             Notificaciones
           </h2>
           <button onClick={() => setIsNotifMenuOpen(false)} className="text-gray-400 hover:text-white shrink-0">✕</button>
@@ -687,9 +680,9 @@ export default function DashboardEntrevistador() {
             </div>
           ) : (
             notificaciones.map(notif => (
-              <div key={notif.id} onClick={() => marcarComoLeida(notif.id, notif.leida)} className={`p-5 border-b border-gray-800/50 cursor-pointer transition-all relative group flex gap-4 items-start ${!notif.leida ? 'bg-[#00baff]/10' : 'hover:bg-[#1f2937]/30'}`}>
-                {!notif.leida && <div className="absolute left-0 top-0 w-1 h-full bg-[#00baff]"></div>}
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${!notif.leida ? 'bg-[#00baff]/20 text-[#00baff]' : 'bg-gray-800 text-gray-400'}`}>
+              <div key={notif.id} onClick={() => marcarComoLeida(notif.id, notif.leida)} className={`p-5 border-b border-gray-800/50 cursor-pointer transition-all relative group flex gap-4 items-start ${!notif.leida ? 'bg-purple-500/10' : 'hover:bg-[#1f2937]/30'}`}>
+                {!notif.leida && <div className="absolute left-0 top-0 w-1 h-full bg-purple-500"></div>}
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${!notif.leida ? 'bg-purple-500/20 text-purple-400' : 'bg-gray-800 text-gray-400'}`}>
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                 </div>
                 <div className="flex-1 pr-6">
@@ -710,23 +703,23 @@ export default function DashboardEntrevistador() {
       <nav className="fixed bottom-0 w-full bg-[#111111]/90 backdrop-blur-md border-t border-gray-800 z-40 pb-safe">
         <div className="flex justify-between items-center h-16 px-6 relative max-w-lg mx-auto">
           
-          <button onClick={() => setActiveTab("mi-horario")} className={`flex flex-col items-center justify-center w-12 transition-colors ${activeTab === "mi-horario" ? "text-[#00baff]" : "text-gray-400 hover:text-gray-200"}`}>
+          <button onClick={() => setActiveTab("mi-horario")} className={`flex flex-col items-center justify-center w-12 transition-colors ${activeTab === "mi-horario" ? "text-purple-400" : "text-gray-400 hover:text-gray-200"}`}>
             <svg className="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
             <span className="text-[9px] font-medium tracking-wide">Horario</span>
           </button>
           
-          <button onClick={() => setActiveTab("material")} className={`flex flex-col items-center justify-center w-12 mr-6 transition-colors ${activeTab === "material" ? "text-[#00baff]" : "text-gray-400 hover:text-gray-200"}`}>
+          <button onClick={() => setActiveTab("material")} className={`flex flex-col items-center justify-center w-12 mr-6 transition-colors ${activeTab === "material" ? "text-purple-400" : "text-gray-400 hover:text-gray-200"}`}>
             <svg className="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
             <span className="text-[9px] font-medium tracking-wide">Material</span>
           </button>
 
           <div className="absolute left-1/2 -translate-x-1/2 -top-4">
-            <button onClick={() => setActiveTab("panel")} className={`w-16 h-16 rounded-full flex items-center justify-center border-[6px] border-[#0a0a0a] transition-all duration-300 ${activeTab === "panel" ? "bg-gradient-to-tr from-[#0051ff] to-[#00baff] shadow-[0_0_20px_rgba(0,186,255,0.4)] scale-105" : "bg-gray-800 text-gray-400 hover:bg-gray-700 hover:text-white"}`}>
+            <button onClick={() => setActiveTab("panel")} className={`w-16 h-16 rounded-full flex items-center justify-center border-[6px] border-[#0a0a0a] transition-all duration-300 ${activeTab === "panel" ? "bg-gradient-to-tr from-purple-600 to-purple-400 shadow-[0_0_20px_rgba(168,85,247,0.4)] scale-105" : "bg-gray-800 text-gray-400 hover:bg-gray-700 hover:text-white"}`}>
               <svg className={`w-7 h-7 ${activeTab === "panel" ? "text-white" : "currentColor"}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>
             </button>
           </div>
 
-          <button onClick={() => setActiveTab("cursos")} className={`flex flex-col items-center justify-center w-12 ml-6 transition-colors ${activeTab === "cursos" ? "text-[#00baff]" : "text-gray-400 hover:text-gray-200"}`}>
+          <button onClick={() => setActiveTab("cursos")} className={`flex flex-col items-center justify-center w-12 ml-6 transition-colors ${activeTab === "cursos" ? "text-purple-400" : "text-gray-400 hover:text-gray-200"}`}>
             <svg className="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
             <span className="text-[9px] font-medium tracking-wide">Cursos</span>
           </button>

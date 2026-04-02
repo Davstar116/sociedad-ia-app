@@ -10,80 +10,177 @@ const FECHAS_S1 = [6, 7, 8, 9, 10, 11, 12];
 const FECHAS_S2 = [13, 14, 15, 16, 17, 18, 19];
 
 // =========================================================
-// BANCO DE PREGUNTAS SINTETIZADO DE LOS GUIONES OFICIALES
+// 🧠 BANCO DE PREGUNTAS (EXTRAÍDO ÍNTEGRO DE LOS PDFs)
 // =========================================================
-const GUIONES: Record<string, { generales: string[], tecnicas: string[], practico: string[] }> = {
+const GUIONES: Record<string, Record<string, string[]>> = {
   "Proyectos": {
-    generales: [
-      "¿Cuál es tu mayor fortaleza y tu mayor debilidad?",
-      "¿Cuáles consideras que son tus habilidades principales y cuál es tu superpoder?",
-      "Supongamos que tienes que entregar un trabajo personal importante y una parte de un trabajo en equipo a la misma hora. Por procrastinar solo puedes hacer uno. ¿Qué harías?",
-      "Cuéntanos una experiencia donde hayas asumido el rol de líder. ¿Cómo resultó?",
-      "Tienes 3 proyectos finales de la carrera y el proyecto de SIAFI, todos para entregar en 2 meses. ¿Cómo te organizas?"
+    "Relax (Rompehielo)": [
+      "1. Nombre.",
+      "2. Semestre y unidad académica.",
+      "3. ¿Cuál es y por qué elegiste tu carrera? (Metas y visión personal).",
+      "4. ¿Cuál es tu animal favorito? (Percepción personal sutil).",
+      "5. Hobbies e información variada."
     ],
-    tecnicas: [
-      "Con tus propias palabras, ¿qué es la Inteligencia Artificial y cómo describirías tus conocimientos en ella?",
-      "¿Qué aplicaciones reales conoces de la IA enfocadas a la industria?",
-      "¿Tienes alguna idea de un proyecto de IA que te gustaría desarrollar dentro de este núcleo?",
-      "¿Qué metodologías o herramientas utilizarías para llevar a cabo ese proyecto?"
+    "Preguntas Personales": [
+      "1. ¿Cuál es tu mayor fortaleza? ¿Tu mayor debilidad? (Evaluar sinceridad, no se dice).",
+      "2. ¿Cuáles son tus habilidades? (Si responde fundamentando la habilidad, se le da un plus. Si no elabora más se le pregunta).",
+      "3. ¿Cuál es tu superpoder?",
+      "4. ¿Cuál es el valor que más te distingue? (Si responde fundamentando el por qué, se le da un plus).",
+      "5. Supongamos que tienes que entregar dos trabajos a la misma hora, un trabajo personal importante y una parte de un trabajo en equipo, por procrastinar ahora solo tienes tiempo para hacer uno. ¿Qué es lo que harías? (Evaluar responsabilidad hacia el equipo y comunicación).",
+      "6. Cuéntanos una experiencia donde hayas asumido el rol de líder. ¿Cómo resultó?",
+      "7. Tienes 3 proyectos finales y el proyecto de SIAFI, todos se entregan en 2 meses. ¿Cómo te organizas?",
+      "8. ¿Consideras el trabajo remoto como una opción viable para el trabajo dentro de la sociedad?",
+      "9. ¿Qué te distingue de otros candidatos?"
     ],
-    practico: [
-      "CASO A (Código): Por favor, explícanos el código que elegiste traer. ¿Cuál es su propósito, lógica y qué decisiones de diseño tomaste? (3 min)",
-      "CASO B (Algoritmia - Si no trajo código): ¿Cómo resolverías el problema de encontrar el número más frecuente en una lista enorme de números? ¿O cómo explicarías el ordenamiento de Burbuja (Bubble Sort)?"
+    "Preguntas de SIAFI": [
+      "1. ¿Cómo conociste a SIAFI?",
+      "2. ¿Nos sigues en redes sociales? a. ¿Has visto nuestras publicaciones y contenido? i. ¿Qué mejorarías de nuestras redes? (Evaluar interés y proactividad).",
+      "3. ¿Por qué de todas las asociaciones elegiste a SIAFI, que te animó?",
+      "4. ¿Conoces los proyectos que se realizaron en SIAFI en semestres pasados? ¿Cuál te interesó más?",
+      "5. ¿Tienes alguna idea para realizar dentro del núcleo de Proyectos? (Se evaluará si fundamenta la metodología que emplearía o las herramientas).",
+      "6. ¿Qué podrías aportar a SIAFI y en particular a tu/s núcleo/s?",
+      "7. ¿Qué esperas de unirte a SIAFI?",
+      "8. ¿Cuánto tiempo le planeas dedicar a la sociedad?"
+    ],
+    "Preguntas Técnicas": [
+      "1. Con tus propias palabras, ¿Nos puedes decir qué es la inteligencia artificial?",
+      "2. ¿Cómo describirías tus conocimientos y habilidades de inteligencia artificial? (Si son pocos o nulos, preguntar ¿Qué es lo que te gusta de la inteligencia artificial?).",
+      "3. ¿Qué es lo que más te intriga de la inteligencia artificial de camino al futuro?",
+      "4. ¿Qué aplicaciones conoces de la IA? Pueden ser aplicaciones de la vida diaria o aplicaciones más técnicas a la industria.",
+      "5. Dentro de tus áreas de interés profesional, ¿te gustaría poder aplicar la IA en algún aspecto?"
+    ],
+    "Parte Práctica": [
+      "CASO A (Evaluación de código - 3 min): El candidato explicará el código que eligió presentar. Se espera que explique el propósito del código, su lógica, y cualquier decisión clave de diseño que haya tomado.",
+      "CASO B (Resolución de Problemas - Si no trae código): ¿Cómo resolverías el problema de encontrar el número más frecuente en una lista de números? (Respuesta esperada: Uso de un diccionario/mapa para contar la frecuencia, complejidad O(n)).",
+      "CASO C (Explicación de un Algoritmo - Si no trae código): ¿Puedes explicarnos cómo funciona el algoritmo de ordenamiento por burbuja (bubble sort)? (Respuesta esperada: Comparar pares adyacentes y los intercambia si están en orden incorrecto, complejidad O(n^2))."
     ]
   },
   "Capacitación": {
-    generales: [
-      "¿Cuál es tu mayor fortaleza y tu mayor debilidad?",
-      "¿Cuáles consideras que son tus habilidades principales y cuál es tu superpoder?",
-      "Supongamos que tienes que entregar un trabajo personal importante y una parte de un trabajo en equipo a la misma hora. ¿Qué harías?",
-      "Cuéntanos una experiencia donde hayas asumido el rol de líder. ¿Cómo resultó?",
-      "Tienes 3 proyectos finales de la carrera y el proyecto de SIAFI, todos para entregar en 2 meses. ¿Cómo te organizas?"
+    "Relax (Rompehielo)": [
+      "1. Nombre.",
+      "2. Semestre y unidad académica.",
+      "3. ¿Cuál es y por qué elegiste tu carrera? (Metas y visión personal).",
+      "4. ¿Cuál es tu animal favorito? (Percepción personal sutil).",
+      "5. Hobbies e información variada."
     ],
-    tecnicas: [
-      "Con tus propias palabras, ¿qué es la Inteligencia Artificial y qué es lo que más te intriga de su futuro?",
-      "¿Conoces los cursos o talleres que SIAFI ha impartido en el pasado?",
-      "¿Qué tema de Inteligencia Artificial o Programación te gustaría enseñar o estructurar como curso en este núcleo?",
-      "¿Cómo asegurarías que los estudiantes realmente están aprendiendo y no solo copiando código?"
+    "Preguntas Personales": [
+      "1. ¿Cuál es tu mayor fortaleza? ¿Tu mayor debilidad? (Evaluar sinceridad, no se dice).",
+      "2. ¿Cuáles son tus habilidades? (Si responde fundamentando la habilidad, se le da un plus. Si no elabora más se le pregunta).",
+      "3. ¿Cuál es tu superpoder?",
+      "4. ¿Cuál es el valor que más te distingue? (Si responde fundamentando el por qué, se le da un plus).",
+      "5. Supongamos que tienes que entregar dos trabajos a la misma hora, un trabajo personal importante y una parte de un trabajo en equipo, por procrastinar ahora solo tienes tiempo para hacer uno. ¿Qué es lo que harías? (Evaluar responsabilidad hacia el equipo y comunicación).",
+      "6. Cuéntanos una experiencia donde hayas asumido el rol de líder. ¿Cómo resultó?",
+      "7. Tienes 3 proyectos finales y el proyecto de SIAFI, todos se entregan en 2 meses. ¿Cómo te organizas?",
+      "8. ¿Consideras el trabajo remoto como una opción viable para el trabajo dentro de la sociedad?",
+      "9. ¿Qué te distingue de otros candidatos?"
     ],
-    practico: [
-      "CASO A (Código): Por favor, explícanos el código que elegiste traer. Enséñanoslo como si fuéramos alumnos de tu curso. (3 min)",
+    "Preguntas de SIAFI": [
+      "1. ¿Cómo conociste a SIAFI?",
+      "2. ¿Nos sigues en redes sociales? a. ¿Has visto nuestras publicaciones y contenido? i. ¿Qué mejorarías de nuestras redes? (Evaluar interés y proactividad).",
+      "3. ¿Por qué de todas las asociaciones elegiste a SIAFI, que te animó?",
+      "4. ¿Conoces los cursos o talleres que SIAFI ha impartido en semestres pasados? ¿Cuál te interesó más?",
+      "5. ¿Tienes alguna idea para realizar dentro del núcleo de Capacitación? (Se evaluará si fundamenta la metodología que emplearía o las herramientas).",
+      "6. ¿Qué podrías aportar a SIAFI y en particular a tu/s núcleo/s?",
+      "7. ¿Qué esperas de unirte a SIAFI?",
+      "8. ¿Cuánto tiempo le planeas dedicar a la sociedad?"
+    ],
+    "Preguntas Técnicas": [
+      "1. Con tus propias palabras, ¿Nos puedes decir qué es la inteligencia artificial?",
+      "2. ¿Cómo describirías tus conocimientos y habilidades de inteligencia artificial? (Si son pocos o nulos, preguntar ¿Qué es lo que te gusta de la inteligencia artificial?).",
+      "3. ¿Qué es lo que más te intriga de la inteligencia artificial de camino al futuro?",
+      "4. ¿Qué aplicaciones conoces de la IA? Pueden ser aplicaciones de la vida diaria o aplicaciones más técnicas a la industria.",
+      "5. Dentro de tus áreas de interés profesional, ¿te gustaría poder aplicar la IA en algún aspecto?"
+    ],
+    "Parte Práctica": [
+      "CASO A (Explicación de código - 3 min): Por favor, explícanos el código que elegiste traer. Enséñanoslo como si fuéramos alumnos de tu curso, evaluaremos tu capacidad de transmitir conocimiento.",
       "CASO B (Didáctica - Si no trajo código): Imagina que un alumno te pregunta cómo funciona una Red Neuronal Básica pero no sabe nada de matemáticas avanzadas. ¿Cómo se lo explicarías usando una analogía de la vida real?"
     ]
   },
   "Organización": {
-    generales: [
-      "En organización trabajamos constantemente en equipo. ¿Cuáles crees que sean las claves para poder realizarlo de la mejor forma?",
-      "¿Has coordinado algún equipo de trabajo o algún evento antes? Cuéntanos al respecto.",
-      "Si requieres dar avances del trabajo que has realizado a lo largo de la semana, ¿cómo y con qué material lo presentarías?",
-      "Constantemente hablamos con directivos, profesores y patrocinadores. ¿Te consideras alguien con facilidad de palabra?",
-      "A la hora de organizar un evento, ¿cuál crees que es el detalle que la mayoría olvida y hace que todo falle?"
+    "Introducción y Preguntas Personales": [
+      "1. Nombre, semestre y carrera.",
+      "2. ¿Por qué elegiste tu carrera?",
+      "3. ¿Cuáles son tus hobbies?",
+      "4. ¿Cuáles son tus habilidades?",
+      "5. ¿Cuál es el valor que más te distingue? ¿Por qué?"
     ],
-    tecnicas: [
-      "Con tus propias palabras, ¿qué es la Inteligencia Artificial?",
-      "¿Por qué te interesa profundizar e impulsar el desarrollo de la IA desde la gestión y organización?",
-      "¿Qué herramientas de gestión (Notion, Trello, Excel, etc.) utilizas para organizarte?"
+    "Forma de Trabajo": [
+      "1. En organización trabajamos constantemente en equipo. ¿Cuáles crees que sean las claves para poder realizarlo de la mejor forma?",
+      "2. ¿Qué harías si surge un inconveniente con un miembro de tu equipo que frena el avance del trabajo asignado?",
+      "3. Si requieres dar avances del trabajo que has realizado a lo largo de los días ¿Cómo lo presentarías? Es decir, ¿qué elementos y material incluirías?",
+      "4. Debido a los diferentes horarios de los miembros, solemos trabajar a distancia. ¿Cómo te sientes con esta dinámica de trabajo?",
+      "5. En organización constantemente tenemos que hablar con directivos, profesores, patrocinadores y otros compañeros de la sociedad. ¿Te consideras alguien con facilidad de palabra?"
     ],
-    practico: [
-      "CASO PRÁCTICO 1: Estamos a una semana del evento de bienvenida. Un miembro de tu equipo te deja en 'visto' por 3 días y no avanza con sus tareas urgentes. ¿Cómo manejas la situación?",
-      "CASO PRÁCTICO 2: Necesitas información urgente de Difusión o Proyectos para avanzar con la logística de un evento, pero los líderes no te responden los mensajes. ¿Qué haces?"
+    "Preguntas Técnicas": [
+      "1. Con tus propias palabras, ¿Nos puedes decir qué es la inteligencia artificial?",
+      "2. ¿Qué es lo que más te atrae de la inteligencia artificial de camino al futuro?",
+      "3. ¿Por qué te interesa profundizar e impulsar el desarrollo de la IA?"
+    ],
+    "Preguntas de SIAFI": [
+      "1. ¿Cómo conociste a SIAFI?",
+      "2. En la facultad hay diversas asociaciones, ¿Por qué elegiste SIAFI?, ¿Por qué el núcleo de organización?",
+      "3. ¿Qué esperas de unirte a SIAFI?",
+      "4. ¿Qué crees que puedas aportar a la sociedad, en específico a organización?",
+      "5. ¿Cuánto tiempo crees que podrías dedicarle a la sociedad por semana?"
+    ],
+    "Preguntas del Núcleo": [
+      "1. ¿Por qué te gustaría ingresar al núcleo de organización? Cuéntanos en detalle las razones.",
+      "2. ¿Cuál crees que es la base para una correcta organización? (Ya sea en la vida personal, escolar o laboral).",
+      "3. ¿Has coordinado algún equipo de trabajo o algún evento? Cuéntanos al respecto, no importa que sean pequeños o escolares.",
+      "4. ¿Ocupas alguna herramienta para organizarte? Mencionanos cuál o cuáles utilizas.",
+      "5. A la hora de organizar un evento, ¿cuál crees que es uno de los detalles que la mayoría de la gente olvida y puede hacer que el evento falle?"
+    ],
+    "Parte Práctica": [
+      "CASO PRÁCTICO 1: Imagina que eres parte del núcleo de Organización y estamos a una semana de nuestro evento de bienvenida. Un miembro de tu equipo, que tiene tareas urgentes asignadas, te deja en 'visto' durante tres días y no avanza. ¿Cómo manejas la situación para que el evento se lleve a cabo sin problemas?",
+      "CASO PRÁCTICO 2: ¿Qué harías si necesitas información urgente de algún otro núcleo (Difusión, Capacitación o Proyectos) para poder avanzar con un evento, pero no te están respondiendo los mensajes?"
     ]
   },
   "Difusión": {
-    generales: [
-      "¿Qué tan bueno eres para comunicar tus ideas? ¿Cuál es tu habilidad blanda más fuerte?",
-      "Supongamos que tienes que entregar un trabajo personal importante y una parte de un trabajo en equipo a la misma hora. ¿Qué harías?",
-      "¿Qué es lo que más valoras en el trabajo en equipo y qué tan cómodo te sientes delegando?",
-      "Tienes 3 proyectos finales de la carrera y el proyecto de SIAFI, todos para entregar en 2 meses. ¿Cómo te organizas?"
+    "Relax (Rompehielo)": [
+      "1. Nombre.",
+      "2. Semestre y facultad a la que perteneces.",
+      "3. ¿Cuál es y por qué elegiste tu carrera?: Metas y visión personal.",
+      "4. ¿Cual es tu animal favorito?: Percepción personal sutil.",
+      "5. Hobbies: Información variada."
     ],
-    tecnicas: [
-      "Con tus propias palabras, ¿qué es la Inteligencia Artificial y por qué te interesa difundirla?",
-      "¿Has manejado redes sociales de algún proyecto o negocio antes? ¿Qué mejorarías de las redes actuales de SIAFI?",
-      "¿Has aplicado alguna estrategia de marketing en algún proyecto? ¿Qué herramientas de diseño o edición de video sabes usar?"
+    "Preguntas Personales": [
+      "1. ¿Cuál es tu mayor fortaleza? ¿Tu mayor debilidad? (Sinceridad).",
+      "2. ¿Cuáles son tus habilidades? (Si responde fundamentando la habilidad, se le da un plus).",
+      "3. ¿Cuál es tu superpoder?",
+      "4. ¿Cuál es el valor que más te distingue? (Si fundamenta el por qué, se le da un plus).",
+      "5. ¿Qué tan bueno eres para comunicar tus ideas?",
+      "6. ¿Cuál es tu habilidad blanda más fuerte?",
+      "7. Supongamos que tienes que entregar dos trabajos a la misma hora, un trabajo personal importante y una parte de un trabajo en equipo, por procrastinar ahora solo tienes tiempo para hacer uno. ¿Qué es lo que harías?",
+      "8. ¿Qué tan cómodo te sientes trabajando en equipo?",
+      "9. ¿Qué es lo que más valoras en el trabajo en equipo?",
+      "10. Tienes 3 proyectos finales y el proyecto de SIAFI, todos se entregan en 2 meses. ¿Cómo te organizas?",
+      "11. ¿Qué te distingue de otros candidatos?"
     ],
-    practico: [
-      "CASO PRÁCTICO 1: Eres el encargado de promover un nuevo proyecto de SIAFI, pero las métricas están por debajo de lo previsto y nadie interactúa. ¿Qué pasos tomas para mejorar el alcance?",
-      "CASO PRÁCTICO 2: El día de una publicación importante, te das cuenta de que tu material gráfico no tiene likes y además tiene un error ortográfico en el texto. ¿Qué haces en ese momento y qué medidas tomas para el futuro?"
+    "Preguntas de SIAFI": [
+      "1. ¿Cómo conociste a SIAFI?",
+      "2. ¿Nos sigues en redes sociales? a. ¿Has visto nuestras publicaciones y contenido? i. ¿Qué mejorarías de nuestras redes?",
+      "3. ¿Por qué de todas las asociaciones elegiste a SIAFI, que te animó?",
+      "4. ¿Conoces los proyectos que se realizaron en SIAFI en semestres pasados? ¿Cuál te interesó más?",
+      "5. ¿Qué podrías aportar a SIAFI y en particular a tu/s núcleo/s?",
+      "6. ¿Qué esperas de unirte a SIAFI?",
+      "7. ¿Cuánto tiempo le planeas dedicar a la sociedad?"
+    ],
+    "Preguntas Técnicas": [
+      "1. Con tus propias palabras, ¿Nos puedes decir qué es la inteligencia artificial?",
+      "2. ¿Cómo describirías tus conocimientos y habilidades de inteligencia artificial? (Si son pocos o nulos, preguntar ¿Qué es lo que te gusta de la inteligencia artificial?).",
+      "3. ¿Por qué te interesa difundir la IA?",
+      "4. ¿Te consideras una persona creativa?",
+      "5. Cuando te han pedido exponer un tema ¿cómo te sientes?",
+      "6. ¿Has manejado algún tipo de red social antes? ¿Cuáles y con qué propósito?",
+      "7. ¿Cuál es tu red social favorita y por qué?",
+      "8. ¿Has aplicado alguna estrategia de mercadotecnia en algún proyecto escolar o de trabajo?",
+      "9. ¿Tienes alguna noción en diseño? ¿Cuál es?",
+      "10. ¿Qué herramientas de edición de video o imagen sabes usar?"
+    ],
+    "Parte Práctica": [
+      "CASO PRÁCTICO 1: Supón que eres parte del núcleo de Difusión y estás encargado de promover un nuevo proyecto. Te enteras de que la campaña de promoción actual no está generando el interés esperado y las métricas están por debajo de lo previsto. ¿Qué pasos tomarías para mejorar la visibilidad y el alcance de la campaña? (Evaluar si identifica problemas, herramientas y mide el éxito).",
+      "CASO PRÁCTICO 2: Te asignaron elaborar una publicación para redes sociales sobre un evento importante. El día de la publicación, te das cuenta que el material gráfico casi no tiene interacción (nadie da like o comparte) y además hay un error menor en el texto. ¿Qué harías en ese momento para resolver de inmediato? ¿Qué medidas tomarías después para aprender y mejorar?",
+      "CASO PRÁCTICO 3: Tienes una semana de plazo para entregar un post de SIAFI. Sin embargo, a mitad de semana te das cuenta que también tienes proyectos propios y tareas de la escuela que requieren bastante tiempo. ¿Cómo organizarías tus actividades para cumplir sin descuidar la escuela? En caso de sentir que no alcanzarías a terminarlo, ¿qué pasos tomarías para asegurar que el equipo no se vea afectado?"
     ]
   }
 };
@@ -217,7 +314,7 @@ export default function DashboardEntrevistador() {
           onConfirm: async () => {
             setModalInfo(prev => ({ ...prev, isOpen: false }));
             await fetch(`/api/entrevistas/intercambios/alertas?idBloque=${alerta.idBloque}`, { method: 'DELETE' });
-            fetchMisEntrevistas(); // Recargar entrevistas al cerrar alerta
+            fetchMisEntrevistas();
           }
         });
       }
@@ -363,7 +460,7 @@ export default function DashboardEntrevistador() {
     } catch (error) {} finally { setIsSaving(false); }
   };
 
-  if (status === "loading") return <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center text-white animate-pulse">Cargando tu perfil...</div>;
+  if (status === "loading") return <div className="min-h-screen bg-black flex items-center justify-center text-purple-400 animate-pulse">Cargando tu perfil...</div>;
 
   const userName = session?.user?.name || "Entrevistador";
   const userEmail = session?.user?.email || "Sin correo";
@@ -460,7 +557,10 @@ export default function DashboardEntrevistador() {
       case "guias":
         return (
           <main className="pt-24 pb-28 px-5 max-w-lg mx-auto min-h-screen animate-in fade-in duration-300">
-            <h2 className="text-2xl font-black text-white mb-6">Guías de Entrevista</h2>
+            <div className="text-center mb-6">
+              <h2 className="text-2xl font-black text-white">Guías de Entrevista</h2>
+              <p className="text-[10px] text-gray-500 uppercase tracking-widest font-bold mt-1">Duración Oficial: 40 a 45 minutos</p>
+            </div>
 
             {!guiaActiva ? (
               <div className="flex flex-col gap-4">
@@ -493,37 +593,20 @@ export default function DashboardEntrevistador() {
                   <span>📝</span> Guión de {guiaActiva}
                 </h3>
 
-                <div className="space-y-6">
-                  <h4 className="text-sm font-bold text-gray-400 uppercase tracking-widest">Preguntas Generales y de Perfil</h4>
-                  {GUIONES[guiaActiva].generales.map((q, idx) => (
-                    <div key={idx} className="border border-gray-800 rounded-2xl p-5 shadow-sm" style={{ backgroundColor: '#111111' }}>
-                      <div className="flex gap-3 items-start">
-                        <span className="font-black text-lg leading-none mt-0.5" style={{ color: '#a855f7' }}>Q.</span>
-                        <p className="text-sm text-gray-200 font-bold leading-relaxed">{q}</p>
+                {/* ✅ RECORRIDO DINÁMICO DE TODAS LAS SECCIONES DEL PDF */}
+                {Object.entries(GUIONES[guiaActiva]).map(([seccion, preguntas], idxSeccion) => (
+                  <div key={idxSeccion} className="space-y-6 mt-10">
+                    <h4 className="text-sm font-bold text-gray-400 uppercase tracking-widest border-b border-gray-800 pb-2">{seccion}</h4>
+                    {preguntas.map((q, idxQ) => (
+                      <div key={idxQ} className="border border-gray-800 rounded-2xl p-5 shadow-sm" style={{ backgroundColor: seccion === "Parte Práctica" ? 'rgba(88,28,135,0.1)' : '#111111', borderColor: seccion === "Parte Práctica" ? 'rgba(168,85,247,0.2)' : '#1f2937' }}>
+                        <div className="flex gap-3 items-start">
+                          <span className="font-black text-lg leading-none mt-0.5" style={{ color: seccion === "Parte Práctica" ? '#c084fc' : '#a855f7' }}>Q.</span>
+                          <p className={`text-sm font-bold leading-relaxed ${seccion === "Parte Práctica" ? 'text-[#e9d5ff]' : 'text-gray-200'}`}>{q}</p>
+                        </div>
                       </div>
-                    </div>
-                  ))}
-
-                  <h4 className="text-sm font-bold text-gray-400 uppercase tracking-widest mt-10">Preguntas Técnicas</h4>
-                  {GUIONES[guiaActiva].tecnicas.map((q, idx) => (
-                    <div key={idx} className="border border-gray-800 rounded-2xl p-5 shadow-sm" style={{ backgroundColor: '#111111' }}>
-                      <div className="flex gap-3 items-start">
-                        <span className="font-black text-lg leading-none mt-0.5" style={{ color: '#a855f7' }}>Q.</span>
-                        <p className="text-sm text-gray-200 font-bold leading-relaxed">{q}</p>
-                      </div>
-                    </div>
-                  ))}
-
-                  <h4 className="text-sm font-bold text-gray-400 uppercase tracking-widest mt-10">Casos Prácticos</h4>
-                  {GUIONES[guiaActiva].practico.map((q, idx) => (
-                    <div key={idx} className="rounded-2xl p-5 shadow-sm" style={{ backgroundColor: 'rgba(88,28,135,0.1)', border: '1px solid rgba(168,85,247,0.2)' }}>
-                      <div className="flex gap-3 items-start">
-                        <span className="font-black text-lg leading-none mt-0.5" style={{ color: '#c084fc' }}>Q.</span>
-                        <p className="text-sm font-bold leading-relaxed" style={{ color: '#e9d5ff' }}>{q}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                ))}
               </div>
             )}
           </main>
@@ -828,8 +911,6 @@ export default function DashboardEntrevistador() {
           )}
         </div>
       </div>
-
-      {renderActiveContent()}
 
       {/* CINTILLO INFERIOR DE ENTREVISTADOR */}
       <nav className="fixed bottom-0 w-full border-t border-gray-800 z-40 pb-safe" style={{ backgroundColor: 'rgba(17,17,17,0.9)', backdropFilter: 'blur(10px)' }}>

@@ -401,12 +401,12 @@ export default function DashboardEntrevistador() {
               </div>
             </div>
 
-            <div className="flex gap-2 mb-4 bg-gray-900 p-1.5 rounded-xl border border-gray-800">
+            <div className="flex gap-2 mb-4 bg-[#111111] p-1.5 rounded-xl border border-gray-800">
               <button onClick={() => setSemana(1)} className={`flex-1 py-2 text-[11px] font-bold rounded-lg transition-colors ${semana === 1 ? 'bg-gradient-to-r from-purple-600 to-purple-400 text-white shadow-lg' : 'text-gray-400 hover:text-white'}`}>Semana 1 (6-12 Abr)</button>
               <button onClick={() => setSemana(2)} className={`flex-1 py-2 text-[11px] font-bold rounded-lg transition-colors ${semana === 2 ? 'bg-gradient-to-r from-purple-600 to-purple-400 text-white shadow-lg' : 'text-gray-400 hover:text-white'}`}>Semana 2 (13-19 Abr)</button>
             </div>
 
-            <div className={`bg-gray-900 border rounded-3xl p-3 sm:p-5 shadow-2xl overflow-hidden relative transition-all ${(isLocked || isGlobalLockActive) ? 'border-green-500/30' : 'border-gray-800'} ${isGlobalLockActive ? 'border-orange-500/30' : ''}`}>
+            <div className={`bg-[#111111] border rounded-3xl p-3 sm:p-5 shadow-2xl overflow-hidden relative transition-all ${(isLocked || isGlobalLockActive) ? 'border-green-500/30' : 'border-gray-800'} ${isGlobalLockActive ? 'border-orange-500/30' : ''}`}>
               {isLoadingSchedule ? (
                 <div className="flex flex-col items-center justify-center py-10 opacity-50">
                   <div className="w-8 h-8 border-2 border-purple-500 border-t-transparent rounded-full animate-spin mb-3"></div>
@@ -431,7 +431,7 @@ export default function DashboardEntrevistador() {
                           const slotId = `S${semana}-${dia}-${fechasActivas[idx]}-${hora}`;
                           const isSelected = disponibilidad.includes(slotId);
                           return (
-                            <div key={slotId} onClick={() => toggleSlot(slotId)} className={`h-4 sm:h-5 rounded-[2px] transition-all border-[0.5px] ${(isLocked || isGlobalLockActive) ? (isSelected ? 'bg-green-500 border-green-400 opacity-90 cursor-default shadow-[0_0_8px_rgba(34,197,94,0.3)]' : 'bg-[#151515] border-gray-800 opacity-30 cursor-default') : (isSelected ? 'bg-purple-500 border-purple-500 shadow-[0_0_8px_rgba(168,85,247,0.4)] cursor-pointer' : 'bg-gray-800 border-gray-700 hover:bg-gray-700 cursor-pointer')}`}></div>
+                            <div key={slotId} onClick={() => toggleSlot(slotId)} className={`h-4 sm:h-5 rounded-[2px] transition-all border-[0.5px] ${(isLocked || isGlobalLockActive) ? (isSelected ? 'bg-green-500 border-green-400 opacity-90 cursor-default shadow-[0_0_8px_rgba(34,197,94,0.3)]' : 'bg-[#151515] border-gray-800 opacity-30 cursor-default') : (isSelected ? 'bg-purple-500 border-purple-500 shadow-[0_0_8px_rgba(168,85,247,0.4)] cursor-pointer' : 'bg-[#1a1a1a] border-gray-800 hover:bg-gray-800/80 cursor-pointer')}`}></div>
                           );
                         })}
                       </div>
@@ -457,7 +457,7 @@ export default function DashboardEntrevistador() {
           </main>
         );
 
-      case "guias": // ✅ PESTAÑA GUÍAS CON ALTO CONTRASTE
+      case "guias": // ✅ PESTAÑA GUÍAS CON CÓDIGOS HEX EXACTOS
         return (
           <main className="pt-24 pb-28 px-5 max-w-lg mx-auto min-h-screen animate-in fade-in duration-300">
             <h2 className="text-2xl font-black text-white mb-6">Guías de Entrevista</h2>
@@ -469,10 +469,10 @@ export default function DashboardEntrevistador() {
                   <button 
                     key={nucleo}
                     onClick={() => setGuiaActiva(nucleo)}
-                    className="w-full bg-gray-900 hover:bg-purple-900/40 border border-gray-700 hover:border-purple-500 p-6 rounded-2xl flex items-center justify-between transition-all group shadow-md"
+                    className="w-full bg-[#111111] hover:bg-purple-900/40 border border-gray-800 hover:border-purple-500 p-6 rounded-2xl flex items-center justify-between transition-all group shadow-md"
                   >
                     <div className="flex items-center gap-4">
-                      <div className="w-14 h-14 bg-gray-800 group-hover:bg-purple-500/20 border border-gray-700 group-hover:border-purple-500/50 rounded-xl flex items-center justify-center text-2xl group-hover:scale-110 transition-all">
+                      <div className="w-14 h-14 bg-[#1a1a1a] group-hover:bg-purple-500/20 border border-gray-800 group-hover:border-purple-500/50 rounded-xl flex items-center justify-center text-2xl group-hover:scale-110 transition-all">
                         {nucleo === "Proyectos" ? "💡" : nucleo === "Capacitación" ? "📚" : nucleo === "Organización" ? "⚙️" : "📣"}
                       </div>
                       <span className="text-xl font-black text-white group-hover:text-purple-400 transition-colors">{nucleo}</span>
@@ -501,7 +501,7 @@ export default function DashboardEntrevistador() {
                 <div className="space-y-6">
                   <h4 className="text-sm font-bold text-gray-400 uppercase tracking-widest">Preguntas Generales y de Perfil</h4>
                   {GUIONES[guiaActiva].generales.map((q, idx) => (
-                    <div key={idx} className="bg-gray-900 border border-gray-800 rounded-2xl p-5 shadow-sm">
+                    <div key={idx} className="bg-[#111111] border border-gray-800 rounded-2xl p-5 shadow-sm">
                       <div className="flex gap-3 items-start">
                         <span className="text-purple-500 font-black text-lg leading-none mt-0.5">Q.</span>
                         <p className="text-sm text-gray-200 font-bold leading-relaxed">{q}</p>
@@ -511,7 +511,7 @@ export default function DashboardEntrevistador() {
 
                   <h4 className="text-sm font-bold text-gray-400 uppercase tracking-widest mt-10">Preguntas Técnicas</h4>
                   {GUIONES[guiaActiva].tecnicas.map((q, idx) => (
-                    <div key={idx} className="bg-gray-900 border border-gray-800 rounded-2xl p-5 shadow-sm">
+                    <div key={idx} className="bg-[#111111] border border-gray-800 rounded-2xl p-5 shadow-sm">
                       <div className="flex gap-3 items-start">
                         <span className="text-purple-500 font-black text-lg leading-none mt-0.5">Q.</span>
                         <p className="text-sm text-gray-200 font-bold leading-relaxed">{q}</p>
@@ -544,7 +544,7 @@ export default function DashboardEntrevistador() {
                 <p className="text-sm text-gray-400 font-bold uppercase tracking-widest">Cargando módulos...</p>
               </div>
             ) : cursos.length === 0 ? (
-              <div className="bg-gray-900 border border-gray-800 rounded-2xl p-8 text-center shadow-xl">
+              <div className="bg-[#111111] border border-gray-800 rounded-2xl p-8 text-center shadow-xl">
                 <div className="text-4xl mb-4">📹</div>
                 <p className="text-gray-400 text-sm">Pronto publicaremos los videos de capacitación aquí.</p>
               </div>
@@ -553,7 +553,7 @@ export default function DashboardEntrevistador() {
                 {cursos.map((curso) => {
                   const embedUrl = getYouTubeEmbedUrl(curso.url);
                   return (
-                    <div key={curso.id} className="bg-gray-900 border border-gray-800 rounded-2xl overflow-hidden shadow-xl group hover:border-purple-500/50 transition-colors">
+                    <div key={curso.id} className="bg-[#111111] border border-gray-800 rounded-2xl overflow-hidden shadow-xl group hover:border-purple-500/50 transition-colors">
                       {embedUrl ? (
                         <div className="aspect-video w-full bg-black relative">
                           <iframe src={embedUrl} title={curso.titulo} className="absolute top-0 left-0 w-full h-full" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen></iframe>
@@ -583,7 +583,7 @@ export default function DashboardEntrevistador() {
 
         return (
           <main className="pt-24 pb-32 px-5 max-w-lg mx-auto min-h-screen animate-in fade-in duration-500">
-            <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6 shadow-xl relative overflow-hidden shrink-0 mb-6">
+            <div className="bg-[#111111] border border-gray-800 rounded-2xl p-6 shadow-xl relative overflow-hidden shrink-0 mb-6">
               <div className="absolute top-0 left-0 w-1 h-full bg-purple-500"></div>
               <h2 className="text-xl font-bold mb-1 text-white">Sistema de Cambios 🔄</h2>
               <p className="text-sm text-gray-400">Apoya a tus compañeros cubriendo entrevistas.</p>
@@ -595,14 +595,14 @@ export default function DashboardEntrevistador() {
                 <p className="text-xs text-gray-400 font-bold uppercase tracking-widest">Buscando solicitudes...</p>
               </div>
             ) : intercambiosVisibles.length === 0 ? (
-              <div className="bg-gray-900 border border-gray-800 rounded-2xl p-8 text-center shadow-xl">
+              <div className="bg-[#111111] border border-gray-800 rounded-2xl p-8 text-center shadow-xl">
                 <div className="text-4xl mb-4 opacity-50">🍃</div>
                 <p className="text-gray-400 text-sm">Nadie necesita ayuda por el momento.</p>
               </div>
             ) : (
               <div className="flex flex-col gap-4">
                 {intercambiosVisibles.map((entrevista, idx) => (
-                  <div key={idx} className="bg-gray-900 border border-gray-800 rounded-2xl overflow-hidden shadow-lg hover:border-purple-500/50 transition-all group p-5">
+                  <div key={idx} className="bg-[#111111] border border-gray-800 rounded-2xl overflow-hidden shadow-lg hover:border-purple-500/50 transition-all group p-5">
                     <div className="flex justify-between items-start mb-4 border-b border-gray-800 pb-4">
                       <div>
                         <p className="text-[10px] text-purple-400 uppercase tracking-widest font-bold mb-1">Entrevistador que solicita</p>
@@ -636,7 +636,7 @@ export default function DashboardEntrevistador() {
       default:
         return (
           <main className="pt-24 pb-32 px-5 max-w-lg mx-auto min-h-screen flex flex-col gap-6 animate-in fade-in duration-500">
-            <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6 shadow-xl relative overflow-hidden shrink-0">
+            <div className="bg-[#111111] border border-gray-800 rounded-2xl p-6 shadow-xl relative overflow-hidden shrink-0">
               <div className="absolute top-0 left-0 w-1 h-full bg-purple-500"></div>
               <h2 className="text-xl font-bold text-white mb-1">Hola, {primerNombre} 👋</h2>
               <p className="text-sm text-gray-400">Entrevistas programadas:</p>
@@ -648,7 +648,7 @@ export default function DashboardEntrevistador() {
                 <p className="text-xs text-gray-400 font-bold uppercase tracking-widest">Cargando agenda...</p>
               </div>
             ) : misEntrevistas.length === 0 ? (
-              <div className="bg-gray-900 border border-gray-800 rounded-2xl p-8 text-center shadow-xl">
+              <div className="bg-[#111111] border border-gray-800 rounded-2xl p-8 text-center shadow-xl">
                 <div className="text-4xl mb-4 text-purple-500 opacity-50">☕</div>
                 <p className="text-gray-400 text-sm">No tienes entrevistas asignadas por el momento.</p>
                 <p className="text-[10px] text-gray-500 mt-2 uppercase tracking-widest">El sistema te notificará cuando tengas una.</p>
@@ -657,7 +657,7 @@ export default function DashboardEntrevistador() {
               <div className="flex flex-col gap-4">
                 <h3 className="text-sm font-bold text-gray-300 uppercase tracking-wider mb-2">Tus Próximas Citas ({misEntrevistas.length})</h3>
                 {misEntrevistas.map((entrevista, idx) => (
-                  <div key={idx} className="bg-gray-900 border border-gray-800 rounded-2xl overflow-hidden shadow-lg hover:border-purple-500/50 transition-all group p-5">
+                  <div key={idx} className="bg-[#111111] border border-gray-800 rounded-2xl overflow-hidden shadow-lg hover:border-purple-500/50 transition-all group p-5">
                     <div className="flex justify-between items-start mb-4">
                       <div>
                         <p className="text-[10px] text-purple-400 uppercase tracking-widest font-bold mb-1">Candidato</p>

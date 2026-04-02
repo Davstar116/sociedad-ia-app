@@ -10,7 +10,7 @@ const FECHAS_S1 = [6, 7, 8, 9, 10, 11, 12];
 const FECHAS_S2 = [13, 14, 15, 16, 17, 18, 19];
 
 // =========================================================
-// 🧠 BANCO DE PREGUNTAS (EXTRAÍDO ÍNTEGRO DE LOS PDFs)
+// BANCO DE PREGUNTAS SINTETIZADO DE LOS GUIONES OFICIALES
 // =========================================================
 const GUIONES: Record<string, Record<string, string[]>> = {
   "Proyectos": {
@@ -460,7 +460,7 @@ export default function DashboardEntrevistador() {
     } catch (error) {} finally { setIsSaving(false); }
   };
 
-  if (status === "loading") return <div className="min-h-screen bg-black flex items-center justify-center text-purple-400 animate-pulse">Cargando tu perfil...</div>;
+  if (status === "loading") return <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center text-white animate-pulse">Cargando tu perfil...</div>;
 
   const userName = session?.user?.name || "Entrevistador";
   const userEmail = session?.user?.email || "Sin correo";
@@ -554,13 +554,10 @@ export default function DashboardEntrevistador() {
           </main>
         );
 
-      case "guias":
+      case "guias": 
         return (
           <main className="pt-24 pb-28 px-5 max-w-lg mx-auto min-h-screen animate-in fade-in duration-300">
-            <div className="text-center mb-6">
-              <h2 className="text-2xl font-black text-white">Guías de Entrevista</h2>
-              <p className="text-[10px] text-gray-500 uppercase tracking-widest font-bold mt-1">Duración Oficial: 40 a 45 minutos</p>
-            </div>
+            <h2 className="text-2xl font-black text-white mb-6">Guías de Entrevista</h2>
 
             {!guiaActiva ? (
               <div className="flex flex-col gap-4">
@@ -593,7 +590,7 @@ export default function DashboardEntrevistador() {
                   <span>📝</span> Guión de {guiaActiva}
                 </h3>
 
-                {/* ✅ RECORRIDO DINÁMICO DE TODAS LAS SECCIONES DEL PDF */}
+                {/* ✅ ESTO ES LO QUE CAUSABA EL CRASH. AHORA RECORRE DINÁMICAMENTE EL OBJETO */}
                 {Object.entries(GUIONES[guiaActiva]).map(([seccion, preguntas], idxSeccion) => (
                   <div key={idxSeccion} className="space-y-6 mt-10">
                     <h4 className="text-sm font-bold text-gray-400 uppercase tracking-widest border-b border-gray-800 pb-2">{seccion}</h4>
@@ -782,7 +779,7 @@ export default function DashboardEntrevistador() {
   };
 
   return (
-    <div className="min-h-screen text-white font-sans overflow-hidden pb-20" style={{ backgroundColor: '#0a0a0a' }}>
+    <div className="min-h-screen text-white font-sans overflow-x-hidden pb-20" style={{ backgroundColor: '#0a0a0a' }}>
       
       <header className="fixed top-0 w-full h-16 border-b border-gray-800 z-40 flex items-center justify-between px-5" style={{ backgroundColor: 'rgba(17,17,17,0.9)', backdropFilter: 'blur(10px)' }}>
         <button onClick={() => setIsNotifMenuOpen(true)} className="relative p-2 text-gray-400 hover:text-white transition-colors">

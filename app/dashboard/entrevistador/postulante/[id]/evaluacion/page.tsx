@@ -356,6 +356,7 @@ export default function WorkspaceEvaluacionPage() {
     try {
       const qnaArray: { pregunta: string, respuesta: string }[] = [];
       
+      // ✅ ARMADO DEL PAYLOAD BLINDADO CONTRA UNDEFINED
       if (nucleoPrincipal && GUIONES[nucleoPrincipal]) {
         Object.entries(GUIONES[nucleoPrincipal] || {}).forEach(([seccion, preguntas], idxSeccion) => {
           (Array.isArray(preguntas) ? preguntas : []).forEach((q, idxQ) => {
@@ -446,6 +447,7 @@ export default function WorkspaceEvaluacionPage() {
             <span>🎯</span> {nucleoPrincipal} (Principal)
           </h3>
           
+          {/* ✅ AQUÍ RECORREMOS DINÁMICAMENTE CADA SECCIÓN */}
           {Object.entries(gPrincipal || {}).map(([seccion, preguntas], idxSeccion) => (
             <div key={idxSeccion} className="space-y-6 mt-8">
               <h4 className="text-sm font-bold text-gray-400 uppercase tracking-widest">{seccion}</h4>
@@ -493,7 +495,7 @@ export default function WorkspaceEvaluacionPage() {
 
       <main className="pt-24 px-4 sm:px-5 max-w-3xl mx-auto">
         
-        {/* HEADER DEL CANDIDATO */}
+        {/* HEADER DEL CANDIDATO (Configuración inicial) */}
         {activeTab !== "expediente" && (
           <div className="bg-[#111111] border border-[#a855f7]/30 rounded-3xl p-6 shadow-lg mb-8 relative overflow-hidden">
             <div className="absolute top-0 left-0 w-1 h-full bg-[#a855f7]"></div>
@@ -525,7 +527,7 @@ export default function WorkspaceEvaluacionPage() {
           </div>
         )}
 
-        {/* 📑 PESTAÑA: EXPEDIENTE */}
+        {/* 📑 PESTAÑA: EXPEDIENTE (DISEÑO RESTAURADO) */}
         {activeTab === "expediente" && (
           <div className="animate-in fade-in duration-500 pb-8">
             
@@ -576,6 +578,7 @@ export default function WorkspaceEvaluacionPage() {
               </div>
             </div>
 
+            {/* BLOQUE UNIFICADO: PERFIL DEL CANDIDATO */}
             {bloqueGeneral.length > 0 && (
               <div className="border border-gray-800 bg-[#111111] rounded-3xl p-5 sm:p-6 mb-8 shadow-sm">
                 <div className="flex items-center gap-2 mb-6 pb-4 border-b border-gray-800">
@@ -593,6 +596,7 @@ export default function WorkspaceEvaluacionPage() {
               </div>
             )}
 
+            {/* NOTAS ADMINISTRATIVAS */}
             <div className="border border-gray-800 bg-[#111111] rounded-3xl p-5 sm:p-6 mb-8 shadow-sm">
               <div className="flex items-center gap-2 mb-6 pb-4 border-b border-gray-800">
                 <span className="w-2 h-2 rounded-full bg-amber-500"></span>
@@ -614,6 +618,7 @@ export default function WorkspaceEvaluacionPage() {
               </div>
             </div>
 
+            {/* MÓDULOS TÉCNICOS */}
             {bloqueModulos.length > 0 && (
               <div className="mb-8">
                 <div className="flex items-center gap-2 mb-6 px-2">

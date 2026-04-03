@@ -220,7 +220,7 @@ export default function WorkspaceEvaluacionPage() {
     if (status === "unauthenticated") router.push("/login");
     const fetchDetalles = async () => {
       try {
-        const res = await fetch(`/api/postulantes/detalle?email=${encodeURIComponent(emailPostulante)}`);
+        const res = await fetch(`/api/postulantes/detalle?email=${encodeURIComponent(emailPostulante || "")}`);
         const data = await res.json();
         if (data.success) {
           setDatosPersonales(data.datosPersonales);
@@ -231,12 +231,13 @@ export default function WorkspaceEvaluacionPage() {
     if (emailPostulante) fetchDetalles();
   }, [emailPostulante, status, router]);
 
+  const safeRespuestasPostulante = Array.isArray(respuestasPostulante) ? respuestasPostulante : [];
   const bloqueGeneral: Array<{pregunta: string, respuesta: string}> = [];
   const bloqueModulos: Array<{pregunta: string, respuesta: string}> = [];
   let enBloqueGeneral = false;
-  const tieneAportacion = (respuestasPostulante || []).some(r => r.pregunta.toLowerCase().includes("aportación"));
+  const tieneAportacion = safeRespuestasPostulante.some(r => r.pregunta.toLowerCase().includes("aportación"));
 
-  (respuestasPostulante || []).forEach(item => {
+  safeRespuestasPostulante.forEach(item => {
     const pLower = item.pregunta.toLowerCase();
     if (pLower.includes("aportación")) enBloqueGeneral = true;
     if (enBloqueGeneral || (!tieneAportacion && pLower.includes("expectativas"))) {
@@ -287,7 +288,7 @@ export default function WorkspaceEvaluacionPage() {
 
   const fetchSyncData = async () => {
     try {
-      const res = await fetch(`/api/entrevistas/evaluacion?idBloque=${entrevistaId}`);
+      const res = await fetch(`/api/entrevistas/evaluacion?idBloque=${entrevistaId || ""}`);
       const data = await res.json();
       if (data.success && data.data) {
         if (!typingTimeout.current) {
@@ -355,18 +356,17 @@ export default function WorkspaceEvaluacionPage() {
     try {
       const qnaArray: { pregunta: string, respuesta: string }[] = [];
       
-      // ✅ ARMADO DEL PAYLOAD BLINDADO CONTRA UNDEFINED
       if (nucleoPrincipal && GUIONES[nucleoPrincipal]) {
         Object.entries(GUIONES[nucleoPrincipal] || {}).forEach(([seccion, preguntas], idxSeccion) => {
-          (preguntas || []).forEach((q, idxQ) => {
+          (Array.isArray(preguntas) ? preguntas : []).forEach((q, idxQ) => {
             const key = `q_prin_${idxSeccion}_${idxQ}`;
             if (respuestasEval[key]) qnaArray.push({ pregunta: q, respuesta: respuestasEval[key] });
           });
         });
       }
       
-      if (nucleoSecundario && GUIONES[nucleoSecundario] && GUIONES[nucleoSecundario]["Parte Práctica"]) {
-        (GUIONES[nucleoSecundario]["Parte Práctica"] || []).forEach((q, idxQ) => {
+      if (nucleoSecundario && GUIONES[nucleoSecundario] && Array.isArray(GUIONES[nucleoSecundario]["Parte Práctica"])) {
+        GUIONES[nucleoSecundario]["Parte Práctica"].forEach((q, idxQ) => {
           const key = `q_sec_prac_${idxQ}`;
           if (respuestasEval[key]) qnaArray.push({ pregunta: q, respuesta: respuestasEval[key] });
         });
@@ -446,23 +446,22 @@ export default function WorkspaceEvaluacionPage() {
             <span>🎯</span> {nucleoPrincipal} (Principal)
           </h3>
           
-          {/* ✅ AQUÍ RECORREMOS DINÁMICAMENTE CADA SECCIÓN */}
-          {Object.entries(gPrincipal).map(([seccion, preguntas], idxSeccion) => (
+          {Object.entries(gPrincipal || {}).map(([seccion, preguntas], idxSeccion) => (
             <div key={idxSeccion} className="space-y-6 mt-8">
               <h4 className="text-sm font-bold text-gray-400 uppercase tracking-widest">{seccion}</h4>
-              {(preguntas || []).map((p, idxQ) => renderPreguntaInput(p, `q_prin_${idxSeccion}_${idxQ}`, false))}
+              {(Array.isArray(preguntas) ? preguntas : []).map((p, idxQ) => renderPreguntaInput(p, `q_prin_${idxSeccion}_${idxQ}`, false))}
             </div>
           ))}
         </div>
 
         {/* BLOQUE SECUNDARIO DINÁMICO (Solo Práctica) */}
-        {gSecundario && gSecundario["Parte Práctica"] && (
+        {gSecundario && Array.isArray(gSecundario["Parte Práctica"]) && (
           <div className="mt-4 p-5 rounded-2xl bg-[#581c87]/10 border border-[#a855f7]/20">
             <h3 className="text-lg font-black mb-4 flex items-center gap-2 text-[#d8b4fe]">
               <span>🔄</span> {nucleoSecundario} (Secundario - Parte Práctica)
             </h3>
             <div className="space-y-6">
-              {(gSecundario["Parte Práctica"] || []).map((p, idxQ) => renderPreguntaInput(p, `q_sec_prac_${idxQ}`, true))}
+              {gSecundario["Parte Práctica"].map((p, idxQ) => renderPreguntaInput(p, `q_sec_prac_${idxQ}`, true))}
             </div>
           </div>
         )}
@@ -475,7 +474,7 @@ export default function WorkspaceEvaluacionPage() {
   const semestre = datosPersonales?.["Semestre"] || "N/A";
   const nucleosString = datosPersonales?.["Núcleo"] || "No especificado";
   const nucleosArray = nucleosString.split(",").map(n => n.trim()).filter(Boolean);
-  const cvLink = datosPersonales?.["CV"] || datosPersonales?.["Curriculum"] || Object.values(datosPersonales || {}).find(v => v.startsWith("http") && v.includes("aws"));
+  const cvLink = datosPersonales?.["CV"] || datosPersonales?.["Curriculum"] || Object.values(datosPersonales || {}).find(v => typeof v === 'string' && v.startsWith("http") && v.includes("aws"));
   const notasPresidencia = datosPersonales?.["Notas Presidencia"] || "Aún no hay comentarios registrados.";
   const notasLider = datosPersonales?.["Notas Lider"] || "Aún no hay comentarios registrados.";
 
@@ -494,7 +493,7 @@ export default function WorkspaceEvaluacionPage() {
 
       <main className="pt-24 px-4 sm:px-5 max-w-3xl mx-auto">
         
-        {/* HEADER DEL CANDIDATO (Configuración inicial) */}
+        {/* HEADER DEL CANDIDATO */}
         {activeTab !== "expediente" && (
           <div className="bg-[#111111] border border-[#a855f7]/30 rounded-3xl p-6 shadow-lg mb-8 relative overflow-hidden">
             <div className="absolute top-0 left-0 w-1 h-full bg-[#a855f7]"></div>
@@ -526,7 +525,7 @@ export default function WorkspaceEvaluacionPage() {
           </div>
         )}
 
-        {/* 📑 PESTAÑA: EXPEDIENTE (DISEÑO RESTAURADO) */}
+        {/* 📑 PESTAÑA: EXPEDIENTE */}
         {activeTab === "expediente" && (
           <div className="animate-in fade-in duration-500 pb-8">
             
@@ -577,7 +576,6 @@ export default function WorkspaceEvaluacionPage() {
               </div>
             </div>
 
-            {/* BLOQUE UNIFICADO: PERFIL DEL CANDIDATO */}
             {bloqueGeneral.length > 0 && (
               <div className="border border-gray-800 bg-[#111111] rounded-3xl p-5 sm:p-6 mb-8 shadow-sm">
                 <div className="flex items-center gap-2 mb-6 pb-4 border-b border-gray-800">
@@ -595,7 +593,6 @@ export default function WorkspaceEvaluacionPage() {
               </div>
             )}
 
-            {/* NOTAS ADMINISTRATIVAS */}
             <div className="border border-gray-800 bg-[#111111] rounded-3xl p-5 sm:p-6 mb-8 shadow-sm">
               <div className="flex items-center gap-2 mb-6 pb-4 border-b border-gray-800">
                 <span className="w-2 h-2 rounded-full bg-amber-500"></span>
@@ -617,7 +614,6 @@ export default function WorkspaceEvaluacionPage() {
               </div>
             </div>
 
-            {/* MÓDULOS TÉCNICOS */}
             {bloqueModulos.length > 0 && (
               <div className="mb-8">
                 <div className="flex items-center gap-2 mb-6 px-2">

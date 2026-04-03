@@ -426,7 +426,7 @@ export default function DashboardEntrevistador() {
 
   useEffect(() => { if (activeTab === "cursos") fetchCursos(); }, [activeTab]);
 
-  // ✅ BLINDAJE CONTRA UNDEFINED EN RENDERIZADO
+  // ✅ BLINDAJE CONTRA UNDEFINED (Evita el White Screen of Death)
   const safeNotificaciones = Array.isArray(notificaciones) ? notificaciones : [];
   const unreadCount = safeNotificaciones.filter(n => !n.leida).length;
   const safeMisEntrevistas = Array.isArray(misEntrevistas) ? misEntrevistas : [];
@@ -562,7 +562,7 @@ export default function DashboardEntrevistador() {
           </main>
         );
 
-      case "guias":
+      case "guias": 
         return (
           <main className="pt-24 pb-28 px-5 max-w-lg mx-auto min-h-screen animate-in fade-in duration-300">
             <div className="text-center mb-6">
@@ -604,10 +604,10 @@ export default function DashboardEntrevistador() {
                 {Object.entries(GUIONES[guiaActiva] || {}).map(([seccion, preguntas], idxSeccion) => (
                   <div key={idxSeccion} className="space-y-6 mt-10">
                     <h4 className="text-sm font-bold text-gray-400 uppercase tracking-widest border-b border-gray-800 pb-2">{seccion}</h4>
-                    {(preguntas || []).map((q, idxQ) => (
+                    {(Array.isArray(preguntas) ? preguntas : []).map((q, idxQ) => (
                       <div key={idxQ} className={`border border-gray-800 rounded-2xl p-5 shadow-sm ${seccion === "Parte Práctica" ? 'bg-[#581c87]/10 border-[#a855f7]/20' : 'bg-[#111111]'}`}>
                         <div className="flex gap-3 items-start">
-                          <span className="font-black text-lg leading-none mt-0.5" style={{ color: seccion === "Parte Práctica" ? '#c084fc' : '#a855f7' }}>Q.</span>
+                          <span className={`font-black text-lg leading-none mt-0.5 ${seccion === "Parte Práctica" ? 'text-[#c084fc]' : 'text-[#a855f7]'}`}>Q.</span>
                           <p className={`text-sm font-bold leading-relaxed ${seccion === "Parte Práctica" ? 'text-[#e9d5ff]' : 'text-gray-200'}`}>{q}</p>
                         </div>
                       </div>
@@ -628,14 +628,14 @@ export default function DashboardEntrevistador() {
                 <div className="w-8 h-8 border-2 border-[#a855f7] border-t-transparent rounded-full animate-spin mb-3"></div>
                 <p className="text-sm text-gray-400 font-bold uppercase tracking-widest">Cargando módulos...</p>
               </div>
-            ) : cursos.length === 0 ? (
+            ) : safeCursos.length === 0 ? (
               <div className="bg-[#111111] border border-gray-800 rounded-2xl p-8 text-center shadow-xl">
                 <div className="text-4xl mb-4">📹</div>
                 <p className="text-gray-400 text-sm">Pronto publicaremos los videos de capacitación aquí.</p>
               </div>
             ) : (
               <div className="flex flex-col gap-6">
-                {cursos.map((curso) => {
+                {safeCursos.map((curso) => {
                   const embedUrl = getYouTubeEmbedUrl(curso.url);
                   return (
                     <div key={curso.id} className="bg-[#111111] border border-gray-800 rounded-2xl overflow-hidden shadow-xl group hover:border-[#a855f7]/50 transition-colors">
@@ -661,6 +661,7 @@ export default function DashboardEntrevistador() {
 
       case "intercambios":
         const intercambiosVisibles = safeIntercambios.filter(ent => 
+          ent &&
           ent.entrevistadorSaliente !== session?.user?.name && 
           ent.entrevistador1 !== session?.user?.name && 
           ent.entrevistador2 !== session?.user?.name
@@ -760,7 +761,9 @@ export default function DashboardEntrevistador() {
                           <span>📹</span> Meet
                         </a>
                       )}
-                      <Link href={`/dashboard/entrevistador/postulante/${entrevista.idBloque}?email=${encodeURIComponent(entrevista.correoPostulante)}&dia=${entrevista.dia}&fecha=${entrevista.fecha}&hora=${entrevista.hora}`} className="flex-[2] py-3 bg-gradient-to-r from-[#9333ea] to-[#c084fc] hover:from-[#c084fc] hover:to-[#9333ea] text-center text-white text-xs font-black uppercase tracking-wider rounded-xl transition-all shadow-lg shadow-[#9333ea]/20 flex items-center justify-center gap-2 active:scale-95">
+                      
+                      {/* ✅ LINK BLINDADO CONTRA UNDEFINED */}
+                      <Link href={`/dashboard/entrevistador/postulante/${entrevista.idBloque || ""}?email=${encodeURIComponent(entrevista.correoPostulante || "")}&dia=${entrevista.dia || ""}&fecha=${entrevista.fecha || ""}&hora=${entrevista.hora || ""}`} className="flex-[2] py-3 bg-gradient-to-r from-[#9333ea] to-[#c084fc] hover:from-[#c084fc] hover:to-[#9333ea] text-center text-white text-xs font-black uppercase tracking-wider rounded-xl transition-all shadow-lg shadow-[#9333ea]/20 flex items-center justify-center gap-2 active:scale-95">
                         Ver Perfil <span>→</span>
                       </Link>
                     </div>

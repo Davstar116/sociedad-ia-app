@@ -617,9 +617,9 @@ export default function DashboardAdminMaestro() {
       case "postulantes":
         return (
           <main className="pt-24 pb-28 px-5 max-w-lg mx-auto min-h-screen animate-in fade-in duration-300">
-            <h2 className="text-xl font-bold mb-4">Base de Postulantes</h2>
-            <div className="bg-[#111111] border border-gray-800 rounded-2xl p-6 text-center text-gray-500 text-sm">
-              <p>Tabla maestra con todos los CVs, respuestas y estatus de los candidatos.</p>
+            <h2 className="text-xl font-bold mb-4 text-white">Base de Postulantes</h2>
+            <div className="bg-[#111111] border border-gray-800 rounded-2xl p-6 text-center text-gray-500 text-sm shadow-xl">
+              <p>Revisa el estatus, CVs y respuestas de los candidatos del reclutamiento.</p>
             </div>
           </main>
         );
@@ -1109,7 +1109,7 @@ export default function DashboardAdminMaestro() {
         </div>
       )}
 
-      {/* MODAL GENÉRICO DEL SISTEMA DE CAMBIOS */}
+      {/* MODAL GENÉRICO DE CAMBIOS */}
       {modalInfo.isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
           <div className="bg-[#111111] border border-yellow-500/30 rounded-3xl w-full max-w-sm shadow-2xl flex flex-col pointer-events-auto overflow-hidden animate-in zoom-in-95 duration-200">

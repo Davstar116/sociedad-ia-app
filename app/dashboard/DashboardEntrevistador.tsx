@@ -10,7 +10,7 @@ const FECHAS_S1 = [6, 7, 8, 9, 10, 11, 12];
 const FECHAS_S2 = [13, 14, 15, 16, 17, 18, 19];
 
 // =========================================================
-// 🧠 BANCO DE PREGUNTAS (EXTRAÍDO ÍNTEGRO DE LOS PDFs)
+// BANCO DE PREGUNTAS (EXTRAÍDO ÍNTEGRO DE LOS PDFs)
 // =========================================================
 const GUIONES: Record<string, Record<string, string[]>> = {
   "Proyectos": {
@@ -314,13 +314,15 @@ export default function DashboardEntrevistador() {
         setModalInfo({
           isOpen: true,
           title: "¡Intercambio Aceptado!",
-          message: `El entrevistador ${alerta.entrante} ha aceptado cubrir tu entrevista con el candidato ${alerta.postulante}. Ya ha sido removida de tu agenda.`,
+          message: `El entrevistador ${alerta.entrante || "alguien"} ha aceptado cubrir tu entrevista con el candidato ${alerta.postulante || "asignado"}. Ya ha sido removida de tu agenda.`,
           icon: "🎉",
           confirmText: "Entendido",
           isError: false,
           onConfirm: async () => {
             setModalInfo(prev => ({ ...prev, isOpen: false }));
-            await fetch(`/api/entrevistas/intercambios/alertas?idBloque=${alerta.idBloque}`, { method: 'DELETE' });
+            if (alerta.idBloque) {
+              await fetch(`/api/entrevistas/intercambios/alertas?idBloque=${alerta.idBloque}`, { method: 'DELETE' });
+            }
             fetchMisEntrevistas();
           }
         });
@@ -563,7 +565,7 @@ export default function DashboardEntrevistador() {
           </main>
         );
 
-      case "guias":
+      case "guias": 
         return (
           <main className="pt-24 pb-28 px-5 max-w-lg mx-auto min-h-screen animate-in fade-in duration-300">
             <div className="text-center mb-6">
@@ -919,13 +921,10 @@ export default function DashboardEntrevistador() {
         </div>
       </div>
 
-      {/* CINTILLO INFERIOR DE ENTREVISTADOR */}
+      {/* ✅ NAVEGACIÓN INFERIOR RESTAURADA PARA ESTILO DE ENTREVISTADORES */}
       <nav className="fixed bottom-0 w-full bg-[#111111]/90 backdrop-blur-md border-t border-gray-800 z-40 pb-safe">
         <div className="flex justify-between items-center h-16 px-6 relative max-w-lg mx-auto">
           
-          {/* ✅ AQUÍ ESTÁ EL RENDERIZADO DEL COMPONENTE CENTRAL */}
-          {renderActiveContent()}
-
           <button onClick={() => setActiveTab("mi-horario")} className={`flex flex-col items-center justify-center w-12 transition-colors ${activeTab === "mi-horario" ? "text-[#c084fc]" : "text-gray-400 hover:text-gray-200"}`}>
             <svg className="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
             <span className="text-[9px] font-medium tracking-wide">Horario</span>
@@ -937,7 +936,7 @@ export default function DashboardEntrevistador() {
           </button>
 
           <div className="absolute left-1/2 -translate-x-1/2 -top-4">
-            <button onClick={() => setActiveTab("panel")} className={`w-16 h-16 rounded-full flex items-center justify-center border-[6px] border-[#0a0a0a] transition-all duration-300 ${activeTab === "panel" ? "bg-gradient-to-tr from-[#9333ea] to-[#c084fc] shadow-[0_0_20px_rgba(168,85,247,0.4)] scale-105" : "bg-gray-800 text-gray-400 hover:bg-gray-700 hover:text-white"}`}>
+            <button onClick={() => setActiveTab("panel")} className={`w-16 h-16 rounded-full flex items-center justify-center border-[6px] border-[#0a0a0a] transition-all duration-300 ${activeTab === "panel" ? "bg-gradient-to-tr from-[#9333ea] to-[#c084fc] shadow-[0_0_20px_rgba(168,85,247,0.4)] scale-105 text-[#0a0a0a]" : "bg-gray-800 text-gray-400 hover:bg-gray-700 hover:text-white"}`}>
               <svg className={`w-7 h-7 ${activeTab === "panel" ? "text-white" : "currentColor"}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>
             </button>
           </div>

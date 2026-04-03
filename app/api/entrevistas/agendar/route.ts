@@ -83,15 +83,29 @@ export async function POST(request: Request) {
     }
 
     // =========================================================
-    // 3. GENERAR GOOGLE MEET (CORRECCIÓN DE ZONA HORARIA)
+    // 3. GENERAR GOOGLE MEET (ASIGNANDO PROPIETARIOS)
     // =========================================================
     let meetLink = ""; 
-    const asistentesGoogle = [
-      { email: email }, 
-      { email: "david.solorzano.a@gmail.com" },
-      { email: "astridmondragon25@gmail.com" }
+    
+    // El candidato va como invitado normal
+    const asistentesGoogle: any[] = [
+      { email: email }
     ]; 
-    correosEntrevistadores.forEach(correo => asistentesGoogle.push({ email: correo }));
+    
+    // Los admins y entrevistadores van como invitados que han "aceptado" la invitación
+    // para que Calendar les otorgue permisos elevados automáticamente.
+    const adminsYEntrevistadores = [
+      "david.solorzano.a@gmail.com", 
+      "astridmondragon25@gmail.com",
+      ...correosEntrevistadores
+    ];
+
+    // Evitamos duplicados por si acaso
+    const correosUnicosStaff = [...new Set(adminsYEntrevistadores)];
+
+    correosUnicosStaff.forEach(correo => {
+        asistentesGoogle.push({ email: correo, responseStatus: "accepted" });
+    });
     
     try {
       if (process.env.SIAFI_CALENDAR_CLIENT_ID && process.env.SIAFI_CALENDAR_REFRESH_TOKEN) {
@@ -103,8 +117,6 @@ export async function POST(request: Request) {
         const calendar = google.calendar({ version: "v3", auth: oauth2Client });
 
         const [horaInicio, horaFin] = horaString.split(" - ");
-        
-        // Construimos un string ISO hardcodeando la zona horaria de México (-06:00) para evitar que el servidor de Vercel (UTC) lo arruine
         const mes = "04"; // Abril
         const diaNum = String(fechaNum).padStart(2, '0');
         
@@ -121,7 +133,7 @@ export async function POST(request: Request) {
             start: { dateTime: startDateTime, timeZone: "America/Mexico_City" },
             end: { dateTime: endDateTime, timeZone: "America/Mexico_City" },
             attendees: asistentesGoogle, 
-            guestsCanModify: true, 
+            guestsCanModify: true,  // ✅ CLAVE: Permite a los invitados (entrevistadores) editar la reunión y admitir gente
             guestsCanInviteOthers: true, 
             conferenceData: {
               createRequest: {
@@ -171,8 +183,6 @@ export async function POST(request: Request) {
       });
 
       const fechaLegible = `${diaTexto} ${fechaNum} de Abril`;
-
-      // ✅ OBTENEMOS EL DOMINIO DINÁMICAMENTE EN VEZ DE USAR EL .ENV
       const host = request.headers.get("host") || "localhost:3000";
       const protocol = host.includes("localhost") ? "http" : "https";
       const dynamicBaseUrl = `${protocol}://${host}`;
@@ -180,7 +190,7 @@ export async function POST(request: Request) {
       // ✉️ Correo al Postulante
       const htmlPostulante = PostulanteEntrevistaEmailTemplate({
         nombre: nombre,
-        baseUrl: dynamicBaseUrl, // <-- Mandamos el dinámico
+        baseUrl: dynamicBaseUrl,
         fechaLegible: fechaLegible,
         hora: horaString,
         meetLink: meetLink
@@ -193,9 +203,8 @@ export async function POST(request: Request) {
         html: htmlPostulante
       });
 
-      // ✉️ Correo a los Entrevistadores y a los Admins Maestros
-      const correosStaff = [...correosEntrevistadores, "david.solorzano.a@gmail.com", "astridmondragon25@gmail.com"];
-      if (correosStaff.length > 0) {
+      // ✉️ Correo SOLO a los Entrevistadores (Sin Admins)
+      if (correosEntrevistadores.length > 0) {
         
         const htmlStaff = EntrevistadorAsignacionEmailTemplate({
           nombrePostulante: nombre,
@@ -203,12 +212,12 @@ export async function POST(request: Request) {
           fechaLegible: fechaLegible,
           hora: horaString,
           meetLink: meetLink,
-          baseUrl: dynamicBaseUrl // <-- Mandamos el dinámico
+          baseUrl: dynamicBaseUrl 
         });
 
         await transporter.sendMail({
           from: `"Sistema SIAFI" <${EMAIL_USER}>`,
-          to: correosStaff.join(', '),
+          to: correosEntrevistadores.join(', '), // ✅ Aquí excluímos a los admins
           subject: `🔔 Nueva Entrevista Asignada - ${nombre}`,
           html: htmlStaff
         });

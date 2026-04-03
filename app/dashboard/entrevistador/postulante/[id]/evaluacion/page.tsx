@@ -220,7 +220,7 @@ export default function WorkspaceEvaluacionPage() {
     if (status === "unauthenticated") router.push("/login");
     const fetchDetalles = async () => {
       try {
-        const res = await fetch(`/api/postulantes/detalle?email=${encodeURIComponent(emailPostulante)}`);
+        const res = await fetch(`/api/postulantes/detalle?email=${encodeURIComponent(emailPostulante || "")}`);
         const data = await res.json();
         if (data.success) {
           setDatosPersonales(data.datosPersonales);
@@ -236,7 +236,6 @@ export default function WorkspaceEvaluacionPage() {
   const bloqueModulos: Array<{pregunta: string, respuesta: string}> = [];
   let enBloqueGeneral = false;
   
-  // ✅ Súper blindaje en los .some y .includes
   const tieneAportacion = safeRespuestasPostulante.some(r => r && r.pregunta && typeof r.pregunta === 'string' && r.pregunta.toLowerCase().includes("aportación"));
 
   safeRespuestasPostulante.forEach(item => {
@@ -295,7 +294,7 @@ export default function WorkspaceEvaluacionPage() {
 
   const fetchSyncData = async () => {
     try {
-      const res = await fetch(`/api/entrevistas/evaluacion?idBloque=${entrevistaId}`);
+      const res = await fetch(`/api/entrevistas/evaluacion?idBloque=${entrevistaId || ""}`);
       const data = await res.json();
       if (data.success && data.data) {
         if (!typingTimeout.current) {

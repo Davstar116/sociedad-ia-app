@@ -10,7 +10,7 @@ const FECHAS_S1 = [6, 7, 8, 9, 10, 11, 12];
 const FECHAS_S2 = [13, 14, 15, 16, 17, 18, 19];
 
 // =========================================================
-// BANCO DE PREGUNTAS (EXTRAÍDO ÍNTEGRO DE LOS PDFs)
+// 🧠 BANCO DE PREGUNTAS (EXTRAÍDO ÍNTEGRO DE LOS PDFs)
 // =========================================================
 const GUIONES: Record<string, Record<string, string[]>> = {
   "Proyectos": {
@@ -314,15 +314,13 @@ export default function DashboardEntrevistador() {
         setModalInfo({
           isOpen: true,
           title: "¡Intercambio Aceptado!",
-          message: `El entrevistador ${alerta.entrante || "alguien"} ha aceptado cubrir tu entrevista con el candidato ${alerta.postulante || "asignado"}. Ya ha sido removida de tu agenda.`,
+          message: `El entrevistador ${alerta.entrante} ha aceptado cubrir tu entrevista con el candidato ${alerta.postulante}. Ya ha sido removida de tu agenda.`,
           icon: "🎉",
           confirmText: "Entendido",
           isError: false,
           onConfirm: async () => {
             setModalInfo(prev => ({ ...prev, isOpen: false }));
-            if (alerta.idBloque) {
-              await fetch(`/api/entrevistas/intercambios/alertas?idBloque=${alerta.idBloque}`, { method: 'DELETE' });
-            }
+            await fetch(`/api/entrevistas/intercambios/alertas?idBloque=${alerta.idBloque}`, { method: 'DELETE' });
             fetchMisEntrevistas();
           }
         });
@@ -410,7 +408,7 @@ export default function DashboardEntrevistador() {
   }, [session]);
 
   const getYouTubeEmbedUrl = (url: string) => {
-    if (!url) return null; // ✅ BLINDAJE ANTI-CRASH
+    if (!url) return null;
     const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|shorts\/|watch\?v=|&v=)([^#&?]*).*/;
     const match = url.match(regExp);
     return (match && match[2].length === 11) ? `https://www.youtube.com/embed/${match[2]}` : null;
@@ -429,7 +427,6 @@ export default function DashboardEntrevistador() {
 
   useEffect(() => { if (activeTab === "cursos") fetchCursos(); }, [activeTab]);
 
-  // ✅ BLINDAJE CONTRA UNDEFINED EN ARREGLOS
   const safeNotificaciones = Array.isArray(notificaciones) ? notificaciones : [];
   const unreadCount = safeNotificaciones.filter(n => n && !n.leida).length;
   const safeMisEntrevistas = Array.isArray(misEntrevistas) ? misEntrevistas : [];
@@ -474,7 +471,6 @@ export default function DashboardEntrevistador() {
 
   if (status === "loading") return <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center text-[#c084fc] animate-pulse">Cargando tu perfil...</div>;
 
-  // ✅ BLINDAJE DE NOMBRES VACÍOS
   const userName = session?.user?.name || "Entrevistador";
   const userEmail = session?.user?.email || "Sin correo";
   // @ts-ignore
@@ -501,7 +497,7 @@ export default function DashboardEntrevistador() {
               <div>
                 <h2 className="text-xl font-black text-white tracking-tight">Mi Disponibilidad</h2>
                 {(isLocked || isGlobalLockActive) && (
-                  <p style={{ color: isGlobalLockActive ? '#f97316' : '#4ade80' }} className="text-[10px] font-bold uppercase tracking-widest mt-0.5 flex items-center gap-1">
+                  <p className={`text-[10px] ${isGlobalLockActive ? 'text-orange-500' : 'text-green-400'} font-bold uppercase tracking-widest mt-0.5 flex items-center gap-1`}>
                     <span>🔒</span> {isGlobalLockActive ? 'Bloqueado por Sistema' : 'Registrado'}
                   </p>
                 )}
@@ -567,7 +563,7 @@ export default function DashboardEntrevistador() {
           </main>
         );
 
-      case "guias": 
+      case "guias":
         return (
           <main className="pt-24 pb-28 px-5 max-w-lg mx-auto min-h-screen animate-in fade-in duration-300">
             <div className="text-center mb-6">
@@ -766,7 +762,6 @@ export default function DashboardEntrevistador() {
                         </a>
                       )}
                       
-                      {/* ✅ LINK SÚPER BLINDADO */}
                       <Link href={`/dashboard/entrevistador/postulante/${entrevista.idBloque || "null"}?email=${encodeURIComponent(entrevista.correoPostulante || "")}&dia=${entrevista.dia || ""}&fecha=${entrevista.fecha || ""}&hora=${entrevista.hora || ""}`} className="flex-[2] py-3 bg-gradient-to-r from-[#9333ea] to-[#c084fc] hover:from-[#c084fc] hover:to-[#9333ea] text-center text-white text-xs font-black uppercase tracking-wider rounded-xl transition-all shadow-lg shadow-[#9333ea]/20 flex items-center justify-center gap-2 active:scale-95">
                         Ver Perfil <span>→</span>
                       </Link>
@@ -928,6 +923,9 @@ export default function DashboardEntrevistador() {
       <nav className="fixed bottom-0 w-full bg-[#111111]/90 backdrop-blur-md border-t border-gray-800 z-40 pb-safe">
         <div className="flex justify-between items-center h-16 px-6 relative max-w-lg mx-auto">
           
+          {/* ✅ AQUÍ ESTÁ EL RENDERIZADO DEL COMPONENTE CENTRAL */}
+          {renderActiveContent()}
+
           <button onClick={() => setActiveTab("mi-horario")} className={`flex flex-col items-center justify-center w-12 transition-colors ${activeTab === "mi-horario" ? "text-[#c084fc]" : "text-gray-400 hover:text-gray-200"}`}>
             <svg className="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
             <span className="text-[9px] font-medium tracking-wide">Horario</span>

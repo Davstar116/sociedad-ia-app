@@ -366,7 +366,6 @@ export default function WorkspaceEvaluacionPage() {
     }, 1000);
   };
 
-  // ✅ Validación incluye "No aplica"
   const isFormValid = nucleoPrincipal !== "" && nucleoSecundario !== "" && comentariosE1 !== "" && comentariosE2 !== "" && estrellasE1 > 0 && estrellasE2 > 0;
 
   const confirmSaveEvaluation = () => {
@@ -392,13 +391,18 @@ export default function WorkspaceEvaluacionPage() {
     setModalInfo(prev => ({...prev, isOpen: false}));
     setIsSaving(true);
     try {
-      const qnaArray: { pregunta: string, respuesta: string }[] = [];
+      // ✅ NUEVO FORMATO DE qnaArray PARA INCLUIR LAS PREGUNTAS VACÍAS
+      const qnaArray: { seccion: string, pregunta: string, respuesta: string }[] = [];
       
       if (nucleoPrincipal && GUIONES[nucleoPrincipal]) {
         Object.entries(GUIONES[nucleoPrincipal] || {}).forEach(([seccion, preguntas], idxSeccion) => {
           (Array.isArray(preguntas) ? preguntas : []).forEach((q, idxQ) => {
             const key = `q_prin_${idxSeccion}_${idxQ}`;
-            if (respuestasEval[key]) qnaArray.push({ pregunta: q, respuesta: respuestasEval[key] });
+            qnaArray.push({ 
+              seccion: `🎯 [${nucleoPrincipal}] ${seccion}`, 
+              pregunta: q, 
+              respuesta: respuestasEval[key] || "" 
+            });
           });
         });
       }
@@ -406,7 +410,11 @@ export default function WorkspaceEvaluacionPage() {
       if (nucleoSecundario && nucleoSecundario !== "No aplica" && GUIONES[nucleoSecundario] && Array.isArray(GUIONES[nucleoSecundario]["Parte Práctica"])) {
         GUIONES[nucleoSecundario]["Parte Práctica"].forEach((q, idxQ) => {
           const key = `q_sec_prac_${idxQ}`;
-          if (respuestasEval[key]) qnaArray.push({ pregunta: q, respuesta: respuestasEval[key] });
+          qnaArray.push({ 
+            seccion: `🔄 [${nucleoSecundario}] Parte Práctica`, 
+            pregunta: q, 
+            respuesta: respuestasEval[key] || "" 
+          });
         });
       }
 
@@ -416,7 +424,7 @@ export default function WorkspaceEvaluacionPage() {
           action: "save", idBloque: entrevistaId,
           payload: {
             postulanteId,
-            emailPostulante, // ✅ AHORA ENVIAMOS EL CORREO A LA API
+            emailPostulante,
             postulanteNombre: datosPersonales?.["Nombre Completo"] || "Candidato",
             nucleoPrincipal, nucleoSecundario,
             estrellasE1, estrellasE2, comentariosE1, comentariosE2,
@@ -424,11 +432,12 @@ export default function WorkspaceEvaluacionPage() {
           }
         })
       });
+      
       const data = await res.json();
       if (data.success) {
         setModalInfo({
           isOpen: true, title: "¡Evaluación Completada!", message: "El veredicto ha sido guardado exitosamente en la base de datos.", icon: "✅", confirmText: "Volver al Dashboard", isError: false, showCancel: false, 
-          onConfirm: () => { window.location.href = '/dashboard'; } // ✅ REDIRECCIÓN DURA PARA LIMPIAR CACHÉ
+          onConfirm: () => { window.location.href = '/dashboard'; }
         });
       } else {
         setModalInfo({ isOpen: true, title: "Error de Guardado", message: data.error || "Ocurrió un error inesperado.", icon: "❌", confirmText: "Cerrar", isError: true, showCancel: false, onConfirm: () => setModalInfo(prev => ({...prev, isOpen: false})) });
@@ -561,7 +570,7 @@ export default function WorkspaceEvaluacionPage() {
 
       <main className="pt-24 px-4 sm:px-5 max-w-3xl mx-auto">
         
-        {/* HEADER DEL CANDIDATO (Configuración inicial) */}
+        {/* HEADER DEL CANDIDATO */}
         {activeTab !== "expediente" && (
           <div className="bg-[#111111] border border-[#a855f7]/30 rounded-3xl p-6 shadow-lg mb-8 relative overflow-hidden">
             <div className="absolute top-0 left-0 w-1 h-full bg-[#a855f7]"></div>
@@ -586,7 +595,7 @@ export default function WorkspaceEvaluacionPage() {
                   className="w-full border border-gray-800 bg-[#0a0a0a] rounded-xl p-3 text-sm text-white outline-none"
                 >
                   <option value="">Selecciona un núcleo...</option>
-                  <option value="No aplica">No aplica</option> {/* ✅ OPCIÓN "NO APLICA" AGREGADA */}
+                  <option value="No aplica">No aplica</option>
                   {OPCIONES_NUCLEO.filter(n => n !== nucleoPrincipal).map(n => <option key={n} value={n}>{n}</option>)}
                 </select>
               </div>
@@ -594,7 +603,7 @@ export default function WorkspaceEvaluacionPage() {
           </div>
         )}
 
-        {/* 📑 PESTAÑA: EXPEDIENTE (DISEÑO RESTAURADO) */}
+        {/* 📑 PESTAÑA: EXPEDIENTE */}
         {activeTab === "expediente" && (
           <div className="animate-in fade-in duration-500 pb-8">
             
@@ -645,7 +654,6 @@ export default function WorkspaceEvaluacionPage() {
               </div>
             </div>
 
-            {/* BLOQUE UNIFICADO: PERFIL DEL CANDIDATO */}
             {bloqueGeneral.length > 0 && (
               <div className="border border-gray-800 bg-[#111111] rounded-3xl p-5 sm:p-6 mb-8 shadow-sm">
                 <div className="flex items-center gap-2 mb-6 pb-4 border-b border-gray-800">
@@ -663,7 +671,6 @@ export default function WorkspaceEvaluacionPage() {
               </div>
             )}
 
-            {/* NOTAS ADMINISTRATIVAS */}
             <div className="border border-gray-800 bg-[#111111] rounded-3xl p-5 sm:p-6 mb-8 shadow-sm">
               <div className="flex items-center gap-2 mb-6 pb-4 border-b border-gray-800">
                 <span className="w-2 h-2 rounded-full bg-amber-500"></span>
@@ -685,7 +692,6 @@ export default function WorkspaceEvaluacionPage() {
               </div>
             </div>
 
-            {/* MÓDULOS TÉCNICOS */}
             {bloqueModulos.length > 0 && (
               <div className="mb-8">
                 <div className="flex items-center gap-2 mb-6 px-2">

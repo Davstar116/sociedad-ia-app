@@ -35,19 +35,45 @@ export async function POST(request: Request) {
     if (action === "save") {
       const { emailPostulante, postulanteNombre, nucleoPrincipal, nucleoSecundario, estrellasE1, estrellasE2, comentariosE1, comentariosE2, qnaArray } = payload;
 
-      // 1. Armar los bloques de contenido (Preguntas y Respuestas)
+      // 1. Armar los bloques de contenido (Preguntas y Respuestas con Formato Elegante)
       const childrenBlocks: any[] = [];
+      let currentSection = "";
+
       if (qnaArray && Array.isArray(qnaArray)) {
         qnaArray.forEach(item => {
+          
+          // Si cambiamos de sección, dibujamos un Título y un Divisor
+          if (item.seccion !== currentSection) {
+            currentSection = item.seccion;
+            childrenBlocks.push({ object: 'block', type: 'divider', divider: {} });
+            childrenBlocks.push({
+              object: 'block', type: 'heading_2',
+              heading_2: { rich_text: [{ type: 'text', text: { content: currentSection }, annotations: { color: "purple_background" } }] }
+            });
+          }
+
+          // Pregunta
           childrenBlocks.push({
             object: 'block', type: 'heading_3',
-            heading_3: { rich_text: [{ type: 'text', text: { content: item.pregunta.substring(0, 2000) }, annotations: { color: "purple" } }] }
+            heading_3: { rich_text: [{ type: 'text', text: { content: item.pregunta.substring(0, 2000) }, annotations: { color: "purple", bold: true } }] }
           });
-          const chunks = item.respuesta.match(/[\s\S]{1,2000}/g) || ["Sin respuesta anotada."];
-          chunks.forEach(chunk => {
+
+          // Respuesta (o aviso de vacía)
+          const respuestaReal = (item.respuesta && item.respuesta.trim() !== "") ? item.respuesta : "Sin respuesta anotada.";
+          const isVacia = respuestaReal === "Sin respuesta anotada.";
+          
+          const chunks = respuestaReal.match(/[\s\S]{1,2000}/g) || ["Sin respuesta anotada."];
+          
+          chunks.forEach((chunk: string) => {
             childrenBlocks.push({
               object: 'block', type: 'paragraph',
-              paragraph: { rich_text: [{ type: 'text', text: { content: chunk } }] }
+              paragraph: { 
+                rich_text: [{ 
+                  type: 'text', 
+                  text: { content: chunk }, 
+                  annotations: { italic: isVacia, color: isVacia ? "gray" : "default" } 
+                }] 
+              }
             });
           });
         });
@@ -73,7 +99,6 @@ export async function POST(request: Request) {
 
       // 3. Actualizar el estatus del candidato en la DB Candidatos_2026
       if (emailPostulante && CANDIDATOS_DB_ID) {
-        // Primero buscamos el ID de la página del candidato usando su correo
         const queryRes = await fetch(`https://api.notion.com/v1/databases/${CANDIDATOS_DB_ID}/query`, {
           method: "POST", headers: notionHeaders,
           body: JSON.stringify({
@@ -90,7 +115,6 @@ export async function POST(request: Request) {
         
         if (dataCandidato.results && dataCandidato.results.length > 0) {
           const candidatoPageId = dataCandidato.results[0].id;
-          // Actualizamos la columna "Estatus del postulante" (Tipo Status)
           await fetch(`https://api.notion.com/v1/pages/${candidatoPageId}`, {
             method: "PATCH", headers: notionHeaders,
             body: JSON.stringify({
@@ -102,7 +126,7 @@ export async function POST(request: Request) {
         }
       }
 
-      // 4. Actualizar la cita en la DB de Entrevistas para que desaparezca del Dashboard
+      // 4. Actualizar la cita en la DB de Entrevistas para que desaparezca
       if (idBloque) {
         await fetch(`https://api.notion.com/v1/pages/${idBloque}`, {
           method: "PATCH", headers: notionHeaders,
@@ -114,7 +138,6 @@ export async function POST(request: Request) {
         });
       }
 
-      // Limpiamos la caché
       delete syncCache[idBloque];
       return NextResponse.json({ success: true });
     }

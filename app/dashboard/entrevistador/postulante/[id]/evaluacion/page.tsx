@@ -215,7 +215,6 @@ export default function WorkspaceEvaluacionPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
 
-  // ✅ MODAL DE SISTEMA
   const [modalInfo, setModalInfo] = useState<{
     isOpen: boolean;
     title: string;
@@ -367,9 +366,9 @@ export default function WorkspaceEvaluacionPage() {
     }, 1000);
   };
 
+  // ✅ Validación incluye "No aplica"
   const isFormValid = nucleoPrincipal !== "" && nucleoSecundario !== "" && comentariosE1 !== "" && comentariosE2 !== "" && estrellasE1 > 0 && estrellasE2 > 0;
 
-  // ✅ CONFIRMACIÓN DE GUARDADO MEDIANTE MODAL DEL SISTEMA
   const confirmSaveEvaluation = () => {
     if (!isFormValid) {
       return setModalInfo({
@@ -404,7 +403,7 @@ export default function WorkspaceEvaluacionPage() {
         });
       }
       
-      if (nucleoSecundario && GUIONES[nucleoSecundario] && Array.isArray(GUIONES[nucleoSecundario]["Parte Práctica"])) {
+      if (nucleoSecundario && nucleoSecundario !== "No aplica" && GUIONES[nucleoSecundario] && Array.isArray(GUIONES[nucleoSecundario]["Parte Práctica"])) {
         GUIONES[nucleoSecundario]["Parte Práctica"].forEach((q, idxQ) => {
           const key = `q_sec_prac_${idxQ}`;
           if (respuestasEval[key]) qnaArray.push({ pregunta: q, respuesta: respuestasEval[key] });
@@ -417,6 +416,7 @@ export default function WorkspaceEvaluacionPage() {
           action: "save", idBloque: entrevistaId,
           payload: {
             postulanteId,
+            emailPostulante, // ✅ AHORA ENVIAMOS EL CORREO A LA API
             postulanteNombre: datosPersonales?.["Nombre Completo"] || "Candidato",
             nucleoPrincipal, nucleoSecundario,
             estrellasE1, estrellasE2, comentariosE1, comentariosE2,
@@ -428,7 +428,7 @@ export default function WorkspaceEvaluacionPage() {
       if (data.success) {
         setModalInfo({
           isOpen: true, title: "¡Evaluación Completada!", message: "El veredicto ha sido guardado exitosamente en la base de datos.", icon: "✅", confirmText: "Volver al Dashboard", isError: false, showCancel: false, 
-          onConfirm: () => { window.location.href = '/dashboard'; } // 🚀 Recarga forzada para limpiar el Dashboard
+          onConfirm: () => { window.location.href = '/dashboard'; } // ✅ REDIRECCIÓN DURA PARA LIMPIAR CACHÉ
         });
       } else {
         setModalInfo({ isOpen: true, title: "Error de Guardado", message: data.error || "Ocurrió un error inesperado.", icon: "❌", confirmText: "Cerrar", isError: true, showCancel: false, onConfirm: () => setModalInfo(prev => ({...prev, isOpen: false})) });
@@ -477,7 +477,7 @@ export default function WorkspaceEvaluacionPage() {
   const getPreguntasParaMostrar = () => {
     if (!nucleoPrincipal) return null;
     const gPrincipal = GUIONES[nucleoPrincipal] || {};
-    const gSecundario = nucleoSecundario && GUIONES[nucleoSecundario] ? GUIONES[nucleoSecundario] : null;
+    const gSecundario = nucleoSecundario && nucleoSecundario !== "No aplica" && GUIONES[nucleoSecundario] ? GUIONES[nucleoSecundario] : null;
 
     return (
       <div className="flex flex-col gap-8 animate-in fade-in">
@@ -561,7 +561,7 @@ export default function WorkspaceEvaluacionPage() {
 
       <main className="pt-24 px-4 sm:px-5 max-w-3xl mx-auto">
         
-        {/* HEADER DEL CANDIDATO */}
+        {/* HEADER DEL CANDIDATO (Configuración inicial) */}
         {activeTab !== "expediente" && (
           <div className="bg-[#111111] border border-[#a855f7]/30 rounded-3xl p-6 shadow-lg mb-8 relative overflow-hidden">
             <div className="absolute top-0 left-0 w-1 h-full bg-[#a855f7]"></div>
@@ -586,6 +586,7 @@ export default function WorkspaceEvaluacionPage() {
                   className="w-full border border-gray-800 bg-[#0a0a0a] rounded-xl p-3 text-sm text-white outline-none"
                 >
                   <option value="">Selecciona un núcleo...</option>
+                  <option value="No aplica">No aplica</option> {/* ✅ OPCIÓN "NO APLICA" AGREGADA */}
                   {OPCIONES_NUCLEO.filter(n => n !== nucleoPrincipal).map(n => <option key={n} value={n}>{n}</option>)}
                 </select>
               </div>

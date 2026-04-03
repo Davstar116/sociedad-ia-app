@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 
 const NOTION_TOKEN = process.env.NOTION_TOKEN;
 const EVALUACIONES_DB_ID = process.env.NOTION_EVALUACIONES_DB_ID;
+const CANDIDATOS_DB_ID = process.env.NOTION_DATABASE_ID; 
 
 const notionHeaders = {
   "Authorization": `Bearer ${NOTION_TOKEN}`,
@@ -9,7 +10,6 @@ const notionHeaders = {
   "Content-Type": "application/json",
 };
 
-// 🧠 CACHÉ EN MEMORIA PARA SINCRONIZACIÓN EN TIEMPO REAL
 let syncCache: Record<string, any> = {};
 
 export async function GET(request: Request) {
@@ -31,35 +31,29 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: true });
     }
 
-    // 💾 ACCIÓN: GUARDADO DEFINITIVO EN NOTION (COMO CONTENIDO DE PÁGINA)
+    // 💾 ACCIÓN: GUARDADO DEFINITIVO EN NOTION
     if (action === "save") {
-      const { postulanteId, postulanteNombre, nucleoPrincipal, nucleoSecundario, estrellasE1, estrellasE2, comentariosE1, comentariosE2, qnaArray } = payload;
+      const { emailPostulante, postulanteNombre, nucleoPrincipal, nucleoSecundario, estrellasE1, estrellasE2, comentariosE1, comentariosE2, qnaArray } = payload;
 
-      // 1. Armar los bloques de contenido (Preguntas como Títulos y Respuestas como párrafos)
+      // 1. Armar los bloques de contenido (Preguntas y Respuestas)
       const childrenBlocks: any[] = [];
-      
       if (qnaArray && Array.isArray(qnaArray)) {
         qnaArray.forEach(item => {
-          // Bloque de Pregunta (Título H3 en color morado)
           childrenBlocks.push({
-            object: 'block',
-            type: 'heading_3',
+            object: 'block', type: 'heading_3',
             heading_3: { rich_text: [{ type: 'text', text: { content: item.pregunta.substring(0, 2000) }, annotations: { color: "purple" } }] }
           });
-          
-          // Bloque de Respuesta (Dividido en trozos si supera los 2000 caracteres de Notion)
           const chunks = item.respuesta.match(/[\s\S]{1,2000}/g) || ["Sin respuesta anotada."];
           chunks.forEach(chunk => {
             childrenBlocks.push({
-              object: 'block',
-              type: 'paragraph',
+              object: 'block', type: 'paragraph',
               paragraph: { rich_text: [{ type: 'text', text: { content: chunk } }] }
             });
           });
         });
       }
 
-      // 2. Crear la página en la DB Evaluaciones_2026 e inyectar el contenido
+      // 2. Crear la página en la DB Evaluaciones_2026
       await fetch(`https://api.notion.com/v1/pages`, {
         method: "POST", headers: notionHeaders,
         body: JSON.stringify({
@@ -73,23 +67,55 @@ export async function POST(request: Request) {
             "Comentarios E1": { rich_text: [{ text: { content: comentariosE1.substring(0, 2000) } }] },
             "Comentarios E2": { rich_text: [{ text: { content: comentariosE2.substring(0, 2000) } }] }
           },
-          children: childrenBlocks // ✅ AQUÍ ENVIAMOS TODO EL CONTENIDO
+          children: childrenBlocks
         })
       });
 
-      // 3. Actualizar el estatus del candidato en la DB original Candidatos_2026
-      await fetch(`https://api.notion.com/v1/pages/${postulanteId}`, {
-        method: "PATCH", headers: notionHeaders,
-        body: JSON.stringify({
-          properties: {
-            "Estatus del postulante": { select: { name: "Entrevistado" } }
-          }
-        })
-      });
+      // 3. Actualizar el estatus del candidato en la DB Candidatos_2026
+      if (emailPostulante && CANDIDATOS_DB_ID) {
+        // Primero buscamos el ID de la página del candidato usando su correo
+        const queryRes = await fetch(`https://api.notion.com/v1/databases/${CANDIDATOS_DB_ID}/query`, {
+          method: "POST", headers: notionHeaders,
+          body: JSON.stringify({
+            filter: {
+              or: [
+                { property: "Correo", email: { equals: emailPostulante } },
+                { property: "Email", email: { equals: emailPostulante } },
+                { property: "Correo electrónico", email: { equals: emailPostulante } }
+              ]
+            }
+          })
+        });
+        const dataCandidato = await queryRes.json();
+        
+        if (dataCandidato.results && dataCandidato.results.length > 0) {
+          const candidatoPageId = dataCandidato.results[0].id;
+          // Actualizamos la columna "Estatus del postulante" (Tipo Status)
+          await fetch(`https://api.notion.com/v1/pages/${candidatoPageId}`, {
+            method: "PATCH", headers: notionHeaders,
+            body: JSON.stringify({
+              properties: {
+                "Estatus del postulante": { status: { name: "Entrevistado" } }
+              }
+            })
+          });
+        }
+      }
+
+      // 4. Actualizar la cita en la DB de Entrevistas para que desaparezca del Dashboard
+      if (idBloque) {
+        await fetch(`https://api.notion.com/v1/pages/${idBloque}`, {
+          method: "PATCH", headers: notionHeaders,
+          body: JSON.stringify({
+            properties: {
+              "Estatus": { select: { name: "Completada" } }
+            }
+          })
+        });
+      }
 
       // Limpiamos la caché
       delete syncCache[idBloque];
-
       return NextResponse.json({ success: true });
     }
 

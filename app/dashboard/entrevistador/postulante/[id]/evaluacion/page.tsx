@@ -193,9 +193,9 @@ export default function WorkspaceEvaluacionPage() {
   const emailPostulante = searchParams.get("email") || "";
   const entrevistaId = searchParams.get("entrevistaId") || postulanteId; 
 
-  const diaEntrevista = searchParams.get("dia");
-  const fechaEntrevista = searchParams.get("fecha");
-  const horaEntrevista = searchParams.get("hora");
+  const diaEntrevista = searchParams.get("dia") || "";
+  const fechaEntrevista = searchParams.get("fecha") || "";
+  const horaEntrevista = searchParams.get("hora") || "";
 
   const [activeTab, setActiveTab] = useState<"expediente" | "guia" | "evaluacion">("guia");
 
@@ -220,7 +220,7 @@ export default function WorkspaceEvaluacionPage() {
     if (status === "unauthenticated") router.push("/login");
     const fetchDetalles = async () => {
       try {
-        const res = await fetch(`/api/postulantes/detalle?email=${encodeURIComponent(emailPostulante || "")}`);
+        const res = await fetch(`/api/postulantes/detalle?email=${encodeURIComponent(emailPostulante)}`);
         const data = await res.json();
         if (data.success) {
           setDatosPersonales(data.datosPersonales);
@@ -235,9 +235,13 @@ export default function WorkspaceEvaluacionPage() {
   const bloqueGeneral: Array<{pregunta: string, respuesta: string}> = [];
   const bloqueModulos: Array<{pregunta: string, respuesta: string}> = [];
   let enBloqueGeneral = false;
-  const tieneAportacion = safeRespuestasPostulante.some(r => r.pregunta.toLowerCase().includes("aportación"));
+  
+  // ✅ Súper blindaje en los .some y .includes
+  const tieneAportacion = safeRespuestasPostulante.some(r => r && r.pregunta && typeof r.pregunta === 'string' && r.pregunta.toLowerCase().includes("aportación"));
 
   safeRespuestasPostulante.forEach(item => {
+    if (!item || !item.pregunta || typeof item.pregunta !== 'string') return;
+    
     const pLower = item.pregunta.toLowerCase();
     if (pLower.includes("aportación")) enBloqueGeneral = true;
     if (enBloqueGeneral || (!tieneAportacion && pLower.includes("expectativas"))) {
@@ -249,6 +253,8 @@ export default function WorkspaceEvaluacionPage() {
   });
 
   const renderRespuestaExpediente = (texto: string) => {
+    if (!texto || typeof texto !== 'string') return <p className="text-sm text-gray-300">Sin respuesta</p>;
+
     if (texto.startsWith("http://") || texto.startsWith("https://")) {
       return (
         <a href={texto} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 mt-2 px-4 py-2 bg-gray-800 hover:bg-[#0051ff] text-white text-xs font-bold uppercase tracking-wider rounded-xl transition-all">
@@ -257,12 +263,13 @@ export default function WorkspaceEvaluacionPage() {
       );
     }
     const lineas = texto.split('\n');
-    const esListaDeHabilidades = lineas.some(l => l.match(/^(.*?)(?:[:\-])?\s*([1-5])(?:\/5)?\s*$/i));
+    const esListaDeHabilidades = lineas.some(l => l && typeof l === 'string' && l.match(/^(.*?)(?:[:\-])?\s*([1-5])(?:\/5)?\s*$/i));
+    
     if (esListaDeHabilidades) {
       return (
         <div className="flex flex-col gap-2 mt-2">
           {lineas.map((linea, i) => {
-            if (!linea.trim()) return null;
+            if (!linea || typeof linea !== 'string' || !linea.trim()) return null;
             const match = linea.match(/^(.*?)(?:[:\-])?\s*([1-5])(?:\/5)?\s*$/i);
             if (match) {
               const skill = match[1].trim() || "Habilidad";
@@ -288,7 +295,7 @@ export default function WorkspaceEvaluacionPage() {
 
   const fetchSyncData = async () => {
     try {
-      const res = await fetch(`/api/entrevistas/evaluacion?idBloque=${entrevistaId || ""}`);
+      const res = await fetch(`/api/entrevistas/evaluacion?idBloque=${entrevistaId}`);
       const data = await res.json();
       if (data.success && data.data) {
         if (!typingTimeout.current) {
@@ -356,7 +363,6 @@ export default function WorkspaceEvaluacionPage() {
     try {
       const qnaArray: { pregunta: string, respuesta: string }[] = [];
       
-      // ✅ ARMADO DEL PAYLOAD BLINDADO CONTRA UNDEFINED
       if (nucleoPrincipal && GUIONES[nucleoPrincipal]) {
         Object.entries(GUIONES[nucleoPrincipal] || {}).forEach(([seccion, preguntas], idxSeccion) => {
           (Array.isArray(preguntas) ? preguntas : []).forEach((q, idxQ) => {
@@ -447,7 +453,6 @@ export default function WorkspaceEvaluacionPage() {
             <span>🎯</span> {nucleoPrincipal} (Principal)
           </h3>
           
-          {/* ✅ AQUÍ RECORREMOS DINÁMICAMENTE CADA SECCIÓN */}
           {Object.entries(gPrincipal || {}).map(([seccion, preguntas], idxSeccion) => (
             <div key={idxSeccion} className="space-y-6 mt-8">
               <h4 className="text-sm font-bold text-gray-400 uppercase tracking-widest">{seccion}</h4>
@@ -463,7 +468,7 @@ export default function WorkspaceEvaluacionPage() {
               <span>🔄</span> {nucleoSecundario} (Secundario - Parte Práctica)
             </h3>
             <div className="space-y-6">
-              {gSecundario["Parte Práctica"].map((p, idxQ) => renderPreguntaInput(p, `q_sec_prac_${idxQ}`, true))}
+              {(gSecundario["Parte Práctica"] || []).map((p, idxQ) => renderPreguntaInput(p, `q_sec_prac_${idxQ}`, true))}
             </div>
           </div>
         )}
@@ -565,7 +570,7 @@ export default function WorkspaceEvaluacionPage() {
                   <p className="text-xl font-black text-white">{semestre}º</p>
                 </div>
                 {cvLink ? (
-                  <a href={cvLink} target="_blank" rel="noreferrer" className="border border-gray-800 bg-[#111111] hover:border-[#c084fc] rounded-xl p-3 flex flex-col justify-center items-center text-center transition-all group">
+                  <a href={cvLink as string} target="_blank" rel="noreferrer" className="border border-gray-800 bg-[#111111] hover:border-[#c084fc] rounded-xl p-3 flex flex-col justify-center items-center text-center transition-all group">
                     <span className="text-xl mb-1 group-hover:scale-110 transition-transform">📄</span>
                     <p className="text-[10px] text-white uppercase tracking-widest font-bold">Ver Currículum</p>
                   </a>

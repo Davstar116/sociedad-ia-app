@@ -9,45 +9,46 @@ import { useSession } from "next-auth/react";
 // =========================================================
 const GUIONES: Record<string, Record<string, string[]>> = {
   "Proyectos": {
-    "Relax": [
-      "1. Nombre",
-      "2. Semestre y unidad académica",
-      "3. ¿Cuál es y por qué elegiste tu carrera?: Metas y visión personal",
-      "4. ¿Cuál es tu animal favorito?: Percepción personal sutil",
-      "5. Hobbies: Información variada"
+    "Contexto y fit inicial": [
+      "1. Nombre, semestre, carrera y unidad académica.",
+      "2. ¿Por qué elegiste tu carrera?",
+      "3. ¿Qué te interesa construir, aprender o resolver actualmente?",
+      "4. ¿Por qué te interesa entrar a SIAFI?",
+      "5. ¿Por qué elegiste específicamente el núcleo de Proyectos?"
     ],
-    "Preguntas Personales": [
-      "1. ¿Cuál es tu mayor fortaleza? ¿Tu mayor debilidad?",
-      "2. ¿Cuáles son tus habilidades?",
-      "3. ¿Cuál es tu superpoder?",
-      "4. ¿Cuál es el valor que más te distingue?",
-      "5. Supongamos que tienes que entregar dos trabajos a la misma hora, un trabajo personal importante y una parte de un trabajo en equipo, por procrastinar ahora solo tienes tiempo para hacer uno. ¿Qué es lo que harías?",
-      "6. Cuéntanos una experiencia donde hayas asumido el rol de líder. ¿Cómo resultó?",
-      "7. Tienes 3 proyectos finales y el proyecto de SIAFI, todos se entregan en 2 meses. ¿Cómo te organizas?",
-      "8. ¿Consideras el trabajo remoto como una opción viable para el trabajo dentro de la sociedad?",
-      "9. ¿Qué te distingue de otros candidatos?"
+    "Forma de trabajo y ejecución": [
+      "1. Cuéntanos un proyecto, actividad o experiencia donde hayas tenido una responsabilidad real. ¿Cuál fue tu rol y qué entregaste tú?",
+      "2. ¿Cuál consideras que es tu principal fortaleza al trabajar en equipo?",
+      "3. ¿Qué aspecto de tu forma de trabajar hoy necesitas mejorar?",
+      "4. Si te asignan una tarea que no sabes hacer, ¿qué haces en las primeras 24 horas?",
+      "5. Si vas retrasado en una entrega y tu equipo depende de ti, ¿cómo lo manejarías?",
+      "6. Tienes 3 proyectos finales y además trabajo en SIAFI durante el mismo periodo. ¿Cómo te organizarías?",
+      "7. ¿Qué te distingue de otros candidatos?"
     ],
-    "Preguntas de SIAFI": [
-      "1. ¿Cómo conociste a SIAFI?",
-      "2. ¿Nos sigues en redes sociales? a. ¿Has visto nuestras publicaciones y contenido? i. ¿Qué mejorarías de nuestras redes?",
-      "3. ¿Por qué de todas las asociaciones elegiste a SIAFI, que te animó?",
-      "4. ¿Conoces los proyectos que se realizaron en SIAFI en semestres pasados? ¿Cuál te interesó más?",
-      "5. ¿Tienes alguna idea para realizar dentro del núcleo de Proyectos/Capacitación?",
-      "6. ¿Qué podrías aportar a SIAFI y en particular a tu/s núcleo/s?",
-      "7. ¿Qué esperas de unirte a SIAFI?",
-      "8. ¿Cuánto tiempo le planeas dedicar a la sociedad?"
+    "Fit con SIAFI y compromiso": [
+      "1. ¿Qué conoces de SIAFI?",
+      "2. ¿Has visto nuestras redes, proyectos o actividades? ¿Qué te llamó la atención?",
+      "3. ¿Qué mejorarías de la forma en que comunicamos lo que hacemos?",
+      "4. ¿Qué podrías aportar a SIAFI y específicamente al núcleo de Proyectos?",
+      "5. ¿Qué te gustaría construir o impulsar dentro del núcleo?",
+      "6. ¿Cuánto tiempo real puedes dedicarle a la sociedad por semana?"
     ],
-    "Preguntas Técnicas": [
-      "1. Con tus propias palabras, ¿Nos puedes decir qué es la inteligencia artificial?",
-      "2. ¿Cómo describirías tus conocimientos y habilidades de inteligencia artificial? a. ¿Qué es lo que te gusta de la inteligencia artificial?",
-      "3. ¿Qué es lo que más te intriga de la inteligencia artificial de camino al futuro?",
-      "4. ¿Qué aplicaciones conoces de la IA? Pueden ser aplicaciones de la vida diaria o aplicaciones más técnicas a la industria.",
-      "5. Dentro de tus áreas de interés profesional, ¿te gustaría poder aplicar la IA en algún aspecto?"
+    "Parte técnica": [
+      "1. Con tus propias palabras, ¿qué es la inteligencia artificial?",
+      "2. ¿Cómo describirías tu nivel técnico actual?",
+      "3. ¿Qué herramientas, lenguajes o tecnologías has usado?",
+      "4. ¿Cómo te gustaría aplicar IA en un proyecto real dentro de tus áreas de interés?",
+      "5. Si su nivel es básico: ¿Qué te interesa aprender primero y por qué?"
     ],
     "Parte Práctica": [
-      "Evaluación técnica de codificación (3 minutos máximo): El candidato explicará el código que eligió para mostrarlo durante la entrevista. Se espera que explique el propósito del código, su lógica, y cualquier decisión clave de diseño que haya tomado.",
-      "Resolución de Problemas (Si no llevó código): ¿Cómo resolverías el problema de encontrar el número más frecuente en una lista de números?",
-      "Explicación de un Algoritmo Básico (Si no llevó código): ¿Puedes explicarnos cómo funciona el algoritmo de ordenamiento por burbuja (bubble sort)?"
+      "Opción A (Explicación de código): Explícanos qué problema resuelve. ¿Cómo está estructurado? ¿Por qué tomaste esas decisiones? ¿Qué mejorarías?",
+      "Opción B (Evaluación oral 1): ¿Cómo resolverías el problema de encontrar el número más frecuente en una lista?",
+      "Opción B (Evaluación oral 2): Imagina que tu equipo en SIAFI debe desarrollar un proyecto pequeño de IA en 6 semanas. ¿Cómo organizarías el trabajo desde el inicio?"
+    ],
+    "Cierre": [
+      "1. ¿Hay algo importante sobre ti que no te hayamos preguntado y que consideres relevante?",
+      "2. ¿Qué tendría que pasar este semestre para que podamos decir que fue una buena decisión integrarte al núcleo?",
+      "3. ¿Tienes alguna duda?"
     ]
   },
   "Capacitación": {
@@ -214,6 +215,20 @@ export default function WorkspaceEvaluacionPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
 
+  // ✅ MODAL DE SISTEMA
+  const [modalInfo, setModalInfo] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    icon: string;
+    confirmText: string;
+    isError?: boolean;
+    showCancel?: boolean;
+    onConfirm: () => void;
+  }>({
+    isOpen: false, title: "", message: "", icon: "", confirmText: "Confirmar", isError: false, showCancel: false, onConfirm: () => {}
+  });
+
   const typingTimeout = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
@@ -354,10 +369,28 @@ export default function WorkspaceEvaluacionPage() {
 
   const isFormValid = nucleoPrincipal !== "" && nucleoSecundario !== "" && comentariosE1 !== "" && comentariosE2 !== "" && estrellasE1 > 0 && estrellasE2 > 0;
 
-  const handleSaveEvaluation = async () => {
-    if (!isFormValid) return alert("Faltan campos obligatorios por llenar (Núcleos, Comentarios o Estrellas).");
-    if (!confirm("¿Estás seguro de finalizar la entrevista? Esto guardará los resultados y actualizará el estatus del candidato.")) return;
-    
+  // ✅ CONFIRMACIÓN DE GUARDADO MEDIANTE MODAL DEL SISTEMA
+  const confirmSaveEvaluation = () => {
+    if (!isFormValid) {
+      return setModalInfo({
+        isOpen: true, title: "Datos Incompletos", message: "Faltan campos obligatorios por llenar (Núcleos, Comentarios o Estrellas).", icon: "⚠️", confirmText: "Entendido", isError: true, showCancel: false, onConfirm: () => setModalInfo(prev => ({...prev, isOpen: false}))
+      });
+    }
+
+    setModalInfo({
+      isOpen: true,
+      title: "Finalizar Entrevista",
+      message: "¿Estás seguro de finalizar la entrevista y guardar el veredicto? Esto actualizará el estatus del candidato y la entrevista desaparecerá de tu tablero.",
+      icon: "💾",
+      confirmText: "Guardar Definitivamente",
+      isError: false,
+      showCancel: true,
+      onConfirm: () => executeSaveEvaluation()
+    });
+  };
+
+  const executeSaveEvaluation = async () => {
+    setModalInfo(prev => ({...prev, isOpen: false}));
     setIsSaving(true);
     try {
       const qnaArray: { pregunta: string, respuesta: string }[] = [];
@@ -393,13 +426,15 @@ export default function WorkspaceEvaluacionPage() {
       });
       const data = await res.json();
       if (data.success) {
-        alert("¡Evaluación guardada exitosamente!");
-        router.push("/dashboard");
+        setModalInfo({
+          isOpen: true, title: "¡Evaluación Completada!", message: "El veredicto ha sido guardado exitosamente en la base de datos.", icon: "✅", confirmText: "Volver al Dashboard", isError: false, showCancel: false, 
+          onConfirm: () => { window.location.href = '/dashboard'; } // 🚀 Recarga forzada para limpiar el Dashboard
+        });
       } else {
-        alert("Error al guardar: " + data.error);
+        setModalInfo({ isOpen: true, title: "Error de Guardado", message: data.error || "Ocurrió un error inesperado.", icon: "❌", confirmText: "Cerrar", isError: true, showCancel: false, onConfirm: () => setModalInfo(prev => ({...prev, isOpen: false})) });
       }
     } catch (error) {
-      alert("Error de conexión.");
+      setModalInfo({ isOpen: true, title: "Error de Conexión", message: "Revisa tu conexión a internet e inténtalo de nuevo.", icon: "🌐", confirmText: "Cerrar", isError: true, showCancel: false, onConfirm: () => setModalInfo(prev => ({...prev, isOpen: false})) });
     } finally {
       setIsSaving(false);
     }
@@ -497,9 +532,36 @@ export default function WorkspaceEvaluacionPage() {
         </div>
       </header>
 
+      {/* ✅ OVERLAY Y MODAL DEL SISTEMA DE GUARDADO */}
+      {modalInfo.isOpen && (
+        <>
+          <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-40 transition-opacity" onClick={() => !isSaving && setModalInfo(prev => ({...prev, isOpen: false}))} />
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
+            <div className="bg-[#111111] border border-[#a855f7]/30 rounded-3xl w-full max-w-sm shadow-2xl flex flex-col pointer-events-auto overflow-hidden animate-in zoom-in-95 duration-200">
+              <div className="p-5 border-b border-gray-800 bg-[#0a0a0a] text-center">
+                <h3 className="text-white font-bold text-lg flex items-center justify-center gap-2">
+                  <span>{modalInfo.icon}</span> {modalInfo.title}
+                </h3>
+              </div>
+              <div className="p-6 text-center">
+                <p className="text-sm text-gray-300 leading-relaxed">{modalInfo.message}</p>
+              </div>
+              <div className="p-4 border-t border-gray-800 bg-[#0a0a0a] flex gap-3">
+                {modalInfo.showCancel && (
+                  <button onClick={() => setModalInfo(prev => ({ ...prev, isOpen: false }))} disabled={isSaving} className="flex-1 py-3.5 bg-gray-800 hover:bg-gray-700 text-white font-bold text-sm uppercase tracking-wider rounded-xl transition-all disabled:opacity-50">Cancelar</button>
+                )}
+                <button onClick={modalInfo.onConfirm} disabled={isSaving} className="flex-1 py-3.5 text-white font-bold text-sm uppercase tracking-wider rounded-xl transition-all shadow-lg active:scale-95 disabled:opacity-50" style={modalInfo.isError ? { backgroundColor: '#dc2626' } : { backgroundImage: 'linear-gradient(to right, #9333ea, #c084fc)' }}>
+                  {isSaving ? "Procesando..." : modalInfo.confirmText}
+                </button>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+
       <main className="pt-24 px-4 sm:px-5 max-w-3xl mx-auto">
         
-        {/* HEADER DEL CANDIDATO (Configuración inicial) */}
+        {/* HEADER DEL CANDIDATO */}
         {activeTab !== "expediente" && (
           <div className="bg-[#111111] border border-[#a855f7]/30 rounded-3xl p-6 shadow-lg mb-8 relative overflow-hidden">
             <div className="absolute top-0 left-0 w-1 h-full bg-[#a855f7]"></div>
@@ -702,7 +764,7 @@ export default function WorkspaceEvaluacionPage() {
                 </div>
 
                 <button 
-                  onClick={handleSaveEvaluation} disabled={isSaving || !isFormValid}
+                  onClick={confirmSaveEvaluation} disabled={isSaving || !isFormValid}
                   className={`w-full mt-8 py-4 font-black text-sm uppercase tracking-wider rounded-xl transition-all shadow-lg flex items-center justify-center gap-2 active:scale-95 ${isFormValid ? 'bg-gradient-to-r from-[#9333ea] to-[#c084fc] text-white shadow-[#9333ea]/30' : 'bg-gray-800 text-gray-500 cursor-not-allowed'}`}
                 >
                   {isSaving ? "Guardando en Base de Datos..." : "💾 Guardar Evaluación Definitiva"}

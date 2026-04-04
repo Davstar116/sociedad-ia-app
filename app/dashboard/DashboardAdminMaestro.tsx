@@ -703,16 +703,6 @@ export default function DashboardAdminMaestro() {
           </main>
         );
 
-      case "ajustes":
-        return (
-          <main className="pt-24 pb-28 px-5 max-w-lg mx-auto min-h-screen animate-in fade-in duration-300">
-            <h2 className="text-xl font-bold mb-4">Ajustes del Sistema</h2>
-            <div className="bg-[#111111] border border-gray-800 rounded-2xl p-6 text-center text-gray-500 text-sm">
-              <p>Configuración global de la plataforma SophIA.</p>
-            </div>
-          </main>
-        );
-
       case "guias":
         return (
           <main className="pt-24 pb-28 px-5 max-w-lg mx-auto min-h-screen animate-in fade-in duration-300">
@@ -822,36 +812,30 @@ export default function DashboardAdminMaestro() {
       default:
         return (
           <main className="pt-24 pb-32 px-5 max-w-lg mx-auto min-h-screen flex flex-col gap-6 animate-in fade-in duration-500">
+            {/* ✅ TARJETA SUPERIOR CORREGIDA COMO ENTREVISTADOR */}
             <div className="bg-[#111111] border border-gray-800 rounded-2xl p-6 shadow-xl relative overflow-hidden shrink-0">
               <div className="absolute top-0 left-0 w-1 h-full bg-yellow-500"></div>
               <h2 className="text-xl font-bold text-white mb-1">Hola Maestro, {primerNombre} 👑</h2>
-              <p className="text-sm text-gray-400 mb-5">Tienes el control absoluto de SIAFI.</p>
-              
-              <div className="bg-[#0a0a0a] border border-gray-800 rounded-xl p-4 flex items-center justify-between mb-4">
-                <div>
-                  <p className="text-xs text-gray-500 uppercase tracking-widest font-bold mb-1">Estatus del Sistema</p>
-                  <p className="text-sm font-semibold text-green-400">Sistemas operativos</p>
-                </div>
-                <div className="w-10 h-10 rounded-full bg-green-500/10 flex items-center justify-center text-xl shadow-[0_0_15px_rgba(34,197,94,0.2)]">🟢</div>
-              </div>
+              <p className="text-sm text-gray-400">Entrevistas programadas:</p>
             </div>
 
-            {/* ✅ MIS ENTREVISTAS (ADMIN MAESTRO) */}
-            <h3 className="text-sm font-bold text-gray-300 uppercase tracking-wider mt-2 border-b border-gray-800 pb-2">Tus Entrevistas Asignadas</h3>
-            {isLoadingEntrevistas ? (
-              <div className="flex flex-col items-center justify-center py-10 opacity-50">
-                <div className="w-8 h-8 border-2 border-yellow-500 border-t-transparent rounded-full animate-spin mb-3"></div>
-                <p className="text-xs text-gray-400 font-bold uppercase tracking-widest">Cargando agenda...</p>
-              </div>
-            ) : safeMisEntrevistas.length === 0 ? (
-              <div className="bg-[#111111] border border-gray-800 rounded-2xl p-8 text-center shadow-xl">
-                <div className="text-4xl mb-4 text-yellow-500 opacity-50">☕</div>
-                <p className="text-gray-400 text-sm">No tienes entrevistas asignadas por el momento.</p>
-                <p className="text-[10px] text-gray-500 mt-2 uppercase tracking-widest">El sistema te notificará cuando tengas una.</p>
-              </div>
-            ) : (
-              <div className="flex flex-col gap-4">
-                {safeMisEntrevistas.map((entrevista, idx) => (
+            {/* ✅ MIS ENTREVISTAS ASIGNADAS */}
+            <div className="flex flex-col gap-4">
+              <h3 className="text-sm font-bold text-gray-300 uppercase tracking-wider mb-2">Tus Próximas Citas ({safeMisEntrevistas.length})</h3>
+              
+              {isLoadingEntrevistas ? (
+                <div className="flex flex-col items-center justify-center py-10 opacity-50">
+                  <div className="w-8 h-8 border-2 border-yellow-500 border-t-transparent rounded-full animate-spin mb-3"></div>
+                  <p className="text-xs text-gray-400 font-bold uppercase tracking-widest">Cargando agenda...</p>
+                </div>
+              ) : safeMisEntrevistas.length === 0 ? (
+                <div className="bg-[#111111] border border-gray-800 rounded-2xl p-8 text-center shadow-xl">
+                  <div className="text-4xl mb-4 text-yellow-500 opacity-50">☕</div>
+                  <p className="text-gray-400 text-sm">No tienes entrevistas asignadas por el momento.</p>
+                  <p className="text-[10px] text-gray-500 mt-2 uppercase tracking-widest">El sistema te notificará cuando tengas una.</p>
+                </div>
+              ) : (
+                safeMisEntrevistas.map((entrevista, idx) => (
                   <div key={idx} className="bg-[#111111] border border-gray-800 rounded-2xl overflow-hidden shadow-lg hover:border-yellow-500/50 transition-all group p-5">
                     <div className="flex justify-between items-start mb-4">
                       <div>
@@ -881,9 +865,9 @@ export default function DashboardAdminMaestro() {
                       {entrevista.solicitaIntercambio ? "Cancelar Solicitud de Cambio" : "Intercambiar Entrevista"}
                     </button>
                   </div>
-                ))}
-              </div>
-            )}
+                ))
+              )}
+            </div>
           </main>
         );
     }
@@ -1192,48 +1176,53 @@ export default function DashboardAdminMaestro() {
 
       {renderActiveContent()}
 
-      {/* ✅ BARRA DE NAVEGACIÓN (7 BOTONES - AMARILLO) */}
-      <nav className="fixed bottom-0 w-full bg-[#111111]/95 backdrop-blur-md border-t border-gray-800 z-40 pb-safe overflow-x-auto custom-scrollbar">
-        <div className="flex justify-between items-center h-16 px-2 sm:px-6 relative min-w-[360px] max-w-2xl mx-auto">
-          
-          <div className="flex justify-between w-[42%]">
-            <button onClick={() => setActiveTab("control")} className={`flex flex-col items-center justify-center transition-colors ${activeTab === "control" ? "text-yellow-500" : "text-gray-400 hover:text-gray-200"}`}>
-              <svg className="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
-              <span className="text-[8px] sm:text-[9px] font-medium tracking-wide">Control</span>
-            </button>
-            <button onClick={() => setActiveTab("postulantes")} className={`flex flex-col items-center justify-center transition-colors ${activeTab === "postulantes" ? "text-yellow-500" : "text-gray-400 hover:text-gray-200"}`}>
-              <svg className="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
-              <span className="text-[8px] sm:text-[9px] font-medium tracking-wide">Candidatos</span>
-            </button>
-            <button onClick={() => setActiveTab("mi-horario")} className={`flex flex-col items-center justify-center transition-colors ${activeTab === "mi-horario" ? "text-yellow-500" : "text-gray-400 hover:text-gray-200"}`}>
-              <svg className="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-              <span className="text-[8px] sm:text-[9px] font-medium tracking-wide">Horario</span>
-            </button>
-          </div>
-
-          <div className="absolute left-1/2 -translate-x-1/2 -top-4 z-50">
-            <button onClick={() => setActiveTab("panel")} className={`w-14 h-14 sm:w-16 sm:h-16 rounded-full flex items-center justify-center border-[6px] border-[#0a0a0a] transition-all duration-300 ${activeTab === "panel" ? "bg-gradient-to-tr from-yellow-600 to-yellow-400 shadow-[0_0_20px_rgba(234,179,8,0.4)] scale-105 text-[#0a0a0a]" : "bg-gray-800 text-gray-400 hover:bg-gray-700 hover:text-white"}`}>
-              <svg className="w-6 h-6 sm:w-7 sm:h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z" /></svg>
-            </button>
-          </div>
-
-          <div className="flex justify-between w-[42%]">
-            <button onClick={() => { setActiveTab("guias"); setGuiaActiva(null); }} className={`flex flex-col items-center justify-center transition-colors ${activeTab === "guias" ? "text-yellow-500" : "text-gray-400 hover:text-gray-200"}`}>
-              <svg className="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
-              <span className="text-[8px] sm:text-[9px] font-medium tracking-wide">Guías</span>
-            </button>
-            <button onClick={() => setActiveTab("intercambios")} className={`flex flex-col items-center justify-center transition-colors ${activeTab === "intercambios" ? "text-yellow-500" : "text-gray-400 hover:text-gray-200"}`}>
-              <svg className="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" /></svg>
-              <span className="text-[8px] sm:text-[9px] font-medium tracking-wide">Cambios</span>
-            </button>
-            <button onClick={() => setActiveTab("ajustes")} className={`flex flex-col items-center justify-center transition-colors ${activeTab === "ajustes" ? "text-yellow-500" : "text-gray-400 hover:text-gray-200"}`}>
-              <svg className="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-              <span className="text-[8px] sm:text-[9px] font-medium tracking-wide">Ajustes</span>
-            </button>
-          </div>
-
+      {/* ✅ BARRA DE NAVEGACIÓN CORREGIDA (NO CORTA EL BOTÓN CENTRAL) */}
+      <div className="fixed bottom-0 w-full z-40 pb-safe">
+        
+        {/* BOTÓN CENTRAL FLOTANTE */}
+        <div className="absolute left-1/2 -translate-x-1/2 -top-6 z-50">
+          <button onClick={() => setActiveTab("panel")} className={`w-14 h-14 sm:w-16 sm:h-16 rounded-full flex items-center justify-center border-[6px] border-[#0a0a0a] transition-all duration-300 ${activeTab === "panel" ? "bg-gradient-to-tr from-yellow-600 to-yellow-400 shadow-[0_0_20px_rgba(234,179,8,0.4)] scale-105 text-[#0a0a0a]" : "bg-gray-800 text-gray-400 hover:bg-gray-700 hover:text-white"}`}>
+            <svg className="w-6 h-6 sm:w-7 sm:h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z" /></svg>
+          </button>
         </div>
-      </nav>
+
+        {/* FONDO DE LA BARRA */}
+        <nav className="w-full bg-[#111111]/95 backdrop-blur-md border-t border-gray-800 h-16">
+          <div className="flex justify-between items-center h-full px-2 sm:px-6 max-w-2xl mx-auto">
+            
+            <div className="flex justify-between w-[40%]">
+              <button onClick={() => setActiveTab("control")} className={`flex flex-col items-center justify-center transition-colors ${activeTab === "control" ? "text-yellow-500" : "text-gray-400 hover:text-gray-200"}`}>
+                <svg className="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
+                <span className="text-[8px] sm:text-[9px] font-medium tracking-wide">Control</span>
+              </button>
+              <button onClick={() => setActiveTab("postulantes")} className={`flex flex-col items-center justify-center transition-colors ${activeTab === "postulantes" ? "text-yellow-500" : "text-gray-400 hover:text-gray-200"}`}>
+                <svg className="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                <span className="text-[8px] sm:text-[9px] font-medium tracking-wide">Candidatos</span>
+              </button>
+              <button onClick={() => setActiveTab("mi-horario")} className={`flex flex-col items-center justify-center transition-colors ${activeTab === "mi-horario" ? "text-yellow-500" : "text-gray-400 hover:text-gray-200"}`}>
+                <svg className="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                <span className="text-[8px] sm:text-[9px] font-medium tracking-wide">Horario</span>
+              </button>
+            </div>
+
+            <div className="flex justify-between w-[40%]">
+              <button onClick={() => { setActiveTab("guias"); setGuiaActiva(null); }} className={`flex flex-col items-center justify-center transition-colors ${activeTab === "guias" ? "text-yellow-500" : "text-gray-400 hover:text-gray-200"}`}>
+                <svg className="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                <span className="text-[8px] sm:text-[9px] font-medium tracking-wide">Guías</span>
+              </button>
+              <button onClick={() => setActiveTab("intercambios")} className={`flex flex-col items-center justify-center transition-colors ${activeTab === "intercambios" ? "text-yellow-500" : "text-gray-400 hover:text-gray-200"}`}>
+                <svg className="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" /></svg>
+                <span className="text-[8px] sm:text-[9px] font-medium tracking-wide">Cambios</span>
+              </button>
+              <button onClick={() => setActiveTab("ajustes")} className={`flex flex-col items-center justify-center transition-colors ${activeTab === "ajustes" ? "text-yellow-500" : "text-gray-400 hover:text-gray-200"}`}>
+                <svg className="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                <span className="text-[8px] sm:text-[9px] font-medium tracking-wide">Ajustes</span>
+              </button>
+            </div>
+
+          </div>
+        </nav>
+      </div>
 
     </div>
   );

@@ -107,11 +107,18 @@ export async function GET() {
       const e2 = props["Entrevistador 2"]?.rich_text?.[0]?.plain_text?.trim();
       const eSaliente = props["Entrevistador Saliente"]?.rich_text?.[0]?.plain_text?.trim();
       const solicitaIntercambio = props["Solicita Intercambio"]?.checkbox;
+      const alertaCambio = props["Alerta Cambio"]?.rich_text?.[0]?.plain_text?.trim();
       
       const dia = props["Dia"]?.select?.name || "";
-      const fecha = props["Fecha"]?.number || 0;
+      const fechaNum = props["Fecha"]?.number || 0;
       const hora = props["Hora"]?.rich_text?.[0]?.plain_text || "";
       const postulanteName = props["Postulante"]?.rich_text?.[0]?.plain_text || "Candidato Desconocido";
+
+      let fechaIso = null;
+      if (fechaNum > 0 && hora) {
+        const [horaInicio] = hora.split(" - ");
+        fechaIso = `2026-04-${fechaNum.toString().padStart(2, '0')}T${horaInicio}:00`;
+      }
 
       // Registro Global de Nombres (sin importar si el bloque es real o vacío, ellos existen)
       if (e1 && e1 !== "Pendiente" && e1 !== "") entrevistadoresGlobales.add(e1);
@@ -120,7 +127,7 @@ export async function GET() {
       // --- LOGIC SOLO PARA ENTREVISTAS REALES ---
       if (isEntrevistaReal) {
         totalEntrevistasReales++;
-        const logData = { estatus: estatusObj, dia, fecha, hora, postulanteName };
+        const logData = { estatus: estatusObj, dia, fecha: fechaIso, hora, postulanteName };
 
         if (e1 && e1 !== "Pendiente") {
           cargaPorEntrevistador[e1] = (cargaPorEntrevistador[e1] || 0) + 1;
@@ -133,17 +140,19 @@ export async function GET() {
           historialEntrevistadores[e2].push(logData);
         }
 
-        if (solicitaIntercambio) {
-            // Técnicamente solo sabemos de quién salió si lo anotan, si no asumimos general.
-            if (eSaliente && eSaliente !== "") {
-                cambiosSolicitadosPorEntrevistador[eSaliente] = (cambiosSolicitadosPorEntrevistador[eSaliente] || 0) + 1;
+        // INTERCAMBIOS CÁLCULO ESTRICTO Y BLINDADO
+        if (alertaCambio) {
+            // Ya fue aceptado, tenemos el registro fijo
+            const parts = alertaCambio.split('|');
+            if (parts.length >= 2) {
+                const requester = parts[0];
+                const acceptor = parts[1];
+                cambiosSolicitadosPorEntrevistador[requester] = (cambiosSolicitadosPorEntrevistador[requester] || 0) + 1;
+                cambiosAceptadosPorEntrevistador[acceptor] = (cambiosAceptadosPorEntrevistador[acceptor] || 0) + 1;
             }
-        }
-
-        if (eSaliente && eSaliente !== "") {
-          // Quien lo tiene ahora, aceptó el cambio de eSaliente.
-          if (e1 && e1 !== "Pendiente" && e1 !== eSaliente) cambiosAceptadosPorEntrevistador[e1] = (cambiosAceptadosPorEntrevistador[e1] || 0) + 1;
-          if (e2 && e2 !== "Pendiente" && e2 !== eSaliente) cambiosAceptadosPorEntrevistador[e2] = (cambiosAceptadosPorEntrevistador[e2] || 0) + 1;
+        } else if (solicitaIntercambio && eSaliente && eSaliente !== "") {
+            // Todavía está pendiente de aceptar
+            cambiosSolicitadosPorEntrevistador[eSaliente] = (cambiosSolicitadosPorEntrevistador[eSaliente] || 0) + 1;
         }
       }
     });

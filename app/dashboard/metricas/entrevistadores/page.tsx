@@ -142,10 +142,10 @@ export default function EntrevistadoresMetricasPage() {
                       </thead>
                       <tbody>
                         {selectedEntrevistador.historial.map((log: any, i: number) => {
-                          const dateObj = new Date(log.fecha);
-                          let fechaDisplay = log.fecha;
+                          let fechaDisplay = "Fecha sin definir";
                           try {
-                            if(log.fecha && log.fecha > 0) {
+                            if(log.fecha) {
+                              const dateObj = new Date(log.fecha);
                               fechaDisplay = format(dateObj, "dd MMM yyyy", { locale: es });
                             }
                           } catch(e) {}

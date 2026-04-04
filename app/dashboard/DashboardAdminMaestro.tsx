@@ -775,7 +775,7 @@ export default function DashboardAdminMaestro() {
                     <p className="text-2xl font-black text-white">{metricas.totalEntrevistas}</p>
                   </div>
                   <div className="bg-[#111111] p-4 rounded-2xl border border-gray-800 relative overflow-hidden">
-                    <p className="text-[9px] text-gray-500 uppercase font-bold tracking-widest mb-1">Voluntarios</p>
+                    <p className="text-[9px] text-gray-500 uppercase font-bold tracking-widest mb-1">Entrevistadores</p>
                     <p className="text-2xl font-black text-white">{metricas.totalEntrevistadores}</p>
                   </div>
                 </div>

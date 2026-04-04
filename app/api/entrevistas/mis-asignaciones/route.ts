@@ -56,7 +56,9 @@ export async function GET(request: Request) {
         meetLink: props["Link Meet"]?.url || "",
         // ✅ NUEVOS CAMPOS AÑADIDOS PARA INTERCAMBIOS
         solicitaIntercambio: props["Solicita Intercambio"]?.checkbox || false,
-        entrevistadorSaliente: props["Entrevistador Saliente"]?.rich_text[0]?.plain_text || ""
+        entrevistadorSaliente: props["Entrevistador Saliente"]?.rich_text[0]?.plain_text || "",
+        entrevistador1: props["Entrevistador 1"]?.rich_text[0]?.plain_text || "",
+        entrevistador2: props["Entrevistador 2"]?.rich_text[0]?.plain_text || ""
       };
     });
 

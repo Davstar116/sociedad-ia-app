@@ -21,6 +21,9 @@ export default function PostulanteDetallePage() {
   const [respuestas, setRespuestas] = useState<Array<{pregunta: string, respuesta: string}>>([]);
   const [isLoading, setIsLoading] = useState(true);
 
+  // ESTADO PARA GUARDAR A LOS ENTREVISTADORES ASIGNADOS
+  const [entrevistadores, setEntrevistadores] = useState({ e1: "Pendiente", e2: "Pendiente" });
+
   useEffect(() => {
     if (status === "unauthenticated") {
       router.push("/login");
@@ -37,6 +40,19 @@ export default function PostulanteDetallePage() {
           setDatosPersonales(data.datosPersonales);
           setRespuestas(data.respuestasContenido);
         }
+
+        // BUSCAR LOS ENTREVISTADORES DE ESTE BLOQUE
+        const resBloque = await fetch(`/api/entrevistas/intercambios`); // Reutilizamos esta API que trae todos los bloques
+        const dataBloque = await resBloque.json();
+        if (dataBloque.success) {
+           const miBloque = dataBloque.intercambios.find((b: any) => b.idBloque === idBloque);
+           if (miBloque) {
+               setEntrevistadores({
+                   e1: miBloque.entrevistador1 || "Pendiente",
+                   e2: miBloque.entrevistador2 || "Pendiente"
+               });
+           }
+        }
       } catch (error) {
         console.error("Error cargando el perfil", error);
       } finally {
@@ -45,7 +61,7 @@ export default function PostulanteDetallePage() {
     };
 
     fetchDetalles();
-  }, [emailPostulante]);
+  }, [emailPostulante, idBloque]);
 
   if (status === "loading" || isLoading) {
     return (
@@ -137,7 +153,6 @@ export default function PostulanteDetallePage() {
   };
 
   const irAEvaluacion = () => {
-    // Redirige al nuevo workspace enviando todos los parámetros por URL
     const paramsQuery = searchParams.toString();
     router.push(`/dashboard/entrevistador/postulante/${idBloque}/evaluacion?${paramsQuery}`);
   };
@@ -208,6 +223,24 @@ export default function PostulanteDetallePage() {
                 <p className="text-[10px] text-gray-600 uppercase tracking-widest font-bold">Sin CV</p>
               </div>
             )}
+          </div>
+        </div>
+
+        {/* PANEL ASIGNADO */}
+        <div className="bg-[#111111] border border-gray-800 rounded-3xl p-5 sm:p-6 mb-8 shadow-sm">
+          <div className="flex items-center gap-2 mb-6 pb-4 border-b border-gray-800">
+            <span className="w-2 h-2 rounded-full bg-[#00baff]"></span>
+            <h3 className="text-sm font-bold text-gray-300 uppercase tracking-wider">Panel de Evaluación</h3>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="bg-[#0a0a0a] p-4 rounded-xl border border-gray-800/50 flex flex-col">
+                <span className="text-[10px] text-gray-500 uppercase tracking-widest font-bold mb-1">Entrevistador 1</span>
+                <span className="text-sm font-bold text-white">{entrevistadores.e1}</span>
+            </div>
+            <div className="bg-[#0a0a0a] p-4 rounded-xl border border-gray-800/50 flex flex-col">
+                <span className="text-[10px] text-gray-500 uppercase tracking-widest font-bold mb-1">Entrevistador 2</span>
+                <span className="text-sm font-bold text-white">{entrevistadores.e2}</span>
+            </div>
           </div>
         </div>
 

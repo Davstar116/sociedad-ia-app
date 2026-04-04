@@ -9,9 +9,6 @@ const DIAS_SEMANA = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sáb
 const FECHAS_S1 = [6, 7, 8, 9, 10, 11, 12];
 const FECHAS_S2 = [13, 14, 15, 16, 17, 18, 19];
 
-// =========================================================
-// 🧠 BANCO DE PREGUNTAS (ACTUALIZADO CON EL NUEVO GUIÓN)
-// =========================================================
 const GUIONES: Record<string, Record<string, string[]>> = {
   "Proyectos": {
     "Contexto y fit inicial": [
@@ -500,7 +497,7 @@ export default function DashboardEntrevistador() {
               <div>
                 <h2 className="text-xl font-black text-white tracking-tight">Mi Disponibilidad</h2>
                 {(isLocked || isGlobalLockActive) && (
-                  <p style={{ color: isGlobalLockActive ? '#f97316' : '#4ade80' }} className="text-[10px] font-bold uppercase tracking-widest mt-0.5 flex items-center gap-1">
+                  <p className={`text-[10px] ${isGlobalLockActive ? 'text-orange-500' : 'text-green-400'} font-bold uppercase tracking-widest mt-0.5 flex items-center gap-1`}>
                     <span>🔒</span> {isGlobalLockActive ? 'Bloqueado por Sistema' : 'Registrado'}
                   </p>
                 )}
@@ -539,8 +536,12 @@ export default function DashboardEntrevistador() {
                         {DIAS_SEMANA.map((dia, idx) => {
                           const slotId = `S${semana}-${dia}-${fechasActivas[idx]}-${hora}`;
                           const isSelected = disponibilidad.includes(slotId);
+                          
+                          // SEPARADO EN VARIABLE PARA EVITAR ERROR DE SINTAXIS
+                          const classes = `h-4 sm:h-5 rounded-[2px] transition-all border-[0.5px] ${(isLocked || isGlobalLockActive) ? (isSelected ? 'bg-green-500 border-green-400 opacity-90 cursor-default shadow-[0_0_8px_rgba(34,197,94,0.3)]' : 'bg-[#151515] border-gray-800 opacity-30 cursor-default') : (isSelected ? 'bg-[#a855f7] border-[#a855f7] shadow-[0_0_8px_rgba(168,85,247,0.4)] cursor-pointer' : 'bg-[#1a1a1a] border-gray-800 hover:bg-gray-800/80 cursor-pointer')}`;
+
                           return (
-                            <div key={slotId} onClick={() => toggleSlot(slotId)} className={`h-4 sm:h-5 rounded-[2px] transition-all border-[0.5px] ${(isLocked || isGlobalLockActive) ? (isSelected ? 'bg-green-500 border-green-400 opacity-90 cursor-default shadow-[0_0_8px_rgba(34,197,94,0.3)]' : 'bg-[#151515] border-gray-800 opacity-30 cursor-default') : (isSelected ? 'bg-[#a855f7] border-[#a855f7] shadow-[0_0_8px_rgba(168,85,247,0.4)] cursor-pointer' : 'bg-[#1a1a1a] border-gray-800 hover:bg-gray-800/80 cursor-pointer')}`}></div>
+                            <div key={slotId} onClick={() => toggleSlot(slotId)} className={classes}></div>
                           );
                         })}
                       </div>
@@ -604,7 +605,6 @@ export default function DashboardEntrevistador() {
                   <span>📝</span> Guión de {guiaActiva}
                 </h3>
 
-                {/* ✅ RECORRIDO DINÁMICO BLINDADO */}
                 {Object.entries(GUIONES[guiaActiva] || {}).map(([seccion, preguntas], idxSeccion) => (
                   <div key={idxSeccion} className="space-y-6 mt-10">
                     <h4 className="text-sm font-bold text-gray-400 uppercase tracking-widest border-b border-gray-800 pb-2">{seccion}</h4>
@@ -664,12 +664,10 @@ export default function DashboardEntrevistador() {
         );
 
       case "intercambios":
-        const intercambiosVisibles = safeIntercambios.filter(ent => 
-          ent &&
-          ent.entrevistadorSaliente !== session?.user?.name && 
-          ent.entrevistador1 !== session?.user?.name && 
-          ent.entrevistador2 !== session?.user?.name
-        );
+        const intercambiosVisibles = safeIntercambios.filter(ent => {
+          if (!ent) return false;
+          return ent.entrevistadorSaliente !== session?.user?.name && ent.entrevistador1 !== session?.user?.name && ent.entrevistador2 !== session?.user?.name;
+        });
 
         return (
           <main className="pt-24 pb-32 px-5 max-w-lg mx-auto min-h-screen animate-in fade-in duration-500">
@@ -691,32 +689,32 @@ export default function DashboardEntrevistador() {
               </div>
             ) : (
               <div className="flex flex-col gap-4">
-                {intercambiosVisibles.map((entrevista, idx) => (
-                  <div key={idx} className="bg-[#111111] border border-gray-800 rounded-2xl overflow-hidden shadow-lg hover:border-[#a855f7]/50 transition-all group p-5">
-                    <div className="flex justify-between items-start mb-4 border-b border-gray-800 pb-4">
-                      <div>
-                        <p className="text-[10px] text-[#c084fc] uppercase tracking-widest font-bold mb-1">Entrevistador que solicita</p>
-                        <h3 className="text-sm font-bold text-gray-300 leading-tight">{entrevista.entrevistadorSaliente}</h3>
+                {intercambiosVisibles.map((entrevista, idx) => {
+                  if (!entrevista) return null;
+                  return (
+                    <div key={idx} className="bg-[#111111] border border-gray-800 rounded-2xl overflow-hidden shadow-lg hover:border-[#a855f7]/50 transition-all group p-5">
+                      <div className="flex justify-between items-start mb-4 border-b border-gray-800 pb-4">
+                        <div>
+                          <p className="text-[10px] text-[#c084fc] uppercase tracking-widest font-bold mb-1">Entrevistador que solicita</p>
+                          <h3 className="text-sm font-bold text-gray-300 leading-tight">{entrevista.entrevistadorSaliente}</h3>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-[10px] text-gray-500 uppercase tracking-widest font-bold mb-1">{entrevista.dia || "N/A"} {entrevista.fecha || ""} Abr</p>
+                          <p className="text-sm font-black text-white">{entrevista.hora}</p>
+                        </div>
                       </div>
-                      <div className="text-right">
-                        <p className="text-[10px] text-gray-500 uppercase tracking-widest font-bold mb-1">{entrevista.dia || "N/A"} {entrevista.fecha || ""} Abr</p>
-                        <p className="text-sm font-black text-white">{entrevista.hora}</p>
+                      
+                      <div className="mb-5">
+                        <p className="text-[10px] text-gray-500 uppercase tracking-widest font-bold mb-1">Candidato a evaluar</p>
+                        <h3 className="text-lg font-black text-white">{entrevista.postulante}</h3>
                       </div>
-                    </div>
-                    
-                    <div className="mb-5">
-                      <p className="text-[10px] text-gray-500 uppercase tracking-widest font-bold mb-1">Candidato a evaluar</p>
-                      <h3 className="text-lg font-black text-white">{entrevista.postulante}</h3>
-                    </div>
 
-                    <button 
-                      onClick={() => aceptarIntercambio(entrevista.idBloque, entrevista.entrevistadorSaliente, entrevista.postulante)}
-                      className="w-full py-3 bg-[#9333ea]/10 text-[#c084fc] hover:bg-[#9333ea] hover:text-white border border-[#9333ea]/30 font-bold text-xs uppercase tracking-wider rounded-xl transition-all shadow-lg active:scale-95"
-                    >
-                      ✅ Aceptar y Cubrir Entrevista
-                    </button>
-                  </div>
-                ))}
+                      <button onClick={() => aceptarIntercambio(entrevista.idBloque, entrevista.entrevistadorSaliente, entrevista.postulante)} className="w-full py-3 bg-[#9333ea]/10 text-[#c084fc] hover:bg-[#9333ea] hover:text-white border border-[#9333ea]/30 font-bold text-xs uppercase tracking-wider rounded-xl transition-all shadow-lg active:scale-95">
+                        ✅ Aceptar y Cubrir Entrevista
+                      </button>
+                    </div>
+                  );
+                })}
               </div>
             )}
           </main>
@@ -732,61 +730,64 @@ export default function DashboardEntrevistador() {
               <p className="text-sm text-gray-400">Entrevistas programadas:</p>
             </div>
 
-            {isLoadingEntrevistas ? (
-              <div className="flex flex-col items-center justify-center py-10 opacity-50">
-                <div className="w-8 h-8 border-2 border-[#a855f7] border-t-transparent rounded-full animate-spin mb-3"></div>
-                <p className="text-xs text-gray-400 font-bold uppercase tracking-widest">Cargando agenda...</p>
-              </div>
-            ) : safeMisEntrevistas.length === 0 ? (
-              <div className="bg-[#111111] border border-gray-800 rounded-2xl p-8 text-center shadow-xl">
-                <div className="text-4xl mb-4 text-[#a855f7] opacity-50">☕</div>
-                <p className="text-gray-400 text-sm">No tienes entrevistas asignadas por el momento.</p>
-                <p className="text-[10px] text-gray-500 mt-2 uppercase tracking-widest">El sistema te notificará cuando tengas una.</p>
-              </div>
-            ) : (
-              <div className="flex flex-col gap-4">
-                <h3 className="text-sm font-bold text-gray-300 uppercase tracking-wider mb-2">Tus Próximas Citas ({safeMisEntrevistas.length})</h3>
-                {safeMisEntrevistas.map((entrevista, idx) => (
-                  <div key={idx} className="bg-[#111111] border border-gray-800 rounded-2xl overflow-hidden shadow-lg hover:border-[#a855f7]/50 transition-all group p-5">
-                    <div className="flex justify-between items-start mb-4">
-                      <div>
-                        <p className="text-[10px] text-[#c084fc] uppercase tracking-widest font-bold mb-1">Candidato</p>
-                        <h3 className="text-lg font-bold text-white leading-tight">{entrevista.postulante}</h3>
+            <div className="flex flex-col gap-4">
+              <h3 className="text-sm font-bold text-gray-300 uppercase tracking-wider mb-2">Tus Próximas Citas ({safeMisEntrevistas.length})</h3>
+              
+              {isLoadingEntrevistas ? (
+                <div className="flex flex-col items-center justify-center py-10 opacity-50">
+                  <div className="w-8 h-8 border-2 border-[#a855f7] border-t-transparent rounded-full animate-spin mb-3"></div>
+                  <p className="text-xs text-gray-400 font-bold uppercase tracking-widest">Cargando agenda...</p>
+                </div>
+              ) : safeMisEntrevistas.length === 0 ? (
+                <div className="bg-[#111111] border border-gray-800 rounded-2xl p-8 text-center shadow-xl">
+                  <div className="text-4xl mb-4 text-[#a855f7] opacity-50">☕</div>
+                  <p className="text-gray-400 text-sm">No tienes entrevistas asignadas por el momento.</p>
+                  <p className="text-[10px] text-gray-500 mt-2 uppercase tracking-widest">El sistema te notificará cuando tengas una.</p>
+                </div>
+              ) : (
+                safeMisEntrevistas.map((entrevista, idx) => {
+                  if (!entrevista) return null;
+                  return (
+                    <div key={idx} className="bg-[#111111] border border-gray-800 rounded-2xl overflow-hidden shadow-lg hover:border-[#a855f7]/50 transition-all group p-5">
+                      <div className="flex justify-between items-start mb-4">
+                        <div>
+                          <p className="text-[10px] text-[#c084fc] uppercase tracking-widest font-bold mb-1">Candidato</p>
+                          <h3 className="text-lg font-bold text-white leading-tight">{entrevista.postulante}</h3>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-[10px] text-gray-500 uppercase tracking-widest font-bold mb-1">{entrevista.dia || "N/A"} {entrevista.fecha || ""} Abr</p>
+                          <p className="text-sm font-black text-white">{entrevista.hora}</p>
+                        </div>
                       </div>
-                      <div className="text-right">
-                        <p className="text-[10px] text-gray-500 uppercase tracking-widest font-bold mb-1">{entrevista.dia || "N/A"} {entrevista.fecha || ""} Abr</p>
-                        <p className="text-sm font-black text-white">{entrevista.hora}</p>
-                      </div>
-                    </div>
-                    
-                    <div className="flex gap-2 mt-4 pt-4 border-t border-gray-800">
-                      {entrevista.meetLink && (
-                        <a href={entrevista.meetLink} target="_blank" rel="noreferrer" className="flex-1 py-3 bg-gray-800 hover:bg-gray-700 text-center text-white text-xs font-bold uppercase tracking-wider rounded-xl transition-colors flex items-center justify-center gap-2">
-                          <span>📹</span> Meet
-                        </a>
-                      )}
-                      
-                      <Link href={`/dashboard/entrevistador/postulante/${entrevista.idBloque || "null"}?email=${encodeURIComponent(entrevista.correoPostulante || "")}&dia=${entrevista.dia || ""}&fecha=${entrevista.fecha || ""}&hora=${entrevista.hora || ""}`} className="flex-[2] py-3 bg-gradient-to-r from-[#9333ea] to-[#c084fc] hover:from-[#c084fc] hover:to-[#9333ea] text-center text-white text-xs font-black uppercase tracking-wider rounded-xl transition-all shadow-lg shadow-[#9333ea]/20 flex items-center justify-center gap-2 active:scale-95">
-                        Ver Perfil <span>→</span>
-                      </Link>
-                    </div>
 
-                    <button 
-                      onClick={() => entrevista.solicitaIntercambio ? cancelarIntercambio(entrevista.idBloque) : solicitarIntercambio(entrevista.idBloque)}
-                      className={`w-full mt-3 py-2.5 rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-2 border ${
-                        entrevista.solicitaIntercambio
-                          ? "bg-orange-500/10 text-orange-500 border-orange-500/30 hover:bg-orange-500 hover:text-white active:scale-95"
-                          : "bg-red-600/5 text-red-500 border-red-600/20 hover:bg-red-600 hover:text-white hover:border-red-600 active:scale-95"
-                      }`}
-                    >
-                      <span>{entrevista.solicitaIntercambio ? "↩️" : "🔄"}</span> 
-                      {entrevista.solicitaIntercambio ? "Cancelar Solicitud de Cambio" : "Intercambiar Entrevista"}
-                    </button>
-                    
-                  </div>
-                ))}
-              </div>
-            )}
+                      {/* ✅ AQUÍ SE MUESTRAN LOS NOMBRES DE LOS ENTREVISTADORES */}
+                      <div className="mb-4 bg-[#0a0a0a] p-3 rounded-xl border border-gray-800/50">
+                        <p className="text-[10px] text-gray-500 uppercase tracking-widest font-bold mb-1">Panel Asignado</p>
+                        <p className="text-xs text-gray-300">1. {entrevista.entrevistador1 || "Pendiente"}</p>
+                        <p className="text-xs text-gray-300">2. {entrevista.entrevistador2 || "Pendiente"}</p>
+                      </div>
+                      
+                      <div className="flex gap-2 mt-4 pt-4 border-t border-gray-800">
+                        {entrevista.meetLink && (
+                          <a href={entrevista.meetLink} target="_blank" rel="noreferrer" className="flex-1 py-3 bg-gray-800 hover:bg-gray-700 text-center text-white text-xs font-bold uppercase tracking-wider rounded-xl transition-colors flex items-center justify-center gap-2">
+                            <span>📹</span> Meet
+                          </a>
+                        )}
+                        
+                        <Link href={`/dashboard/entrevistador/postulante/${entrevista.idBloque || "null"}?email=${encodeURIComponent(entrevista.correoPostulante || "")}&dia=${entrevista.dia || ""}&fecha=${entrevista.fecha || ""}&hora=${entrevista.hora || ""}`} className="flex-[2] py-3 bg-gradient-to-r from-[#9333ea] to-[#c084fc] hover:from-[#c084fc] hover:to-[#9333ea] text-center text-white text-xs font-black uppercase tracking-wider rounded-xl transition-all shadow-lg shadow-[#9333ea]/20 flex items-center justify-center gap-2 active:scale-95">
+                          Ver Perfil <span>→</span>
+                        </Link>
+                      </div>
+
+                      <button onClick={() => entrevista.solicitaIntercambio ? cancelarIntercambio(entrevista.idBloque) : solicitarIntercambio(entrevista.idBloque)} className={`w-full mt-3 py-2.5 rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-2 border ${entrevista.solicitaIntercambio ? "bg-orange-500/10 text-orange-500 border-orange-500/30 hover:bg-orange-500 hover:text-white active:scale-95" : "bg-red-600/5 text-red-500 border-red-600/20 hover:bg-red-600 hover:text-white hover:border-red-600 active:scale-95"}`}>
+                        <span>{entrevista.solicitaIntercambio ? "↩️" : "🔄"}</span> 
+                        {entrevista.solicitaIntercambio ? "Cancelar Solicitud de Cambio" : "Intercambiar Entrevista"}
+                      </button>
+                    </div>
+                  );
+                })
+              )}
+            </div>
           </main>
         );
     }
@@ -813,7 +814,7 @@ export default function DashboardEntrevistador() {
         </button>
       </header>
 
-      {/* OVERLAYS */}
+      {/* OVERLAYS GLOBALES */}
       {(isMenuOpen || isNotifMenuOpen || showConfirmModal || modalInfo.isOpen) && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-40 transition-opacity" onClick={() => { setIsMenuOpen(false); setIsNotifMenuOpen(false); setShowConfirmModal(false); !isProcessingSwap && setModalInfo(prev => ({...prev, isOpen: false})); }} />
       )}
@@ -864,7 +865,7 @@ export default function DashboardEntrevistador() {
         </div>
       )}
 
-      {/* MENÚ PERFIL (DERECHO) */}
+      {/* MENÚ PERFIL */}
       <div className={`fixed top-0 right-0 h-full w-72 bg-[#111111] border-l border-gray-800 z-50 transform transition-transform duration-300 ease-in-out flex flex-col ${isMenuOpen ? 'translate-x-0' : 'translate-x-full'}`}>
         <div className="p-6 border-b border-gray-800 flex justify-between items-start">
           <div className="flex items-center gap-4 pr-4">
@@ -890,7 +891,7 @@ export default function DashboardEntrevistador() {
         </div>
       </div>
 
-      {/* MENÚ NOTIFICACIONES (IZQUIERDO) */}
+      {/* MENÚ NOTIFICACIONES */}
       <div className={`fixed top-0 left-0 h-full w-80 bg-[#111111] border-r border-gray-800 z-50 transform transition-transform duration-300 ease-in-out flex flex-col ${isNotifMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         <div className="p-5 border-b border-gray-800 flex justify-between items-center bg-[#0a0a0a]">
           <h2 className="text-lg font-bold text-white flex items-center gap-2">
@@ -905,61 +906,68 @@ export default function DashboardEntrevistador() {
               <p className="text-sm font-medium text-gray-400">No tienes notificaciones nuevas.</p>
             </div>
           ) : (
-            safeNotificaciones.map(notif => (
-              <div key={notif.id} onClick={() => marcarComoLeida(notif.id, notif.leida)} className={`p-5 border-b border-gray-800/50 cursor-pointer transition-all relative group flex gap-4 items-start ${!notif.leida ? 'bg-[#a855f7]/10' : 'hover:bg-[#1f2937]/30'}`}>
-                {!notif.leida && <div className="absolute left-0 top-0 w-1 h-full bg-[#a855f7]"></div>}
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${!notif.leida ? 'bg-[#a855f7]/20 text-[#c084fc]' : 'bg-gray-800 text-gray-400'}`}>
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+            safeNotificaciones.map(notif => {
+              if (!notif) return null;
+              return (
+                <div key={notif.id} onClick={() => marcarComoLeida(notif.id, notif.leida)} className={`p-5 border-b border-gray-800/50 cursor-pointer transition-all relative group flex gap-4 items-start ${!notif.leida ? 'bg-[#a855f7]/10' : 'hover:bg-[#1f2937]/30'}`}>
+                  {!notif.leida && <div className="absolute left-0 top-0 w-1 h-full bg-[#a855f7]"></div>}
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${!notif.leida ? 'bg-[#a855f7]/20 text-[#c084fc]' : 'bg-gray-800 text-gray-400'}`}>
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                  </div>
+                  <div className="flex-1 pr-6">
+                    <div className="flex justify-between items-start mb-1 gap-2"><h3 className={`text-sm ${!notif.leida ? 'font-bold text-white' : 'font-medium text-gray-300'}`}>{notif.asunto}</h3></div>
+                    <p className={`text-xs leading-relaxed ${!notif.leida ? 'text-gray-300' : 'text-gray-500'}`}>{notif.mensaje}</p>
+                    <p className="text-[10px] text-gray-600 mt-2 uppercase font-bold tracking-wider">{new Date(notif.fecha).toLocaleDateString('es-MX', { day: 'numeric', month: 'short', hour: '2-digit', minute:'2-digit' })}</p>
+                  </div>
+                  <button onClick={(e) => { e.stopPropagation(); borrarNotificacion(notif.id); }} className="absolute right-3 top-1/2 -translate-y-1/2 p-2 text-gray-500 hover:text-red-400 hover:bg-red-400/10 rounded-xl transition-all opacity-0 group-hover:opacity-100" title="Eliminar notificación">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                  </button>
                 </div>
-                <div className="flex-1 pr-6">
-                  <h3 className={`text-sm mb-1 ${!notif.leida ? 'font-bold text-white' : 'font-medium text-gray-300'}`}>{notif.asunto}</h3>
-                  <p className={`text-xs leading-relaxed ${!notif.leida ? 'text-gray-300' : 'text-gray-500'}`}>{notif.mensaje}</p>
-                  <p className="text-[10px] text-gray-600 mt-2 uppercase font-bold tracking-wider">{new Date(notif.fecha).toLocaleDateString('es-MX', { day: 'numeric', month: 'short', hour: '2-digit', minute:'2-digit' })}</p>
-                </div>
-                <button onClick={(e) => { e.stopPropagation(); borrarNotificacion(notif.id); }} className="absolute right-3 top-1/2 -translate-y-1/2 p-2 text-gray-500 hover:text-red-400 opacity-0 group-hover:opacity-100"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button>
-              </div>
-            ))
+              );
+            })
           )}
         </div>
       </div>
 
-      {/* ✅ AQUÍ ESTÁ EL RENDERIZADO DEL COMPONENTE CENTRAL */}
-      {renderActiveContent()}
-
-      {/* CINTILLO INFERIOR DE ENTREVISTADOR */}
-      <nav className="fixed bottom-0 w-full bg-[#111111]/90 backdrop-blur-md border-t border-gray-800 z-40 pb-safe">
-        <div className="flex justify-between items-center h-16 px-6 relative max-w-lg mx-auto">
-          
-          <button onClick={() => setActiveTab("mi-horario")} className={`flex flex-col items-center justify-center w-12 transition-colors ${activeTab === "mi-horario" ? "text-[#c084fc]" : "text-gray-400 hover:text-gray-200"}`}>
-            <svg className="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-            <span className="text-[9px] font-medium tracking-wide">Horario</span>
+      <div className="fixed bottom-0 w-full z-40 pb-safe">
+        <div className="absolute left-1/2 -translate-x-1/2 -top-6 z-50">
+          <button onClick={() => setActiveTab("panel")} className={`w-14 h-14 sm:w-16 sm:h-16 rounded-full flex items-center justify-center border-[6px] border-[#0a0a0a] transition-all duration-300 ${activeTab === "panel" ? "bg-gradient-to-tr from-[#9333ea] to-[#c084fc] shadow-[0_0_20px_rgba(168,85,247,0.4)] scale-105 text-white" : "bg-gray-800 text-gray-400 hover:bg-gray-700 hover:text-white"}`}>
+            <svg className="w-6 h-6 sm:w-7 sm:h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
           </button>
-          
-          <button onClick={() => { setActiveTab("guias"); setGuiaActiva(null); }} className={`flex flex-col items-center justify-center w-12 mr-6 transition-colors ${activeTab === "guias" ? "text-[#c084fc]" : "text-gray-400 hover:text-gray-200"}`}>
-            <svg className="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
-            <span className="text-[9px] font-medium tracking-wide">Guías</span>
-          </button>
-
-          <div className="absolute left-1/2 -translate-x-1/2 -top-4">
-            <button onClick={() => setActiveTab("panel")} className={`w-16 h-16 rounded-full flex items-center justify-center border-[6px] border-[#0a0a0a] transition-all duration-300 ${activeTab === "panel" ? "bg-gradient-to-tr from-[#9333ea] to-[#c084fc] shadow-[0_0_20px_rgba(168,85,247,0.4)] scale-105" : "bg-gray-800 text-gray-400 hover:bg-gray-700 hover:text-white"}`}>
-              <svg className={`w-7 h-7 ${activeTab === "panel" ? "text-white" : "currentColor"}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>
-            </button>
-          </div>
-
-          <button onClick={() => setActiveTab("cursos")} className={`flex flex-col items-center justify-center w-12 ml-6 transition-colors ${activeTab === "cursos" ? "text-[#c084fc]" : "text-gray-400 hover:text-gray-200"}`}>
-            <svg className="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
-            <span className="text-[9px] font-medium tracking-wide">Cursos</span>
-          </button>
-
-          <button onClick={() => setActiveTab("intercambios")} className={`flex flex-col items-center justify-center w-12 transition-colors ${activeTab === "intercambios" ? "text-[#c084fc]" : "text-gray-400 hover:text-gray-200"}`}>
-            <svg className="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
-            </svg>
-            <span className="text-[9px] font-medium tracking-wide">Cambios</span>
-          </button>
-          
         </div>
-      </nav>
+
+        <nav className="w-full bg-[#111111]/95 backdrop-blur-md border-t border-gray-800 h-16">
+          <div className="flex justify-between items-center h-full px-2 sm:px-6 max-w-2xl mx-auto">
+            
+            <div className="flex justify-between w-[40%]">
+              <button onClick={() => setActiveTab("mi-horario")} className={`flex flex-col items-center justify-center transition-colors ${activeTab === "mi-horario" ? "text-[#c084fc]" : "text-gray-400 hover:text-gray-200"}`}>
+                <svg className="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                <span className="text-[8px] sm:text-[9px] font-medium tracking-wide">Horario</span>
+              </button>
+              
+              <button onClick={() => { setActiveTab("guias"); setGuiaActiva(null); }} className={`flex flex-col items-center justify-center transition-colors ${activeTab === "guias" ? "text-[#c084fc]" : "text-gray-400 hover:text-gray-200"}`}>
+                <svg className="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                <span className="text-[8px] sm:text-[9px] font-medium tracking-wide">Guías</span>
+              </button>
+            </div>
+
+            <div className="flex justify-between w-[40%]">
+              <button onClick={() => setActiveTab("cursos")} className={`flex flex-col items-center justify-center transition-colors ${activeTab === "cursos" ? "text-[#c084fc]" : "text-gray-400 hover:text-gray-200"}`}>
+                <svg className="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
+                <span className="text-[8px] sm:text-[9px] font-medium tracking-wide">Cursos</span>
+              </button>
+
+              <button onClick={() => setActiveTab("intercambios")} className={`flex flex-col items-center justify-center transition-colors ${activeTab === "intercambios" ? "text-[#c084fc]" : "text-gray-400 hover:text-gray-200"}`}>
+                <svg className="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                </svg>
+                <span className="text-[8px] sm:text-[9px] font-medium tracking-wide">Cambios</span>
+              </button>
+            </div>
+
+          </div>
+        </nav>
+      </div>
 
     </div>
   );

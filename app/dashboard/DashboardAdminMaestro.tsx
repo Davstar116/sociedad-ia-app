@@ -194,7 +194,7 @@ export default function DashboardAdminMaestro() {
   const [isNotifMenuOpen, setIsNotifMenuOpen] = useState(false);
   const [notificaciones, setNotificaciones] = useState<any[]>([]);
   
-  const [activeTab, setActiveTab] = useState("control");
+  const [activeTab, setActiveTab] = useState("panel");
 
   // ESTADOS PURGA
   const [showPurgeModal, setShowPurgeModal] = useState(false);
@@ -853,7 +853,7 @@ export default function DashboardAdminMaestro() {
             {/* ✅ TARJETA SUPERIOR CORREGIDA COMO ENTREVISTADOR */}
             <div className="bg-[#111111] border border-gray-800 rounded-2xl p-6 shadow-xl relative overflow-hidden shrink-0">
               <div className="absolute top-0 left-0 w-1 h-full bg-yellow-500"></div>
-              <h2 className="text-xl font-bold text-white mb-1">Hola Maestro, {primerNombre} 👑</h2>
+              <h2 className="text-xl font-bold text-white mb-1">Hola, {primerNombre} 👑</h2>
               <p className="text-sm text-gray-400">Entrevistas programadas:</p>
             </div>
 
@@ -888,6 +888,13 @@ export default function DashboardAdminMaestro() {
                         </div>
                       </div>
                       
+                      {/* ✅ PANEL ASIGNADO */}
+                      <div className="mb-4 bg-[#0a0a0a] p-3 rounded-xl border border-gray-800/50">
+                        <p className="text-[10px] text-gray-500 uppercase tracking-widest font-bold mb-1">Panel Asignado</p>
+                        <p className="text-xs text-gray-300">1. {entrevista.entrevistador1 || "Pendiente"}</p>
+                        <p className="text-xs text-gray-300">2. {entrevista.entrevistador2 || "Pendiente"}</p>
+                      </div>
+
                       <div className="flex gap-2 mt-4 pt-4 border-t border-gray-800">
                         {entrevista.meetLink && (
                           <a href={entrevista.meetLink} target="_blank" rel="noreferrer" className="flex-1 py-3 bg-gray-800 hover:bg-gray-700 text-center text-white text-xs font-bold uppercase tracking-wider rounded-xl transition-colors flex items-center justify-center gap-2">

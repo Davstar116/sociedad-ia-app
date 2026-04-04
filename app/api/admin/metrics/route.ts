@@ -90,9 +90,11 @@ export async function GET() {
 
     // 4. Procesamiento de Entrevistas & Entrevistadores (Filtrando Entrevistas REALES)
     let totalEntrevistasReales = 0;
+    let totalEntrevistasCompletadas = 0;
     const entrevistadoresGlobales = new Set<string>();
 
     const cargaPorEntrevistador: Record<string, number> = {};
+    const completadasPorEntrevistador: Record<string, number> = {};
     const cambiosAceptadosPorEntrevistador: Record<string, number> = {};
     const cambiosSolicitadosPorEntrevistador: Record<string, number> = {};
     const historialEntrevistadores: Record<string, any[]> = {}; // key: entrevistador_name, value: array de entrevistas
@@ -101,7 +103,8 @@ export async function GET() {
       const props = e.properties;
       
       const estatusObj = props["Estatus"]?.select?.name || props["Estatus"]?.status?.name || "";
-      const isEntrevistaReal = estatusObj.toLowerCase() === "reservado" || estatusObj.toLowerCase() === "completado";
+      const isEntrevistaReal = estatusObj.toLowerCase() === "reservado" || estatusObj.toLowerCase().startsWith("completad");
+      const isCompletada = estatusObj.toLowerCase().startsWith("completad");
       
       const e1 = props["Entrevistador 1"]?.rich_text?.[0]?.plain_text?.trim();
       const e2 = props["Entrevistador 2"]?.rich_text?.[0]?.plain_text?.trim();
@@ -127,15 +130,18 @@ export async function GET() {
       // --- LOGIC SOLO PARA ENTREVISTAS REALES ---
       if (isEntrevistaReal) {
         totalEntrevistasReales++;
+        if (isCompletada) totalEntrevistasCompletadas++;
         const logData = { estatus: estatusObj, dia, fecha: fechaIso, hora, postulanteName };
 
         if (e1 && e1 !== "Pendiente") {
           cargaPorEntrevistador[e1] = (cargaPorEntrevistador[e1] || 0) + 1;
+          if (isCompletada) completadasPorEntrevistador[e1] = (completadasPorEntrevistador[e1] || 0) + 1;
           if (!historialEntrevistadores[e1]) historialEntrevistadores[e1] = [];
           historialEntrevistadores[e1].push(logData);
         }
         if (e2 && e2 !== "Pendiente") {
           cargaPorEntrevistador[e2] = (cargaPorEntrevistador[e2] || 0) + 1;
+          if (isCompletada) completadasPorEntrevistador[e2] = (completadasPorEntrevistador[e2] || 0) + 1;
           if (!historialEntrevistadores[e2]) historialEntrevistadores[e2] = [];
           historialEntrevistadores[e2].push(logData);
         }
@@ -165,6 +171,7 @@ export async function GET() {
       .map((nombre) => ({
         nombre,
         entrevistasAsignadas: cargaPorEntrevistador[nombre] || 0,
+        entrevistasCompletadas: completadasPorEntrevistador[nombre] || 0,
         cambiosSolicitados: cambiosSolicitadosPorEntrevistador[nombre] || 0,
         cambiosAceptados: cambiosAceptadosPorEntrevistador[nombre] || 0,
         historial: historialEntrevistadores[nombre] || []
@@ -178,6 +185,7 @@ export async function GET() {
         candidatosEstatus,
         candidatosNucleo,
         totalEntrevistas: totalEntrevistasReales,
+        totalEntrevistasCompletadas,
         totalCambiosSolicitados,
         totalCambiosAceptados,
         totalEntrevistadores: entrevistadoresGlobales.size,

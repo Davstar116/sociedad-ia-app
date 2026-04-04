@@ -108,16 +108,20 @@ export default function EntrevistadoresMetricasPage() {
               </div>
 
               {/* Stats Rápidas */}
-              <div className="grid grid-cols-3 gap-4 mb-10">
-                 <div className="bg-[#111111] p-5 rounded-2xl border border-gray-800 relative overflow-hidden">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
+                 <div className="bg-[#111111] p-4 rounded-2xl border border-gray-800 relative overflow-hidden">
                     <p className="text-[10px] text-gray-500 uppercase font-bold tracking-widest mb-1">Carga Asignada</p>
                     <p className="text-3xl font-black text-white">{selectedEntrevistador.entrevistasAsignadas}</p>
                  </div>
-                 <div className="bg-yellow-500/10 p-5 rounded-2xl border border-yellow-500/20 text-center">
+                 <div className="bg-blue-500/10 p-4 rounded-2xl border border-blue-500/20 text-center">
+                    <p className="text-3xl font-black text-blue-500 mb-1">{selectedEntrevistador.entrevistasCompletadas}</p>
+                    <p className="text-[9px] text-blue-500/60 uppercase font-bold tracking-widest leading-tight">Entrevistas<br/>Completadas</p>
+                 </div>
+                 <div className="bg-yellow-500/10 p-4 rounded-2xl border border-yellow-500/20 text-center">
                     <p className="text-3xl font-black text-yellow-500 mb-1">{selectedEntrevistador.cambiosSolicitados}</p>
                     <p className="text-[9px] text-yellow-500/60 uppercase font-bold tracking-widest leading-tight">Suplencias<br/>Solicitadas</p>
                  </div>
-                 <div className="bg-green-500/10 p-5 rounded-2xl border border-green-500/20 text-center">
+                 <div className="bg-green-500/10 p-4 rounded-2xl border border-green-500/20 text-center">
                     <p className="text-3xl font-black text-green-500 mb-1">{selectedEntrevistador.cambiosAceptados}</p>
                     <p className="text-[9px] text-green-500/60 uppercase font-bold tracking-widest leading-tight">Suplencias<br/>Realizadas</p>
                  </div>
@@ -156,7 +160,7 @@ export default function EntrevistadoresMetricasPage() {
                               <td className="px-6 py-4">{log.dia} {fechaDisplay}</td>
                               <td className="px-6 py-4"><span className="bg-gray-800 text-yellow-500 px-2 py-1 rounded-md font-bold text-xs">{log.hora}</span></td>
                               <td className="px-6 py-4">
-                                <span className={`px-2 py-1 rounded-md text-[10px] uppercase font-bold tracking-wider ${log.estatus === 'Completado' ? 'bg-green-500/10 text-green-500 border border-green-500/20' : 'bg-blue-500/10 text-blue-400 border border-blue-500/20'}`}>
+                                <span className={`px-2 py-1 rounded-md text-[10px] uppercase font-bold tracking-wider ${log.estatus.toLowerCase().startsWith('completad') ? 'bg-green-500/10 text-green-500 border border-green-500/20' : 'bg-blue-500/10 text-blue-400 border border-blue-500/20'}`}>
                                   {log.estatus}
                                 </span>
                               </td>

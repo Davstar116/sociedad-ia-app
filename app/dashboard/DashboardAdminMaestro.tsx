@@ -765,14 +765,18 @@ export default function DashboardAdminMaestro() {
             ) : metricas ? (
               <div className="flex flex-col gap-6">
                 {/* Global Stats */}
-                <div className="grid grid-cols-3 gap-3">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                   <div className="bg-[#111111] p-4 rounded-2xl border border-gray-800 relative overflow-hidden">
                     <p className="text-[9px] text-gray-500 uppercase font-bold tracking-widest mb-1">Candidatos</p>
                     <p className="text-2xl font-black text-white">{metricas.totalCandidatos}</p>
                   </div>
                   <div className="bg-[#111111] p-4 rounded-2xl border border-gray-800 relative overflow-hidden">
-                    <p className="text-[9px] text-gray-500 uppercase font-bold tracking-widest mb-1">Asignaciones</p>
+                    <p className="text-[9px] text-gray-500 uppercase font-bold tracking-widest mb-1">Carga Global</p>
                     <p className="text-2xl font-black text-white">{metricas.totalEntrevistas}</p>
+                  </div>
+                  <div className="bg-blue-500/10 p-4 rounded-2xl border border-blue-500/20 relative overflow-hidden">
+                    <p className="text-[9px] text-blue-500/60 uppercase font-bold tracking-widest mb-1">Completadas</p>
+                    <p className="text-2xl font-black text-blue-500">{metricas.totalEntrevistasCompletadas}</p>
                   </div>
                   <div className="bg-[#111111] p-4 rounded-2xl border border-gray-800 relative overflow-hidden">
                     <p className="text-[9px] text-gray-500 uppercase font-bold tracking-widest mb-1">Entrevistadores</p>

@@ -219,7 +219,26 @@ export default function DashboardAdministrador() {
     isOpen: boolean; title: string; message: string; icon: string; confirmText: string; isError?: boolean; onConfirm: () => void;
   }>({ isOpen: false, title: "", message: "", icon: "", confirmText: "Confirmar", isError: false, onConfirm: () => {} });
   
+  // ESTADOS MÉTRICAS
+  const [metricas, setMetricas] = useState<any>(null);
+  const [isLoadingMetricas, setIsLoadingMetricas] = useState(false);
+
+  const fetchMetricas = async () => {
+    setIsLoadingMetricas(true);
+    try {
+      const res = await fetch("/api/admin/metrics");
+      const data = await res.json();
+      if (data.success) {
+        setMetricas(data.metrics);
+      }
+    } catch(e) {} finally { setIsLoadingMetricas(false); }
+  };
+
   const { data: session, status } = useSession();
+
+  useEffect(() => {
+    if (activeTab === "metricas" && status === "authenticated") fetchMetricas();
+  }, [activeTab, status]);
 
   const HORAS = useMemo(() => {
     const h = [];
@@ -476,13 +495,103 @@ export default function DashboardAdministrador() {
           </main>
         );
 
-      case "recursos":
+      case "metricas":
         return (
-          <main className="pt-24 pb-28 px-5 max-w-lg mx-auto min-h-screen animate-in fade-in duration-300">
-            <h2 className="text-xl font-bold mb-4 text-white">Recursos Administrativos</h2>
-            <div className="bg-[#111111] border border-gray-800 rounded-2xl p-6 text-center text-gray-500 text-sm shadow-xl">
-              <p>Manuales de operación, lineamientos y herramientas de gestión interna.</p>
-            </div>
+          <main className="pt-24 pb-28 px-4 max-w-2xl mx-auto min-h-screen animate-in fade-in duration-300">
+            <h2 className="text-xl font-bold mb-6 text-white flex items-center gap-2">
+              <svg className="w-6 h-6 text-fuchsia-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
+              Métricas del Proceso
+            </h2>
+            {isLoadingMetricas ? (
+              <div className="flex flex-col items-center justify-center py-20 opacity-50">
+                <div className="w-8 h-8 border-2 border-fuchsia-500 border-t-transparent rounded-full animate-spin mb-3"></div>
+                <p className="text-xs text-gray-400 font-bold uppercase tracking-widest">Consolidando Datos...</p>
+              </div>
+            ) : metricas ? (
+              <div className="flex flex-col gap-6">
+                {/* Global Stats */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="bg-[#111111] p-5 rounded-2xl border border-gray-800 relative overflow-hidden">
+                    <div className="absolute -right-4 -bottom-4 opacity-5 text-6xl">👥</div>
+                    <p className="text-[10px] text-gray-500 uppercase font-bold tracking-widest mb-1">Candidatos</p>
+                    <p className="text-3xl font-black text-white">{metricas.totalCandidatos}</p>
+                  </div>
+                  <div className="bg-[#111111] p-5 rounded-2xl border border-gray-800 relative overflow-hidden">
+                    <div className="absolute -right-4 -bottom-4 opacity-5 text-6xl">🗓️</div>
+                    <p className="text-[10px] text-gray-500 uppercase font-bold tracking-widest mb-1">Entrevistas</p>
+                    <p className="text-3xl font-black text-white">{metricas.totalEntrevistas}</p>
+                  </div>
+                </div>
+
+                {/* Núcleos */}
+                <div className="bg-[#111111] p-5 rounded-2xl border border-gray-800">
+                  <h3 className="text-sm font-bold text-gray-300 uppercase tracking-wider mb-4 border-b border-gray-800 pb-2">Distribución por Núcleos</h3>
+                  <div className="flex flex-col gap-4">
+                    {Object.entries(metricas.candidatosNucleo || {}).map(([nucleo, count]: any) => {
+                      const perc = Math.round((count / metricas.totalCandidatos) * 100) || 0;
+                      return (
+                        <div key={nucleo}>
+                          <div className="flex justify-between text-xs mb-1">
+                            <span className="text-gray-300 font-medium">{nucleo}</span>
+                            <span className="text-gray-500 font-bold">{count} <span className="opacity-50">({perc}%)</span></span>
+                          </div>
+                          <div className="w-full h-1.5 bg-gray-800 rounded-full overflow-hidden">
+                            <div className="h-full bg-gradient-to-r from-fuchsia-600 to-fuchsia-400 rounded-full" style={{ width: `${perc}%` }}></div>
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+
+                 {/* Estatus */}
+                <div className="bg-[#111111] p-5 rounded-2xl border border-gray-800">
+                  <h3 className="text-sm font-bold text-gray-300 uppercase tracking-wider mb-4 border-b border-gray-800 pb-2">Estatus del Reclutamiento</h3>
+                  <div className="grid grid-cols-2 gap-3">
+                     {Object.entries(metricas.candidatosEstatus || {}).map(([estatus, count]: any) => (
+                       <div key={estatus} className="bg-[#0a0a0a] border border-gray-800/50 p-3 rounded-xl flex justify-between items-center">
+                         <span className="text-[10px] text-gray-400 font-medium leading-tight">{estatus}</span>
+                         <span className="text-sm text-fuchsia-500 font-bold">{count}</span>
+                       </div>
+                     ))}
+                  </div>
+                </div>
+
+                {/* Tracking Cambios */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="bg-fuchsia-500/10 p-4 rounded-2xl border border-fuchsia-500/20 text-center">
+                    <p className="text-2xl font-black text-fuchsia-500 mb-1">{metricas.totalCambiosSolicitados}</p>
+                    <p className="text-[9px] text-gray-400 uppercase font-bold tracking-widest leading-tight">Cambios<br/>Solicitados</p>
+                  </div>
+                  <div className="bg-green-500/10 p-4 rounded-2xl border border-green-500/20 text-center">
+                    <p className="text-2xl font-black text-green-500 mb-1">{metricas.totalCambiosAceptados}</p>
+                    <p className="text-[9px] text-gray-400 uppercase font-bold tracking-widest leading-tight">Cambios<br/>Cubiertos</p>
+                  </div>
+                </div>
+
+                {/* Ranking Entrevistadores */}
+                <div className="bg-[#111111] p-5 rounded-2xl border border-gray-800">
+                  <h3 className="text-sm font-bold text-gray-300 uppercase tracking-wider mb-4 border-b border-gray-800 pb-2">Top Entrevistadores</h3>
+                  <div className="flex flex-col gap-2">
+                    {(metricas.rankingCarga || []).map((ent: any, idx: number) => (
+                      <div key={idx} className="flex justify-between items-center p-3 hover:bg-[#1a1a1a] rounded-xl transition-colors">
+                        <div className="flex items-center gap-3">
+                          <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-black ${idx === 0 ? 'bg-fuchsia-500 text-black' : idx === 1 ? 'bg-gray-300 text-black' : idx === 2 ? 'bg-orange-400 text-black' : 'bg-gray-800 text-gray-400'}`}>{idx + 1}</span>
+                          <span className="text-sm text-gray-200 font-medium">{ent.nombre}</span>
+                        </div>
+                        <div className="text-right flex items-center gap-3">
+                          {ent.cambiosAceptados > 0 && <span className="text-[10px] text-green-400 font-bold bg-green-400/10 px-2 py-0.5 rounded-md">+{ent.cambiosAceptados} suplencias</span>}
+                          <span className="text-sm text-white font-black">{ent.entrevistasAsignadas}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+              </div>
+            ) : (
+              <p className="text-gray-500 text-sm text-center mt-10">Error cargando métricas.</p>
+            )}
           </main>
         );
 
@@ -928,9 +1037,9 @@ export default function DashboardAdministrador() {
                 <svg className="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" /></svg>
                 <span className="text-[8px] sm:text-[9px] font-medium tracking-wide">Cambios</span>
               </button>
-              <button onClick={() => setActiveTab("recursos")} className={`flex flex-col items-center justify-center transition-colors ${activeTab === "recursos" ? "text-fuchsia-400" : "text-gray-400 hover:text-gray-200"}`}>
-                <svg className="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
-                <span className="text-[8px] sm:text-[9px] font-medium tracking-wide">Recursos</span>
+              <button onClick={() => setActiveTab("metricas")} className={`flex flex-col items-center justify-center transition-colors ${activeTab === "metricas" ? "text-fuchsia-400" : "text-gray-400 hover:text-gray-200"}`}>
+                <svg className="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
+                <span className="text-[8px] sm:text-[9px] font-medium tracking-wide">Métricas</span>
               </button>
             </div>
 

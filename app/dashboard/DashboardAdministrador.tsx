@@ -71,7 +71,7 @@ const GUIONES: Record<string, Record<string, string[]>> = {
       "4. ¿Cuál es el valor que más te distingue?",
       "5. Supongamos que tienes que entregar dos trabajos a la misma hora, un trabajo personal importante y una parte de un trabajo en equipo, por procrastinar ahora solo tienes tiempo para hacer uno. ¿Qué es lo que harías?",
       "6. Cuéntanos una experiencia donde hayas asumido el rol de líder. ¿Cómo resultó?",
-      "7. Tienes 3 proyectos finales y el proyecto de SIAFI, todos se entregan en 2 meses. ¿Cómo te organizarías?",
+      "7. Tienes 3 proyectos finales y el proyecto de SIAFI, todos se entregan en 2 meses. ¿Cómo te organizas?",
       "8. ¿Consideras el trabajo remoto como una opción viable para el trabajo dentro de la sociedad?",
       "9. ¿Qué te distingue de otros candidatos?"
     ],
@@ -626,9 +626,10 @@ export default function DashboardAdministrador() {
         );
 
       case "intercambios":
-        const intercambiosVisibles = safeIntercambios.filter(ent => 
-          ent && ent.entrevistadorSaliente !== session?.user?.name && ent.entrevistador1 !== session?.user?.name && ent.entrevistador2 !== session?.user?.name
-        );
+        const intercambiosVisibles = safeIntercambios.filter(ent => {
+          if (!ent) return false;
+          return ent.entrevistadorSaliente !== session?.user?.name && ent.entrevistador1 !== session?.user?.name && ent.entrevistador2 !== session?.user?.name;
+        });
 
         return (
           <main className="pt-24 pb-32 px-5 max-w-lg mx-auto min-h-screen animate-in fade-in duration-500">
@@ -650,29 +651,32 @@ export default function DashboardAdministrador() {
               </div>
             ) : (
               <div className="flex flex-col gap-4">
-                {intercambiosVisibles.map((entrevista, idx) => (
-                  <div key={idx} className="bg-[#111111] border border-gray-800 rounded-2xl overflow-hidden shadow-lg hover:border-fuchsia-500/50 transition-all group p-5">
-                    <div className="flex justify-between items-start mb-4 border-b border-gray-800 pb-4">
-                      <div>
-                        <p className="text-[10px] text-fuchsia-400 uppercase tracking-widest font-bold mb-1">Entrevistador que solicita</p>
-                        <h3 className="text-sm font-bold text-gray-300 leading-tight">{entrevista.entrevistadorSaliente}</h3>
+                {intercambiosVisibles.map((entrevista, idx) => {
+                  if (!entrevista) return null;
+                  return (
+                    <div key={idx} className="bg-[#111111] border border-gray-800 rounded-2xl overflow-hidden shadow-lg hover:border-fuchsia-500/50 transition-all group p-5">
+                      <div className="flex justify-between items-start mb-4 border-b border-gray-800 pb-4">
+                        <div>
+                          <p className="text-[10px] text-fuchsia-400 uppercase tracking-widest font-bold mb-1">Entrevistador que solicita</p>
+                          <h3 className="text-sm font-bold text-gray-300 leading-tight">{entrevista.entrevistadorSaliente}</h3>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-[10px] text-gray-500 uppercase tracking-widest font-bold mb-1">{entrevista.dia || "N/A"} {entrevista.fecha || ""} Abr</p>
+                          <p className="text-sm font-black text-white">{entrevista.hora}</p>
+                        </div>
                       </div>
-                      <div className="text-right">
-                        <p className="text-[10px] text-gray-500 uppercase tracking-widest font-bold mb-1">{entrevista.dia || "N/A"} {entrevista.fecha || ""} Abr</p>
-                        <p className="text-sm font-black text-white">{entrevista.hora}</p>
+                      
+                      <div className="mb-5">
+                        <p className="text-[10px] text-gray-500 uppercase tracking-widest font-bold mb-1">Candidato a evaluar</p>
+                        <h3 className="text-lg font-black text-white">{entrevista.postulante}</h3>
                       </div>
-                    </div>
-                    
-                    <div className="mb-5">
-                      <p className="text-[10px] text-gray-500 uppercase tracking-widest font-bold mb-1">Candidato a evaluar</p>
-                      <h3 className="text-lg font-black text-white">{entrevista.postulante}</h3>
-                    </div>
 
-                    <button onClick={() => aceptarIntercambio(entrevista.idBloque, entrevista.entrevistadorSaliente, entrevista.postulante)} className="w-full py-3 bg-fuchsia-500/10 text-fuchsia-400 hover:bg-fuchsia-500 hover:text-white border border-fuchsia-500/30 font-bold text-xs uppercase tracking-wider rounded-xl transition-all shadow-lg active:scale-95">
-                      ✅ Aceptar y Cubrir Entrevista
-                    </button>
-                  </div>
-                ))}
+                      <button onClick={() => aceptarIntercambio(entrevista.idBloque, entrevista.entrevistadorSaliente, entrevista.postulante)} className="w-full py-3 bg-fuchsia-500/10 text-fuchsia-400 hover:bg-fuchsia-500 hover:text-white border border-fuchsia-500/30 font-bold text-xs uppercase tracking-wider rounded-xl transition-all shadow-lg active:scale-95">
+                        ✅ Aceptar y Cubrir Entrevista
+                      </button>
+                    </div>
+                  );
+                })}
               </div>
             )}
           </main>
@@ -705,37 +709,40 @@ export default function DashboardAdministrador() {
                   <p className="text-[10px] text-gray-500 mt-2 uppercase tracking-widest">El sistema te notificará cuando tengas una.</p>
                 </div>
               ) : (
-                safeMisEntrevistas.map((entrevista, idx) => (
-                  <div key={idx} className="bg-[#111111] border border-gray-800 rounded-2xl overflow-hidden shadow-lg hover:border-fuchsia-500/50 transition-all group p-5">
-                    <div className="flex justify-between items-start mb-4">
-                      <div>
-                        <p className="text-[10px] text-fuchsia-400 uppercase tracking-widest font-bold mb-1">Candidato</p>
-                        <h3 className="text-lg font-bold text-white leading-tight">{entrevista.postulante}</h3>
+                safeMisEntrevistas.map((entrevista, idx) => {
+                  if (!entrevista) return null;
+                  return (
+                    <div key={idx} className="bg-[#111111] border border-gray-800 rounded-2xl overflow-hidden shadow-lg hover:border-fuchsia-500/50 transition-all group p-5">
+                      <div className="flex justify-between items-start mb-4">
+                        <div>
+                          <p className="text-[10px] text-fuchsia-400 uppercase tracking-widest font-bold mb-1">Candidato</p>
+                          <h3 className="text-lg font-bold text-white leading-tight">{entrevista.postulante}</h3>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-[10px] text-gray-500 uppercase tracking-widest font-bold mb-1">{entrevista.dia || "N/A"} {entrevista.fecha || ""} Abr</p>
+                          <p className="text-sm font-black text-white">{entrevista.hora}</p>
+                        </div>
                       </div>
-                      <div className="text-right">
-                        <p className="text-[10px] text-gray-500 uppercase tracking-widest font-bold mb-1">{entrevista.dia || "N/A"} {entrevista.fecha || ""} Abr</p>
-                        <p className="text-sm font-black text-white">{entrevista.hora}</p>
-                      </div>
-                    </div>
-                    
-                    <div className="flex gap-2 mt-4 pt-4 border-t border-gray-800">
-                      {entrevista.meetLink && (
-                        <a href={entrevista.meetLink} target="_blank" rel="noreferrer" className="flex-1 py-3 bg-gray-800 hover:bg-gray-700 text-center text-white text-xs font-bold uppercase tracking-wider rounded-xl transition-colors flex items-center justify-center gap-2">
-                          <span>📹</span> Meet
-                        </a>
-                      )}
                       
-                      <Link href={`/dashboard/entrevistador/postulante/${entrevista.idBloque || "null"}?email=${encodeURIComponent(entrevista.correoPostulante || "")}&dia=${entrevista.dia || ""}&fecha=${entrevista.fecha || ""}&hora=${entrevista.hora || ""}`} className="flex-[2] py-3 bg-gradient-to-r from-fuchsia-600 to-fuchsia-400 hover:from-fuchsia-500 hover:to-fuchsia-600 text-center text-white text-xs font-black uppercase tracking-wider rounded-xl transition-all shadow-lg shadow-fuchsia-500/20 flex items-center justify-center gap-2 active:scale-95">
-                        Ver Perfil <span>→</span>
-                      </Link>
-                    </div>
+                      <div className="flex gap-2 mt-4 pt-4 border-t border-gray-800">
+                        {entrevista.meetLink && (
+                          <a href={entrevista.meetLink} target="_blank" rel="noreferrer" className="flex-1 py-3 bg-gray-800 hover:bg-gray-700 text-center text-white text-xs font-bold uppercase tracking-wider rounded-xl transition-colors flex items-center justify-center gap-2">
+                            <span>📹</span> Meet
+                          </a>
+                        )}
+                        
+                        <Link href={`/dashboard/entrevistador/postulante/${entrevista.idBloque || "null"}?email=${encodeURIComponent(entrevista.correoPostulante || "")}&dia=${entrevista.dia || ""}&fecha=${entrevista.fecha || ""}&hora=${entrevista.hora || ""}`} className="flex-[2] py-3 bg-gradient-to-r from-fuchsia-600 to-fuchsia-400 hover:from-fuchsia-500 hover:to-fuchsia-600 text-center text-white text-xs font-black uppercase tracking-wider rounded-xl transition-all shadow-lg shadow-fuchsia-500/20 flex items-center justify-center gap-2 active:scale-95">
+                          Ver Perfil <span>→</span>
+                        </Link>
+                      </div>
 
-                    <button onClick={() => entrevista.solicitaIntercambio ? cancelarIntercambio(entrevista.idBloque) : solicitarIntercambio(entrevista.idBloque)} className={`w-full mt-3 py-2.5 rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-2 border ${entrevista.solicitaIntercambio ? "bg-orange-500/10 text-orange-500 border-orange-500/30 hover:bg-orange-500 hover:text-white active:scale-95" : "bg-red-600/5 text-red-500 border-red-600/20 hover:bg-red-600 hover:text-white hover:border-red-600 active:scale-95"}`}>
-                      <span>{entrevista.solicitaIntercambio ? "↩️" : "🔄"}</span> 
-                      {entrevista.solicitaIntercambio ? "Cancelar Solicitud de Cambio" : "Intercambiar Entrevista"}
-                    </button>
-                  </div>
-                ))
+                      <button onClick={() => entrevista.solicitaIntercambio ? cancelarIntercambio(entrevista.idBloque) : solicitarIntercambio(entrevista.idBloque)} className={`w-full mt-3 py-2.5 rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-2 border ${entrevista.solicitaIntercambio ? "bg-orange-500/10 text-orange-500 border-orange-500/30 hover:bg-orange-500 hover:text-white active:scale-95" : "bg-red-600/5 text-red-500 border-red-600/20 hover:bg-red-600 hover:text-white hover:border-red-600 active:scale-95"}`}>
+                        <span>{entrevista.solicitaIntercambio ? "↩️" : "🔄"}</span> 
+                        {entrevista.solicitaIntercambio ? "Cancelar Solicitud de Cambio" : "Intercambiar Entrevista"}
+                      </button>
+                    </div>
+                  );
+                })
               )}
             </div>
           </main>
@@ -744,7 +751,7 @@ export default function DashboardAdministrador() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] text-white font-sans overflow-hidden">
+    <div className="min-h-screen bg-[#0a0a0a] text-white font-sans overflow-x-hidden pb-20">
       
       <header className="fixed top-0 w-full h-16 bg-[#111111]/90 backdrop-blur-md border-b border-gray-800 z-40 flex items-center justify-between px-5">
         <button onClick={() => setIsNotifMenuOpen(true)} className="relative p-2 text-gray-400 hover:text-white transition-colors">
@@ -852,27 +859,30 @@ export default function DashboardAdministrador() {
               <p className="text-sm font-medium text-gray-400">Sin reportes del sistema.</p>
             </div>
           ) : (
-            notificaciones.map(notif => (
-              <div key={notif.id} onClick={() => marcarComoLeida(notif.id, notif.leida)} className={`p-5 border-b border-gray-800/50 cursor-pointer transition-all relative group flex gap-4 items-start ${!notif.leida ? 'bg-fuchsia-500/10' : 'hover:bg-[#1f2937]/30'}`}>
-                {!notif.leida && <div className="absolute left-0 top-0 w-1 h-full bg-fuchsia-500"></div>}
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${!notif.leida ? 'bg-fuchsia-500/20 text-fuchsia-500' : 'bg-gray-800 text-gray-400'}`}>
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+            notificaciones.map(notif => {
+              if (!notif) return null;
+              return (
+                <div key={notif.id} onClick={() => marcarComoLeida(notif.id, notif.leida)} className={`p-5 border-b border-gray-800/50 cursor-pointer transition-all relative group flex gap-4 items-start ${!notif.leida ? 'bg-fuchsia-500/10' : 'hover:bg-[#1f2937]/30'}`}>
+                  {!notif.leida && <div className="absolute left-0 top-0 w-1 h-full bg-fuchsia-500"></div>}
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${!notif.leida ? 'bg-fuchsia-500/20 text-fuchsia-500' : 'bg-gray-800 text-gray-400'}`}>
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                  </div>
+                  <div className="flex-1 pr-6">
+                    <div className="flex justify-between items-start mb-1 gap-2"><h3 className={`text-sm ${!notif.leida ? 'font-bold text-white' : 'font-medium text-gray-300'}`}>{notif.asunto}</h3></div>
+                    <p className={`text-xs leading-relaxed ${!notif.leida ? 'text-gray-300' : 'text-gray-500'}`}>{notif.mensaje}</p>
+                    <p className="text-[10px] text-gray-600 mt-2 uppercase font-bold tracking-wider">{new Date(notif.fecha).toLocaleDateString('es-MX', { day: 'numeric', month: 'short', hour: '2-digit', minute:'2-digit' })}</p>
+                  </div>
+                  <button onClick={(e) => { e.stopPropagation(); borrarNotificacion(notif.id); }} className="absolute right-3 top-1/2 -translate-y-1/2 p-2 text-gray-500 hover:text-red-400 hover:bg-red-400/10 rounded-xl transition-all opacity-0 group-hover:opacity-100" title="Eliminar notificación">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                  </button>
                 </div>
-                <div className="flex-1 pr-6">
-                  <div className="flex justify-between items-start mb-1 gap-2"><h3 className={`text-sm ${!notif.leida ? 'font-bold text-white' : 'font-medium text-gray-300'}`}>{notif.asunto}</h3></div>
-                  <p className={`text-xs leading-relaxed ${!notif.leida ? 'text-gray-300' : 'text-gray-500'}`}>{notif.mensaje}</p>
-                  <p className="text-[10px] text-gray-600 mt-2 uppercase font-bold tracking-wider">{new Date(notif.fecha).toLocaleDateString('es-MX', { day: 'numeric', month: 'short', hour: '2-digit', minute:'2-digit' })}</p>
-                </div>
-                <button onClick={(e) => { e.stopPropagation(); borrarNotificacion(notif.id); }} className="absolute right-3 top-1/2 -translate-y-1/2 p-2 text-gray-500 hover:text-red-400 hover:bg-red-400/10 rounded-xl transition-all opacity-0 group-hover:opacity-100" title="Eliminar notificación">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                </button>
-              </div>
-            ))
+              );
+            })
           )}
         </div>
       </div>
 
-      {/* ✅ NAVEGACIÓN SIN OVERFLOW QUE CORTA EL BOTÓN */}
+      {/* ✅ BARRA DE NAVEGACIÓN CORREGIDA (NO CORTA EL BOTÓN CENTRAL) */}
       <div className="fixed bottom-0 w-full z-40 pb-safe">
         
         {/* BOTÓN CENTRAL FLOTANTE */}

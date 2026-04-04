@@ -244,6 +244,10 @@ export default function DashboardAdminMaestro() {
   const [metricas, setMetricas] = useState<any>(null);
   const [isLoadingMetricas, setIsLoadingMetricas] = useState(false);
 
+  // ESTADOS AGENDA
+  const [agenda, setAgenda] = useState<any[]>([]);
+  const [isLoadingAgenda, setIsLoadingAgenda] = useState(false);
+
   const fetchMetricas = async () => {
     setIsLoadingMetricas(true);
     try {
@@ -255,10 +259,20 @@ export default function DashboardAdminMaestro() {
     } catch(e) {} finally { setIsLoadingMetricas(false); }
   };
 
+  const fetchAgenda = async () => {
+    setIsLoadingAgenda(true);
+    try {
+      const res = await fetch("/api/admin/agenda");
+      const data = await res.json();
+      if (data.success) setAgenda(data.agenda || []);
+    } catch(e) {} finally { setIsLoadingAgenda(false); }
+  };
+
   const { data: session, status } = useSession();
 
   useEffect(() => {
     if (activeTab === "metricas" && status === "authenticated") fetchMetricas();
+    if (activeTab === "agenda" && status === "authenticated") fetchAgenda();
   }, [activeTab, status]);
 
   const HORAS = useMemo(() => {
@@ -965,6 +979,109 @@ export default function DashboardAdminMaestro() {
           </main>
         );
 
+      case "agenda":
+        const pendientes = agenda.filter(a => a.estatus === "Reservado");
+        const completadas = agenda.filter(a => a.estatus === "Completada");
+
+        return (
+          <main className="pt-24 pb-32 px-5 max-w-2xl mx-auto min-h-screen animate-in fade-in duration-300">
+            <button onClick={() => setActiveTab("panel")} className="flex items-center gap-2 text-gray-400 hover:text-white text-sm font-bold mb-6">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" /></svg> Volver al Panel
+            </button>
+            <h2 className="text-2xl font-black mb-2 text-white flex items-center gap-2">
+              <span className="text-yellow-500">📖</span> Agenda Global
+            </h2>
+            <p className="text-xs text-gray-400 mb-8 font-medium">Acceso total al expediente de las citas y ligas de reunión.</p>
+            
+            {isLoadingAgenda ? (
+              <div className="flex flex-col items-center justify-center py-20 opacity-50">
+                <div className="w-8 h-8 border-2 border-yellow-500 border-t-transparent rounded-full animate-spin mb-3"></div>
+                <p className="text-xs text-gray-400 font-bold uppercase tracking-widest">Sincronizando expedientes...</p>
+              </div>
+            ) : (
+              <div className="space-y-8">
+                
+                {pendientes.length > 0 && (
+                  <div>
+                    <h3 className="text-sm font-black text-orange-400 uppercase tracking-widest mb-4 flex items-center gap-2 border-b border-gray-800 pb-2">
+                      <span className="w-2 h-2 rounded-full bg-orange-400 animate-pulse"></span> Por ocurrir ({pendientes.length})
+                    </h3>
+                    <div className="grid gap-4">
+                      {pendientes.map((cita) => (
+                        <div key={cita.idBloque} className="bg-[#111111] border border-gray-800 hover:border-yellow-500/50 transition-all p-5 rounded-2xl group">
+                          <div className="flex justify-between items-start mb-2">
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-yellow-500 bg-yellow-500/10 px-2 py-1 rounded-md">{cita.dia} • {cita.fecha} ABR</span>
+                            <span className="text-lg font-black text-white">{cita.hora}</span>
+                          </div>
+                          <h4 className="font-bold text-gray-200 text-lg mb-1">{cita.postulante}</h4>
+                          <p className="text-[10px] text-gray-500 uppercase font-black tracking-widest mb-4">{cita.nucleos}</p>
+                          <div className="bg-[#0a0a0a] p-3 rounded-xl flex items-center gap-3 mb-4">
+                            <span className="text-xl">🎙️</span>
+                            <div className="flex flex-col">
+                              <span className="text-[9px] text-gray-500 font-bold uppercase">Entrevistadores Asignados</span>
+                              <span className="text-sm text-gray-300 font-bold">{cita.entrevistador1} & {cita.entrevistador2}</span>
+                            </div>
+                          </div>
+                          
+                          {/* BOTONES ADMINISTRATIVOS */}
+                          <div className="flex gap-2 border-t border-gray-800 pt-4">
+                            {cita.meetLink && (
+                              <a href={cita.meetLink} target="_blank" rel="noreferrer" className="flex-1 py-3 bg-gray-800 hover:bg-gray-700 text-center text-white text-[10px] font-black uppercase tracking-wider rounded-xl transition-colors flex items-center justify-center gap-2">
+                                <span>📹</span> Entrar
+                              </a>
+                            )}
+                            {cita.cvUrl ? (
+                              <a href={cita.cvUrl} target="_blank" rel="noreferrer" className="flex-[1.5] py-3 bg-[#1e293b] hover:bg-[#334155] text-center text-white text-[10px] font-black uppercase tracking-wider rounded-xl transition-colors flex items-center justify-center gap-2">
+                                <span>📄</span> Ver CV Original
+                              </a>
+                            ) : (
+                              <div className="flex-[1.5] py-3 bg-gray-900/50 text-center text-gray-600 text-[10px] font-black uppercase tracking-wider rounded-xl flex items-center justify-center gap-2 cursor-not-allowed">
+                                <span>🚫</span> Sin CV Adjunto
+                              </div>
+                            )}
+                            <Link href={`/dashboard/entrevistador/postulante/${cita.idBloque || "null"}?email=${encodeURIComponent(cita.correoPostulante || "")}&dia=${cita.dia || ""}&fecha=${cita.fecha || ""}&hora=${cita.hora || ""}`} className="w-12 py-3 bg-gradient-to-r from-yellow-600 to-yellow-400 hover:from-yellow-500 hover:to-yellow-600 rounded-xl text-[#0a0a0a] flex items-center justify-center shadow-lg active:scale-95 transition-all">
+                              <svg className="w-5 h-5 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M9 5l7 7-7 7" /></svg>
+                            </Link>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {completadas.length > 0 && (
+                  <div className="opacity-70">
+                    <h3 className="text-sm font-black text-green-500 uppercase tracking-widest mb-4 flex items-center gap-2 border-b border-gray-800 pb-2">
+                      <span className="w-2 h-2 rounded-full bg-green-500"></span> Concluidas ({completadas.length})
+                    </h3>
+                    <div className="grid gap-3">
+                      {completadas.map((cita) => (
+                        <div key={cita.idBloque} className="bg-[#111111] border border-gray-800 p-4 rounded-xl flex justify-between items-center group hover:border-gray-600 transition-colors">
+                          <div className="flex flex-col">
+                            <h4 className="font-bold text-gray-400 group-hover:text-white transition-colors">{cita.postulante}</h4>
+                            <p className="text-[10px] text-gray-600 uppercase tracking-widest mt-1">{cita.dia} {cita.fecha} ABR • {cita.entrevistador1} & {cita.entrevistador2}</p>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <span className="text-sm font-black text-gray-500">{cita.hora}</span>
+                            <Link href={`/dashboard/entrevistador/postulante/${cita.idBloque || "null"}?email=${encodeURIComponent(cita.correoPostulante || "")}&dia=${cita.dia || ""}&fecha=${cita.fecha || ""}&hora=${cita.hora || ""}`} className="p-2 bg-gray-800 rounded-lg hover:bg-gray-700 transition-colors text-white">
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                            </Link>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {agenda.length === 0 && (
+                  <p className="text-center text-gray-600 text-sm py-10">No hay entrevistas activas ni completadas.</p>
+                )}
+
+              </div>
+            )}
+          </main>
+        );
+
       case "panel":
       default:
         return (
@@ -1036,6 +1153,15 @@ export default function DashboardAdminMaestro() {
                   );
                 })
               )}
+            </div>
+            
+            {/* BOTÓN REVEAL PARA LA AGENDA */}
+            <div className="mt-2 pt-6 border-t border-gray-800/50">
+              <button onClick={() => setActiveTab("agenda")} className="w-full py-5 bg-[#111111] hover:bg-[#1a1a1a] border border-gray-800 hover:border-yellow-500/50 rounded-2xl flex flex-col items-center justify-center gap-2 transition-all group shadow-md active:scale-95">
+                <span className="text-2xl group-hover:scale-110 transition-transform">📖</span>
+                <span className="text-sm font-black text-gray-300 group-hover:text-white uppercase tracking-wider">Ver Agenda Completa</span>
+                <span className="text-[10px] text-gray-500 font-medium">Accesos a Google Meet y Expedientes</span>
+              </button>
             </div>
           </main>
         );

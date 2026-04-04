@@ -938,34 +938,31 @@ export default function DashboardEntrevistador() {
           </button>
         </div>
 
-        <nav className="w-full bg-[#111111]/95 backdrop-blur-md border-t border-gray-800 h-16">
-          <div className="flex justify-between items-center h-full px-2 sm:px-6 max-w-2xl mx-auto">
+        <nav className="w-full bg-[#111111]/95 backdrop-blur-md border-t border-gray-800 h-20">
+          <div className="flex justify-between items-center h-full px-4 sm:px-6 max-w-2xl mx-auto pb-4 pt-1 w-full">
             
-            <div className="flex justify-between w-[40%]">
-              <button onClick={() => setActiveTab("mi-horario")} className={`flex flex-col items-center justify-center transition-colors ${activeTab === "mi-horario" ? "text-[#c084fc]" : "text-gray-400 hover:text-gray-200"}`}>
-                <svg className="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                <span className="text-[8px] sm:text-[9px] font-medium tracking-wide">Horario</span>
+              <button onClick={() => setActiveTab("mi-horario")} className={`flex flex-col items-center justify-center transition-colors px-2 ${activeTab === "mi-horario" ? "text-fuchsia-400 drop-shadow-[0_0_8px_rgba(192,132,252,0.5)]" : "text-gray-400 hover:text-gray-200"}`}>
+                <svg className="w-7 h-7 mb-1 stroke-[1.8]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                <span className="text-[10px] font-bold tracking-wide">Horario</span>
               </button>
               
-              <button onClick={() => { setActiveTab("guias"); setGuiaActiva(null); }} className={`flex flex-col items-center justify-center transition-colors ${activeTab === "guias" ? "text-[#c084fc]" : "text-gray-400 hover:text-gray-200"}`}>
-                <svg className="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
-                <span className="text-[8px] sm:text-[9px] font-medium tracking-wide">Guías</span>
-              </button>
-            </div>
-
-            <div className="flex justify-between w-[40%]">
-              <button onClick={() => setActiveTab("cursos")} className={`flex flex-col items-center justify-center transition-colors ${activeTab === "cursos" ? "text-[#c084fc]" : "text-gray-400 hover:text-gray-200"}`}>
-                <svg className="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
-                <span className="text-[8px] sm:text-[9px] font-medium tracking-wide">Cursos</span>
+              <button onClick={() => { setActiveTab("guias"); setGuiaActiva(null); }} className={`flex flex-col items-center justify-center transition-colors px-2 ${activeTab === "guias" ? "text-fuchsia-400 drop-shadow-[0_0_8px_rgba(192,132,252,0.5)]" : "text-gray-400 hover:text-gray-200"}`}>
+                <svg className="w-7 h-7 mb-1 stroke-[1.8]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                <span className="text-[10px] font-bold tracking-wide">Guías</span>
               </button>
 
-              <button onClick={() => setActiveTab("intercambios")} className={`flex flex-col items-center justify-center transition-colors ${activeTab === "intercambios" ? "text-[#c084fc]" : "text-gray-400 hover:text-gray-200"}`}>
-                <svg className="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
-                </svg>
-                <span className="text-[8px] sm:text-[9px] font-medium tracking-wide">Cambios</span>
+              {/* Spacer para el botón central flotante */}
+              <div className="w-16 shrink-0"></div>
+
+              <button onClick={() => setActiveTab("cursos")} className={`flex flex-col items-center justify-center transition-colors px-2 ${activeTab === "cursos" ? "text-fuchsia-400 drop-shadow-[0_0_8px_rgba(192,132,252,0.5)]" : "text-gray-400 hover:text-gray-200"}`}>
+                <svg className="w-7 h-7 mb-1 stroke-[1.8]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
+                <span className="text-[10px] font-bold tracking-wide">Cursos</span>
               </button>
-            </div>
+
+              <button onClick={() => setActiveTab("intercambios")} className={`flex flex-col items-center justify-center transition-colors px-2 ${activeTab === "intercambios" ? "text-fuchsia-400 drop-shadow-[0_0_8px_rgba(192,132,252,0.5)]" : "text-gray-400 hover:text-gray-200"}`}>
+                <svg className="w-7 h-7 mb-1 stroke-[1.8]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" /></svg>
+                <span className="text-[10px] font-bold tracking-wide">Cambios</span>
+              </button>
 
           </div>
         </nav>

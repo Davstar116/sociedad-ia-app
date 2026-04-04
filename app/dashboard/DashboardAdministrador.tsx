@@ -223,6 +223,9 @@ export default function DashboardAdministrador() {
   const [metricas, setMetricas] = useState<any>(null);
   const [isLoadingMetricas, setIsLoadingMetricas] = useState(false);
 
+  const [agenda, setAgenda] = useState<any[]>([]);
+  const [isLoadingAgenda, setIsLoadingAgenda] = useState(false);
+
   const fetchMetricas = async () => {
     setIsLoadingMetricas(true);
     try {
@@ -234,10 +237,20 @@ export default function DashboardAdministrador() {
     } catch(e) {} finally { setIsLoadingMetricas(false); }
   };
 
+  const fetchAgenda = async () => {
+    setIsLoadingAgenda(true);
+    try {
+      const res = await fetch("/api/admin/agenda");
+      const data = await res.json();
+      if (data.success) setAgenda(data.agenda || []);
+    } catch(e) {} finally { setIsLoadingAgenda(false); }
+  };
+
   const { data: session, status } = useSession();
 
   useEffect(() => {
     if (activeTab === "metricas" && status === "authenticated") fetchMetricas();
+    if (activeTab === "agenda" && status === "authenticated") fetchAgenda();
   }, [activeTab, status]);
 
   const HORAS = useMemo(() => {
@@ -601,6 +614,82 @@ export default function DashboardAdministrador() {
               </div>
             ) : (
               <p className="text-gray-500 text-sm text-center mt-10">Error cargando métricas.</p>
+            )}
+          </main>
+        );
+
+      case "agenda":
+        const pendientes = agenda.filter(a => a.estatus === "Reservado");
+        const completadas = agenda.filter(a => a.estatus === "Completada");
+
+        return (
+          <main className="pt-24 pb-28 px-4 max-w-2xl mx-auto min-h-screen animate-in fade-in duration-300">
+            <h2 className="text-xl font-bold mb-2 text-white flex items-center gap-2">
+              <svg className="w-6 h-6 text-fuchsia-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+              Agenda Centralizada
+            </h2>
+            <p className="text-xs text-gray-400 mb-6 font-medium">Visualización de todas las entrevistas asignadas en tiempo real.</p>
+            
+            {isLoadingAgenda ? (
+              <div className="flex flex-col items-center justify-center py-20 opacity-50">
+                <div className="w-8 h-8 border-2 border-fuchsia-500 border-t-transparent rounded-full animate-spin mb-3"></div>
+                <p className="text-xs text-gray-400 font-bold uppercase tracking-widest">Sincronizando...</p>
+              </div>
+            ) : (
+              <div className="space-y-8">
+                
+                {pendientes.length > 0 && (
+                  <div>
+                    <h3 className="text-sm font-black text-orange-400 uppercase tracking-widest mb-4 flex items-center gap-2 border-b border-gray-800 pb-2">
+                      <span className="w-2 h-2 rounded-full bg-orange-400 animate-pulse"></span> Por ocurrir ({pendientes.length})
+                    </h3>
+                    <div className="grid gap-3">
+                      {pendientes.map((cita) => (
+                        <div key={cita.idBloque} className="bg-[#111111] border border-gray-800 p-4 rounded-2xl">
+                          <div className="flex justify-between items-start mb-2">
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-fuchsia-400">{cita.dia} • {cita.fecha} ABR</span>
+                            <span className="text-sm font-black text-white">{cita.hora}</span>
+                          </div>
+                          <h4 className="font-bold text-gray-200 mb-1">{cita.postulante}</h4>
+                          <p className="text-[10px] text-gray-500 uppercase font-black tracking-widest mb-3">{cita.nucleos}</p>
+                          <div className="bg-[#0a0a0a] p-2 rounded-xl flex items-center gap-2">
+                            <span className="text-lg">🎙️</span>
+                            <div className="flex flex-col">
+                              <span className="text-[9px] text-gray-500 font-bold uppercase">Entrevistadores</span>
+                              <span className="text-xs text-gray-300 font-medium">{cita.entrevistador1} & {cita.entrevistador2}</span>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {completadas.length > 0 && (
+                  <div className="opacity-70">
+                    <h3 className="text-sm font-black text-green-500 uppercase tracking-widest mb-4 flex items-center gap-2 border-b border-gray-800 pb-2">
+                      <span className="w-2 h-2 rounded-full bg-green-500"></span> Concluidas ({completadas.length})
+                    </h3>
+                    <div className="grid gap-3">
+                      {completadas.map((cita) => (
+                        <div key={cita.idBloque} className="bg-[#111111] border border-gray-800 p-4 rounded-xl">
+                          <div className="flex justify-between items-start mb-1">
+                            <h4 className="font-bold text-gray-400">{cita.postulante}</h4>
+                            <span className="text-xs font-black text-gray-500">{cita.hora}</span>
+                          </div>
+                          <p className="text-[10px] text-gray-600 uppercase tracking-widest mb-2">{cita.dia} {cita.fecha} ABR</p>
+                          <span className="text-[10px] font-medium text-gray-500">{cita.entrevistador1} & {cita.entrevistador2}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {agenda.length === 0 && (
+                  <p className="text-center text-gray-600 text-sm py-10">No hay entrevistas en la base de datos.</p>
+                )}
+
+              </div>
             )}
           </main>
         );
@@ -1020,38 +1109,31 @@ export default function DashboardAdministrador() {
         </div>
 
         {/* FONDO DE LA BARRA */}
-        <nav className="w-full bg-[#111111]/95 backdrop-blur-md border-t border-gray-800 h-16">
-          <div className="flex justify-between items-center h-full px-2 sm:px-6 max-w-2xl mx-auto">
+        <nav className="w-full bg-[#111111]/95 backdrop-blur-md border-t border-gray-800 h-20">
+          <div className="flex justify-between items-center h-full px-4 sm:px-6 max-w-2xl mx-auto pb-4 pt-1 w-full">
             
-            <div className="flex justify-between w-[40%]">
-              <button onClick={() => setActiveTab("postulantes")} className={`flex flex-col items-center justify-center transition-colors ${activeTab === "postulantes" ? "text-fuchsia-400" : "text-gray-400 hover:text-gray-200"}`}>
-                <svg className="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
-                <span className="text-[8px] sm:text-[9px] font-medium tracking-wide">Candidatos</span>
+              <button onClick={() => setActiveTab("mi-horario")} className={`flex flex-col items-center justify-center transition-colors px-2 ${activeTab === "mi-horario" ? "text-fuchsia-400 drop-shadow-[0_0_8px_rgba(192,132,252,0.5)]" : "text-gray-400 hover:text-gray-200"}`}>
+                <svg className="w-7 h-7 mb-1 stroke-[1.8]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                <span className="text-[10px] font-bold tracking-wide">Horario</span>
               </button>
-              <button onClick={() => setActiveTab("entrevistas")} className={`flex flex-col items-center justify-center transition-colors ${activeTab === "entrevistas" ? "text-fuchsia-400" : "text-gray-400 hover:text-gray-200"}`}>
-                <svg className="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-                <span className="text-[8px] sm:text-[9px] font-medium tracking-wide">Agenda</span>
+              
+              <button onClick={() => { setActiveTab("guias"); setGuiaActiva(null); }} className={`flex flex-col items-center justify-center transition-colors px-2 ${activeTab === "guias" ? "text-fuchsia-400 drop-shadow-[0_0_8px_rgba(192,132,252,0.5)]" : "text-gray-400 hover:text-gray-200"}`}>
+                <svg className="w-7 h-7 mb-1 stroke-[1.8]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                <span className="text-[10px] font-bold tracking-wide">Guías</span>
               </button>
-              <button onClick={() => setActiveTab("mi-horario")} className={`flex flex-col items-center justify-center transition-colors ${activeTab === "mi-horario" ? "text-fuchsia-400" : "text-gray-400 hover:text-gray-200"}`}>
-                <svg className="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                <span className="text-[8px] sm:text-[9px] font-medium tracking-wide">Horario</span>
-              </button>
-            </div>
 
-            <div className="flex justify-between w-[40%]">
-              <button onClick={() => { setActiveTab("guias"); setGuiaActiva(null); }} className={`flex flex-col items-center justify-center transition-colors ${activeTab === "guias" ? "text-fuchsia-400" : "text-gray-400 hover:text-gray-200"}`}>
-                <svg className="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
-                <span className="text-[8px] sm:text-[9px] font-medium tracking-wide">Guías</span>
+              {/* Spacer para el botón central flotante */}
+              <div className="w-16 shrink-0"></div>
+
+              <button onClick={() => setActiveTab("agenda")} className={`flex flex-col items-center justify-center transition-colors px-2 ${activeTab === "agenda" ? "text-fuchsia-400 drop-shadow-[0_0_8px_rgba(192,132,252,0.5)]" : "text-gray-400 hover:text-gray-200"}`}>
+                <svg className="w-7 h-7 mb-1 stroke-[1.8]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                <span className="text-[10px] font-bold tracking-wide">Agenda</span>
               </button>
-              <button onClick={() => setActiveTab("intercambios")} className={`flex flex-col items-center justify-center transition-colors ${activeTab === "intercambios" ? "text-fuchsia-400" : "text-gray-400 hover:text-gray-200"}`}>
-                <svg className="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" /></svg>
-                <span className="text-[8px] sm:text-[9px] font-medium tracking-wide">Cambios</span>
+
+              <button onClick={() => setActiveTab("metricas")} className={`flex flex-col items-center justify-center transition-colors px-2 ${activeTab === "metricas" ? "text-fuchsia-400 drop-shadow-[0_0_8px_rgba(192,132,252,0.5)]" : "text-gray-400 hover:text-gray-200"}`}>
+                <svg className="w-7 h-7 mb-1 stroke-[1.8]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
+                <span className="text-[10px] font-bold tracking-wide">Métricas</span>
               </button>
-              <button onClick={() => setActiveTab("metricas")} className={`flex flex-col items-center justify-center transition-colors ${activeTab === "metricas" ? "text-fuchsia-400" : "text-gray-400 hover:text-gray-200"}`}>
-                <svg className="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
-                <span className="text-[8px] sm:text-[9px] font-medium tracking-wide">Métricas</span>
-              </button>
-            </div>
 
           </div>
         </nav>

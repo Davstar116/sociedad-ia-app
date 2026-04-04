@@ -889,10 +889,12 @@ export default function DashboardAdminMaestro() {
                       </div>
                       
                       {/* ✅ PANEL ASIGNADO */}
-                      <div className="mb-4 bg-[#0a0a0a] p-3 rounded-xl border border-gray-800/50">
-                        <p className="text-[10px] text-gray-500 uppercase tracking-widest font-bold mb-1">Panel Asignado</p>
-                        <p className="text-xs text-gray-300">1. {entrevista.entrevistador1 || "Pendiente"}</p>
-                        <p className="text-xs text-gray-300">2. {entrevista.entrevistador2 || "Pendiente"}</p>
+                      <div className="mb-4 flex flex-col gap-0.5">
+                        <p className="text-[10px] text-gray-500 uppercase tracking-widest font-bold">Entrevistadores Asignados</p>
+                        <div className="flex items-center gap-4">
+                          <p className="text-sm text-gray-300 font-medium"><span className="text-gray-600">1.</span> {entrevista.entrevistador1 || "Pendiente"}</p>
+                          <p className="text-sm text-gray-300 font-medium"><span className="text-gray-600">2.</span> {entrevista.entrevistador2 || "Pendiente"}</p>
+                        </div>
                       </div>
 
                       <div className="flex gap-2 mt-4 pt-4 border-t border-gray-800">

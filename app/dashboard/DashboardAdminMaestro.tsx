@@ -765,16 +765,18 @@ export default function DashboardAdminMaestro() {
             ) : metricas ? (
               <div className="flex flex-col gap-6">
                 {/* Global Stats */}
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="bg-[#111111] p-5 rounded-2xl border border-gray-800 relative overflow-hidden">
-                    <div className="absolute -right-4 -bottom-4 opacity-5 text-6xl">👥</div>
-                    <p className="text-[10px] text-gray-500 uppercase font-bold tracking-widest mb-1">Candidatos</p>
-                    <p className="text-3xl font-black text-white">{metricas.totalCandidatos}</p>
+                <div className="grid grid-cols-3 gap-3">
+                  <div className="bg-[#111111] p-4 rounded-2xl border border-gray-800 relative overflow-hidden">
+                    <p className="text-[9px] text-gray-500 uppercase font-bold tracking-widest mb-1">Candidatos</p>
+                    <p className="text-2xl font-black text-white">{metricas.totalCandidatos}</p>
                   </div>
-                  <div className="bg-[#111111] p-5 rounded-2xl border border-gray-800 relative overflow-hidden">
-                    <div className="absolute -right-4 -bottom-4 opacity-5 text-6xl">🗓️</div>
-                    <p className="text-[10px] text-gray-500 uppercase font-bold tracking-widest mb-1">Entrevistas</p>
-                    <p className="text-3xl font-black text-white">{metricas.totalEntrevistas}</p>
+                  <div className="bg-[#111111] p-4 rounded-2xl border border-gray-800 relative overflow-hidden">
+                    <p className="text-[9px] text-gray-500 uppercase font-bold tracking-widest mb-1">Asignaciones</p>
+                    <p className="text-2xl font-black text-white">{metricas.totalEntrevistas}</p>
+                  </div>
+                  <div className="bg-[#111111] p-4 rounded-2xl border border-gray-800 relative overflow-hidden">
+                    <p className="text-[9px] text-gray-500 uppercase font-bold tracking-widest mb-1">Voluntarios</p>
+                    <p className="text-2xl font-black text-white">{metricas.totalEntrevistadores}</p>
                   </div>
                 </div>
 
@@ -828,7 +830,7 @@ export default function DashboardAdminMaestro() {
                 <div className="bg-[#111111] p-5 rounded-2xl border border-gray-800">
                   <h3 className="text-sm font-bold text-gray-300 uppercase tracking-wider mb-4 border-b border-gray-800 pb-2">Top Entrevistadores</h3>
                   <div className="flex flex-col gap-2">
-                    {(metricas.rankingCarga || []).map((ent: any, idx: number) => (
+                    {(metricas.rankingCarga || []).slice(0, 5).map((ent: any, idx: number) => (
                       <div key={idx} className="flex justify-between items-center p-3 hover:bg-[#1a1a1a] rounded-xl transition-colors">
                         <div className="flex items-center gap-3">
                           <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-black ${idx === 0 ? 'bg-yellow-500 text-black' : idx === 1 ? 'bg-gray-300 text-black' : idx === 2 ? 'bg-orange-400 text-black' : 'bg-gray-800 text-gray-400'}`}>{idx + 1}</span>
@@ -841,6 +843,10 @@ export default function DashboardAdminMaestro() {
                       </div>
                     ))}
                   </div>
+                  <Link href="/dashboard/metricas/entrevistadores" className="mt-6 flex justify-center items-center gap-2 w-full py-3 bg-yellow-500 text-black font-bold rounded-xl hover:bg-yellow-400 transition-colors">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 21h7a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v11m0 5l4.879-4.879m0 0a3 3 0 104.243-4.242 3 3 0 00-4.243 4.242z" /></svg>
+                    Auditar Entrevistadores
+                  </Link>
                 </div>
 
               </div>

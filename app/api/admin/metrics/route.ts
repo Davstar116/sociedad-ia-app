@@ -88,44 +88,77 @@ export async function GET() {
       }
     });
 
-    // 4. Procesamiento de Entrevistas & Entrevistadores
-    let totalEntrevistas = entrevistas.length;
-    let totalCambiosAceptados = 0;
-    let totalCambiosSolicitados = 0;
+    // 4. Procesamiento de Entrevistas & Entrevistadores (Filtrando Entrevistas REALES)
+    let totalEntrevistasReales = 0;
+    const entrevistadoresGlobales = new Set<string>();
 
     const cargaPorEntrevistador: Record<string, number> = {};
     const cambiosAceptadosPorEntrevistador: Record<string, number> = {};
+    const cambiosSolicitadosPorEntrevistador: Record<string, number> = {};
+    const historialEntrevistadores: Record<string, any[]> = {}; // key: entrevistador_name, value: array de entrevistas
 
     entrevistas.forEach((e) => {
       const props = e.properties;
+      
+      const estatusObj = props["Estatus"]?.select?.name || props["Estatus"]?.status?.name || "";
+      const isEntrevistaReal = estatusObj.toLowerCase() === "reservado" || estatusObj.toLowerCase() === "completado";
       
       const e1 = props["Entrevistador 1"]?.rich_text?.[0]?.plain_text?.trim();
       const e2 = props["Entrevistador 2"]?.rich_text?.[0]?.plain_text?.trim();
       const eSaliente = props["Entrevistador Saliente"]?.rich_text?.[0]?.plain_text?.trim();
       const solicitaIntercambio = props["Solicita Intercambio"]?.checkbox;
+      
+      const dia = props["Dia"]?.select?.name || "";
+      const fecha = props["Fecha"]?.number || 0;
+      const hora = props["Hora"]?.rich_text?.[0]?.plain_text || "";
+      const postulanteName = props["Postulante"]?.rich_text?.[0]?.plain_text || "Candidato Desconocido";
 
-      if (e1 && e1 !== "Pendiente") cargaPorEntrevistador[e1] = (cargaPorEntrevistador[e1] || 0) + 1;
-      if (e2 && e2 !== "Pendiente") cargaPorEntrevistador[e2] = (cargaPorEntrevistador[e2] || 0) + 1;
+      // Registro Global de Nombres (sin importar si el bloque es real o vacío, ellos existen)
+      if (e1 && e1 !== "Pendiente" && e1 !== "") entrevistadoresGlobales.add(e1);
+      if (e2 && e2 !== "Pendiente" && e2 !== "") entrevistadoresGlobales.add(e2);
 
-      if (solicitaIntercambio) {
-        totalCambiosSolicitados++;
-      }
+      // --- LOGIC SOLO PARA ENTREVISTAS REALES ---
+      if (isEntrevistaReal) {
+        totalEntrevistasReales++;
+        const logData = { estatus: estatusObj, dia, fecha, hora, postulanteName };
 
-      if (eSaliente && eSaliente !== "") {
-        totalCambiosAceptados++;
-        // Quien lo tiene ahora, aceptó el cambio de eSaliente.
-        // Asignamos 1 a todo el panel pero usualmente es uno, a modo simplificado le sumamos a ambos si no sabemos quién fue.
-        if (e1 && e1 !== "Pendiente" && e1 !== eSaliente) cambiosAceptadosPorEntrevistador[e1] = (cambiosAceptadosPorEntrevistador[e1] || 0) + 1;
-        if (e2 && e2 !== "Pendiente" && e2 !== eSaliente) cambiosAceptadosPorEntrevistador[e2] = (cambiosAceptadosPorEntrevistador[e2] || 0) + 1;
+        if (e1 && e1 !== "Pendiente") {
+          cargaPorEntrevistador[e1] = (cargaPorEntrevistador[e1] || 0) + 1;
+          if (!historialEntrevistadores[e1]) historialEntrevistadores[e1] = [];
+          historialEntrevistadores[e1].push(logData);
+        }
+        if (e2 && e2 !== "Pendiente") {
+          cargaPorEntrevistador[e2] = (cargaPorEntrevistador[e2] || 0) + 1;
+          if (!historialEntrevistadores[e2]) historialEntrevistadores[e2] = [];
+          historialEntrevistadores[e2].push(logData);
+        }
+
+        if (solicitaIntercambio) {
+            // Técnicamente solo sabemos de quién salió si lo anotan, si no asumimos general.
+            if (eSaliente && eSaliente !== "") {
+                cambiosSolicitadosPorEntrevistador[eSaliente] = (cambiosSolicitadosPorEntrevistador[eSaliente] || 0) + 1;
+            }
+        }
+
+        if (eSaliente && eSaliente !== "") {
+          // Quien lo tiene ahora, aceptó el cambio de eSaliente.
+          if (e1 && e1 !== "Pendiente" && e1 !== eSaliente) cambiosAceptadosPorEntrevistador[e1] = (cambiosAceptadosPorEntrevistador[e1] || 0) + 1;
+          if (e2 && e2 !== "Pendiente" && e2 !== eSaliente) cambiosAceptadosPorEntrevistador[e2] = (cambiosAceptadosPorEntrevistador[e2] || 0) + 1;
+        }
       }
     });
 
-    // Ranking de Entrevistadores
-    const rankingCarga = Object.keys(cargaPorEntrevistador)
+    const totalCambiosSolicitados = Object.values(cambiosSolicitadosPorEntrevistador).reduce((a, b) => a + b, 0);
+    const totalCambiosAceptados = Object.values(cambiosAceptadosPorEntrevistador).reduce((a, b) => a + b, 0);
+
+    // Formando el Ranking Completo de Entrevistadores (Iterando sobre el roster Global para incluir incluso a los de cero carga)
+    const rankingCarga = Array.from(entrevistadoresGlobales)
       .map((nombre) => ({
         nombre,
         entrevistasAsignadas: cargaPorEntrevistador[nombre] || 0,
-        cambiosAceptados: cambiosAceptadosPorEntrevistador[nombre] || 0
+        cambiosSolicitados: cambiosSolicitadosPorEntrevistador[nombre] || 0,
+        cambiosAceptados: cambiosAceptadosPorEntrevistador[nombre] || 0,
+        historial: historialEntrevistadores[nombre] || []
       }))
       .sort((a, b) => b.entrevistasAsignadas - a.entrevistasAsignadas);
 
@@ -135,9 +168,10 @@ export async function GET() {
         totalCandidatos,
         candidatosEstatus,
         candidatosNucleo,
-        totalEntrevistas,
+        totalEntrevistas: totalEntrevistasReales,
         totalCambiosSolicitados,
         totalCambiosAceptados,
+        totalEntrevistadores: entrevistadoresGlobales.size,
         rankingCarga
       }
     });

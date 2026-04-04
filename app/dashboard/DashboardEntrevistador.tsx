@@ -219,9 +219,10 @@ export default function DashboardEntrevistador() {
     icon: string;
     confirmText: string;
     isError?: boolean;
+    showCancel?: boolean;
     onConfirm: () => void;
   }>({
-    isOpen: false, title: "", message: "", icon: "", confirmText: "Confirmar", isError: false, onConfirm: () => {}
+    isOpen: false, title: "", message: "", icon: "", confirmText: "Confirmar", isError: false, showCancel: false, onConfirm: () => {}
   });
 
   const [guiaActiva, setGuiaActiva] = useState<string | null>(null);
@@ -930,6 +931,9 @@ export default function DashboardEntrevistador() {
           )}
         </div>
       </div>
+
+      {/* RENDERIZADO DEL COMPONENTE CENTRAL */}
+      {renderActiveContent()}
 
       <div className="fixed bottom-0 w-full z-40 pb-safe">
         <div className="absolute left-1/2 -translate-x-1/2 -top-6 z-50">

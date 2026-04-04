@@ -626,10 +626,9 @@ export default function DashboardAdministrador() {
         );
 
       case "intercambios":
-        const intercambiosVisibles = safeIntercambios.filter(ent => {
-          if (!ent) return false;
-          return ent.entrevistadorSaliente !== session?.user?.name && ent.entrevistador1 !== session?.user?.name && ent.entrevistador2 !== session?.user?.name;
-        });
+        const intercambiosVisibles = safeIntercambios.filter(ent => 
+          ent && ent.entrevistadorSaliente !== session?.user?.name && ent.entrevistador1 !== session?.user?.name && ent.entrevistador2 !== session?.user?.name
+        );
 
         return (
           <main className="pt-24 pb-32 px-5 max-w-lg mx-auto min-h-screen animate-in fade-in duration-500">
@@ -651,32 +650,29 @@ export default function DashboardAdministrador() {
               </div>
             ) : (
               <div className="flex flex-col gap-4">
-                {intercambiosVisibles.map((entrevista, idx) => {
-                  if (!entrevista) return null;
-                  return (
-                    <div key={idx} className="bg-[#111111] border border-gray-800 rounded-2xl overflow-hidden shadow-lg hover:border-fuchsia-500/50 transition-all group p-5">
-                      <div className="flex justify-between items-start mb-4 border-b border-gray-800 pb-4">
-                        <div>
-                          <p className="text-[10px] text-fuchsia-400 uppercase tracking-widest font-bold mb-1">Entrevistador que solicita</p>
-                          <h3 className="text-sm font-bold text-gray-300 leading-tight">{entrevista.entrevistadorSaliente}</h3>
-                        </div>
-                        <div className="text-right">
-                          <p className="text-[10px] text-gray-500 uppercase tracking-widest font-bold mb-1">{entrevista.dia || "N/A"} {entrevista.fecha || ""} Abr</p>
-                          <p className="text-sm font-black text-white">{entrevista.hora}</p>
-                        </div>
+                {intercambiosVisibles.map((entrevista, idx) => (
+                  <div key={idx} className="bg-[#111111] border border-gray-800 rounded-2xl overflow-hidden shadow-lg hover:border-fuchsia-500/50 transition-all group p-5">
+                    <div className="flex justify-between items-start mb-4 border-b border-gray-800 pb-4">
+                      <div>
+                        <p className="text-[10px] text-fuchsia-400 uppercase tracking-widest font-bold mb-1">Entrevistador que solicita</p>
+                        <h3 className="text-sm font-bold text-gray-300 leading-tight">{entrevista.entrevistadorSaliente}</h3>
                       </div>
-                      
-                      <div className="mb-5">
-                        <p className="text-[10px] text-gray-500 uppercase tracking-widest font-bold mb-1">Candidato a evaluar</p>
-                        <h3 className="text-lg font-black text-white">{entrevista.postulante}</h3>
+                      <div className="text-right">
+                        <p className="text-[10px] text-gray-500 uppercase tracking-widest font-bold mb-1">{entrevista.dia || "N/A"} {entrevista.fecha || ""} Abr</p>
+                        <p className="text-sm font-black text-white">{entrevista.hora}</p>
                       </div>
-
-                      <button onClick={() => aceptarIntercambio(entrevista.idBloque, entrevista.entrevistadorSaliente, entrevista.postulante)} className="w-full py-3 bg-fuchsia-500/10 text-fuchsia-400 hover:bg-fuchsia-500 hover:text-white border border-fuchsia-500/30 font-bold text-xs uppercase tracking-wider rounded-xl transition-all shadow-lg active:scale-95">
-                        ✅ Aceptar y Cubrir Entrevista
-                      </button>
                     </div>
-                  );
-                })}
+                    
+                    <div className="mb-5">
+                      <p className="text-[10px] text-gray-500 uppercase tracking-widest font-bold mb-1">Candidato a evaluar</p>
+                      <h3 className="text-lg font-black text-white">{entrevista.postulante}</h3>
+                    </div>
+
+                    <button onClick={() => aceptarIntercambio(entrevista.idBloque, entrevista.entrevistadorSaliente, entrevista.postulante)} className="w-full py-3 bg-fuchsia-500/10 text-fuchsia-400 hover:bg-fuchsia-500 hover:text-white border border-fuchsia-500/30 font-bold text-xs uppercase tracking-wider rounded-xl transition-all shadow-lg active:scale-95">
+                      ✅ Aceptar y Cubrir Entrevista
+                    </button>
+                  </div>
+                ))}
               </div>
             )}
           </main>
@@ -882,7 +878,10 @@ export default function DashboardAdministrador() {
         </div>
       </div>
 
-      {/* ✅ BARRA DE NAVEGACIÓN CORREGIDA (NO CORTA EL BOTÓN CENTRAL) */}
+      {/* ✅ AQUÍ ESTÁ EL RENDERIZADO DEL COMPONENTE CENTRAL */}
+      {renderActiveContent()}
+
+      {/* ✅ BARRA DE NAVEGACIÓN CORREGIDA */}
       <div className="fixed bottom-0 w-full z-40 pb-safe">
         
         {/* BOTÓN CENTRAL FLOTANTE */}

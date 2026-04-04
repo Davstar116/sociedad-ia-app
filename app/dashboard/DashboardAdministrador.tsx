@@ -71,7 +71,7 @@ const GUIONES: Record<string, Record<string, string[]>> = {
       "4. ¿Cuál es el valor que más te distingue?",
       "5. Supongamos que tienes que entregar dos trabajos a la misma hora, un trabajo personal importante y una parte de un trabajo en equipo, por procrastinar ahora solo tienes tiempo para hacer uno. ¿Qué es lo que harías?",
       "6. Cuéntanos una experiencia donde hayas asumido el rol de líder. ¿Cómo resultó?",
-      "7. Tienes 3 proyectos finales y el proyecto de SIAFI, todos se entregan en 2 meses. ¿Cómo te organizas?",
+      "7. Tienes 3 proyectos finales y el proyecto de SIAFI, todos se entregan en 2 meses. ¿Cómo te organizarías?",
       "8. ¿Consideras el trabajo remoto como una opción viable para el trabajo dentro de la sociedad?",
       "9. ¿Qué te distingue de otros candidatos?"
     ],
@@ -539,7 +539,15 @@ export default function DashboardAdministrador() {
                           const slotId = `S${semana}-${dia}-${fechasActivas[idx]}-${hora}`;
                           const isSelected = disponibilidad.includes(slotId);
                           return (
-                            <div key={slotId} onClick={() => toggleSlot(slotId)} className={`h-4 sm:h-5 rounded-[2px] transition-all border-[0.5px] ${(isLockedHorario || isGlobalLockActive) ? (isSelected ? 'bg-green-500 border-green-400 opacity-90 cursor-default shadow-[0_0_8px_rgba(34,197,94,0.3)]' : 'bg-[#151515] border-gray-800 opacity-30 cursor-default') : (isSelected ? 'bg-fuchsia-500 border-fuchsia-400 shadow-[0_0_8px_rgba(217,70,239,0.4)] cursor-pointer' : 'bg-[#1a1a1a] border-gray-800 hover:bg-gray-800/80 cursor-pointer')}></div>
+                            <div 
+                              key={slotId} 
+                              onClick={() => toggleSlot(slotId)} 
+                              className={`h-4 sm:h-5 rounded-[2px] transition-all border-[0.5px] ${
+                                (isLockedHorario || isGlobalLockActive) 
+                                  ? (isSelected ? 'bg-green-500 border-green-400 opacity-90 cursor-default shadow-[0_0_8px_rgba(34,197,94,0.3)]' : 'bg-[#151515] border-gray-800 opacity-30 cursor-default') 
+                                  : (isSelected ? 'bg-fuchsia-500 border-fuchsia-400 shadow-[0_0_8px_rgba(217,70,239,0.4)] cursor-pointer' : 'bg-[#1a1a1a] border-gray-800 hover:bg-gray-800/80 cursor-pointer')
+                              }`}
+                            ></div>
                           );
                         })}
                       </div>
@@ -864,7 +872,7 @@ export default function DashboardAdministrador() {
         </div>
       </div>
 
-      {/* ✅ BARRA DE NAVEGACIÓN CORREGIDA (NO CORTA EL BOTÓN CENTRAL) */}
+      {/* ✅ NAVEGACIÓN SIN OVERFLOW QUE CORTA EL BOTÓN */}
       <div className="fixed bottom-0 w-full z-40 pb-safe">
         
         {/* BOTÓN CENTRAL FLOTANTE */}

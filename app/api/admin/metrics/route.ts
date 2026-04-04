@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 const NOTION_TOKEN = process.env.NOTION_TOKEN;
 const POSTULANTES_DB_ID = process.env.NOTION_DATABASE_ID;
 const ENTREVISTAS_DB_ID = process.env.NOTION_ENTREVISTAS_DB_ID;
+const USERS_DB_ID = process.env.NOTION_USERS_DB_ID;
 
 const notionHeaders = {
   "Authorization": `Bearer ${NOTION_TOKEN}`,
@@ -16,6 +17,32 @@ export async function GET() {
   }
 
   try {
+    // 0. Fetch Usuarios (Para padrón maestro de entrevistadores)
+    const entrevistadoresGlobales = new Set<string>();
+    if (USERS_DB_ID) {
+      let hasMoreUsers = true;
+      let cursorUsers = undefined;
+      while (hasMoreUsers) {
+        const body: any = {};
+        if (cursorUsers) body.start_cursor = cursorUsers;
+        const res = await fetch(`https://api.notion.com/v1/databases/${USERS_DB_ID}/query`, {
+          method: "POST", headers: notionHeaders, body: JSON.stringify(body), cache: 'no-store'
+        });
+        const data = await res.json();
+        if (data.results) {
+          data.results.forEach((u: any) => {
+            const role = u.properties["Rol"]?.select?.name || "";
+            const name = u.properties["Nombre"]?.rich_text?.[0]?.plain_text || "";
+            if (name && (role === "Entrevistador" || role === "Administrador" || role === "Admin Maestro")) {
+               entrevistadoresGlobales.add(name.trim());
+            }
+          });
+        }
+        hasMoreUsers = data.has_more;
+        cursorUsers = data.next_cursor;
+      }
+    }
+
     // 1. Fetch Postulantes
     let postulantes: any[] = [];
     let hasMorePostulantes = true;
@@ -67,13 +94,10 @@ export async function GET() {
 
     postulantes.forEach((p) => {
       const props = p.properties;
-      
-      // Estatus
       const estatusObj = props["Estatus del postulante"];
       const estatusStr = estatusObj?.status?.name || estatusObj?.select?.name || "Registrado";
       candidatosEstatus[estatusStr] = (candidatosEstatus[estatusStr] || 0) + 1;
 
-      // Núcleo
       const nucleoObj = props["Núcleo al que deseas postularte"] || props["Nucleo"] || props["Núcleo"];
       if (nucleoObj && nucleoObj.multi_select && nucleoObj.multi_select.length > 0) {
         nucleoObj.multi_select.forEach((s: any) => {
@@ -89,28 +113,31 @@ export async function GET() {
     });
 
     // 4. Procesamiento de Entrevistas & Entrevistadores (Filtrando Entrevistas REALES)
-    let totalEntrevistasReales = 0;
+    let totalEntrevistasCargaReservada = 0;
     let totalEntrevistasCompletadas = 0;
-    const entrevistadoresGlobales = new Set<string>();
 
     const cargaPorEntrevistador: Record<string, number> = {};
     const completadasPorEntrevistador: Record<string, number> = {};
     const cambiosAceptadosPorEntrevistador: Record<string, number> = {};
     const cambiosSolicitadosPorEntrevistador: Record<string, number> = {};
-    const historialEntrevistadores: Record<string, any[]> = {}; // key: entrevistador_name, value: array de entrevistas
+    const historialEntrevistadores: Record<string, any[]> = {}; // array de entrevistas reales (reservado y completadas)
 
     entrevistas.forEach((e) => {
       const props = e.properties;
-      
       const estatusObj = props["Estatus"]?.select?.name || props["Estatus"]?.status?.name || "";
-      const isEntrevistaReal = estatusObj.toLowerCase() === "reservado" || estatusObj.toLowerCase().startsWith("completad");
+      
+      const isReservado = estatusObj.toLowerCase() === "reservado";
       const isCompletada = estatusObj.toLowerCase().startsWith("completad");
+      const isEntrevistaReal = isReservado || isCompletada;
       
       const e1 = props["Entrevistador 1"]?.rich_text?.[0]?.plain_text?.trim();
       const e2 = props["Entrevistador 2"]?.rich_text?.[0]?.plain_text?.trim();
       const eSaliente = props["Entrevistador Saliente"]?.rich_text?.[0]?.plain_text?.trim();
       const solicitaIntercambio = props["Solicita Intercambio"]?.checkbox;
-      const alertaCambio = props["Alerta Cambio"]?.rich_text?.[0]?.plain_text?.trim();
+      
+      // Checamos primero la permanente memoria cambio, si está vacía revisamos alerta cambio actual
+      let registroCambio = props["Memoria Cambio"]?.rich_text?.[0]?.plain_text?.trim() || "";
+      if (!registroCambio) registroCambio = props["Alerta Cambio"]?.rich_text?.[0]?.plain_text?.trim() || "";
       
       const dia = props["Dia"]?.select?.name || "";
       const fechaNum = props["Fecha"]?.number || 0;
@@ -123,33 +150,34 @@ export async function GET() {
         fechaIso = `2026-04-${fechaNum.toString().padStart(2, '0')}T${horaInicio}:00`;
       }
 
-      // Registro Global de Nombres (sin importar si el bloque es real o vacío, ellos existen)
+      // Registro Extemporaneo Global
       if (e1 && e1 !== "Pendiente" && e1 !== "") entrevistadoresGlobales.add(e1);
       if (e2 && e2 !== "Pendiente" && e2 !== "") entrevistadoresGlobales.add(e2);
 
       // --- LOGIC SOLO PARA ENTREVISTAS REALES ---
       if (isEntrevistaReal) {
-        totalEntrevistasReales++;
-        if (isCompletada) totalEntrevistasCompletadas++;
         const logData = { estatus: estatusObj, dia, fecha: fechaIso, hora, postulanteName };
 
+        if (isReservado) totalEntrevistasCargaReservada++;
+        if (isCompletada) totalEntrevistasCompletadas++;
+
         if (e1 && e1 !== "Pendiente") {
-          cargaPorEntrevistador[e1] = (cargaPorEntrevistador[e1] || 0) + 1;
+          if (isReservado) cargaPorEntrevistador[e1] = (cargaPorEntrevistador[e1] || 0) + 1;
           if (isCompletada) completadasPorEntrevistador[e1] = (completadasPorEntrevistador[e1] || 0) + 1;
           if (!historialEntrevistadores[e1]) historialEntrevistadores[e1] = [];
           historialEntrevistadores[e1].push(logData);
         }
         if (e2 && e2 !== "Pendiente") {
-          cargaPorEntrevistador[e2] = (cargaPorEntrevistador[e2] || 0) + 1;
+          if (isReservado) cargaPorEntrevistador[e2] = (cargaPorEntrevistador[e2] || 0) + 1;
           if (isCompletada) completadasPorEntrevistador[e2] = (completadasPorEntrevistador[e2] || 0) + 1;
           if (!historialEntrevistadores[e2]) historialEntrevistadores[e2] = [];
           historialEntrevistadores[e2].push(logData);
         }
 
         // INTERCAMBIOS CÁLCULO ESTRICTO Y BLINDADO
-        if (alertaCambio) {
-            // Ya fue aceptado, tenemos el registro fijo
-            const parts = alertaCambio.split('|');
+        if (registroCambio && registroCambio !== "") {
+            // Ya fue aceptado, tenemos el registro fijo de suplantación garantizado en la "Memoria"
+            const parts = registroCambio.split('|');
             if (parts.length >= 2) {
                 const requester = parts[0];
                 const acceptor = parts[1];
@@ -157,7 +185,7 @@ export async function GET() {
                 cambiosAceptadosPorEntrevistador[acceptor] = (cambiosAceptadosPorEntrevistador[acceptor] || 0) + 1;
             }
         } else if (solicitaIntercambio && eSaliente && eSaliente !== "") {
-            // Todavía está pendiente de aceptar
+            // Todavía está pendiente de aceptar, el recuento lo gana quien soltó el bloque
             cambiosSolicitadosPorEntrevistador[eSaliente] = (cambiosSolicitadosPorEntrevistador[eSaliente] || 0) + 1;
         }
       }
@@ -166,7 +194,8 @@ export async function GET() {
     const totalCambiosSolicitados = Object.values(cambiosSolicitadosPorEntrevistador).reduce((a, b) => a + b, 0);
     const totalCambiosAceptados = Object.values(cambiosAceptadosPorEntrevistador).reduce((a, b) => a + b, 0);
 
-    // Formando el Ranking Completo de Entrevistadores (Iterando sobre el roster Global para incluir incluso a los de cero carga)
+    // Formando el Ranking Completo de Entrevistadores 
+    // (Iterando sobre el roster Global para incluir los registros de SIAFI Usuarios, garantizando empadronamiento)
     const rankingCarga = Array.from(entrevistadoresGlobales)
       .map((nombre) => ({
         nombre,
@@ -184,7 +213,7 @@ export async function GET() {
         totalCandidatos,
         candidatosEstatus,
         candidatosNucleo,
-        totalEntrevistas: totalEntrevistasReales,
+        totalEntrevistas: totalEntrevistasCargaReservada,
         totalEntrevistasCompletadas,
         totalCambiosSolicitados,
         totalCambiosAceptados,

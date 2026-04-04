@@ -83,7 +83,8 @@ export async function POST(request: Request) {
             [columnaAReemplazar]: { rich_text: [{ text: { content: miNombre } }] },
             "Solicita Intercambio": { checkbox: false },
             "Entrevistador Saliente": { rich_text: [] },
-            "Alerta Cambio": { rich_text: [{ text: { content: `${entrevistadorSaliente}|${miNombre}|${postulante}` } }] }
+            "Alerta Cambio": { rich_text: [{ text: { content: `${entrevistadorSaliente}|${miNombre}|${postulante}` } }] },
+            "Memoria Cambio": { rich_text: [{ text: { content: `${entrevistadorSaliente}|${miNombre}|${postulante}` } }] }
           }
         })
       });

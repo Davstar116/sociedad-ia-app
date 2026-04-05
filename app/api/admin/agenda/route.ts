@@ -37,11 +37,11 @@ export async function GET() {
     const candidosRef: Record<string, any> = {};
     postulantes.forEach((p) => {
       const pProps = p.properties;
-      const cvUrl = pProps["CV"]?.url || pProps["CV"]?.files?.[0]?.file?.url || pProps["CV"]?.files?.[0]?.external?.url || null;
-      const email = pProps["Correo electrónico"]?.email || "";
+      const cvUrl = pProps["CV"]?.url || null;
+      const email = pProps["Correo electrónico"]?.email || pProps["Correo"]?.email || "";
       const id = p.id;
 
-      const nucleoObj = pProps["Núcleo al que deseas postularte"] || pProps["Nucleo"] || pProps["Núcleo"];
+      const nucleoObj = pProps["Núcleo"];
       let nucleoStr = "No definido";
       if (nucleoObj?.multi_select?.length > 0) {
         nucleoStr = nucleoObj.multi_select.map((s:any) => s.name).join(", ");

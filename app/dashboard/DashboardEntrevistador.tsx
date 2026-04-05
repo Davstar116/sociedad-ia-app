@@ -595,6 +595,19 @@ export default function DashboardEntrevistador() {
                     </span>
                   </button>
                 ))}
+                
+                {/* BOTÓN KIT INSTITUCIONAL */}
+                <a href="/Kit.pdf" target="_blank" rel="noreferrer" className="w-full bg-[#111111] hover:bg-orange-500/10 border border-gray-800 hover:border-orange-500/50 p-6 rounded-2xl flex items-center justify-between transition-all group shadow-md mt-2">
+                  <div className="flex items-center gap-4">
+                    <div className="w-14 h-14 bg-[#1a1a1a] group-hover:bg-orange-500/20 border border-gray-800 group-hover:border-orange-500/50 rounded-xl flex items-center justify-center text-2xl group-hover:scale-110 transition-all">
+                      📦
+                    </div>
+                    <span className="text-xl font-black text-white group-hover:text-orange-400 transition-colors">Kit Institucional</span>
+                  </div>
+                  <span className="text-gray-500 group-hover:text-orange-400 transition-colors">
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" /></svg>
+                  </span>
+                </a>
               </div>
             ) : (
               <div className="animate-in slide-in-from-right-4 fade-in duration-300 pb-10">

@@ -38,7 +38,8 @@ export async function GET() {
     postulantes.forEach((p) => {
       const pProps = p.properties;
       const cvUrl = pProps["CV"]?.url || null;
-      const email = pProps["Correo electrónico"]?.email || pProps["Correo"]?.email || "";
+      const emailRaw = pProps["Correo electrónico"]?.email || pProps["Correo"]?.email || "";
+      const email = emailRaw.toLowerCase().trim();
       const id = p.id;
 
       const nucleoObj = pProps["Núcleo"];
@@ -79,7 +80,8 @@ export async function GET() {
 
       if (isReservado || isCompletada) {
          const postulanteName = props["Postulante"]?.rich_text?.[0]?.plain_text || "Candidato Desconocido";
-         const correo = props["Correo"]?.email || props["Correo"]?.rich_text?.[0]?.plain_text || "";
+         const correoRaw = props["Correo Postulante"]?.email || props["Correo"]?.email || props["Correo"]?.rich_text?.[0]?.plain_text || "";
+         const correo = correoRaw.toLowerCase().trim();
          const e1 = props["Entrevistador 1"]?.rich_text?.[0]?.plain_text?.trim() || "";
          const e2 = props["Entrevistador 2"]?.rich_text?.[0]?.plain_text?.trim() || "";
          const dia = props["Dia"]?.select?.name || "";

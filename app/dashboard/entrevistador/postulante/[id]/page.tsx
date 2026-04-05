@@ -32,7 +32,10 @@ export default function PostulanteDetallePage() {
 
   useEffect(() => {
     const fetchDetalles = async () => {
-      if (!emailPostulante) return;
+      if (!emailPostulante) {
+        setIsLoading(false);
+        return;
+      }
       try {
         const res = await fetch(`/api/postulantes/detalle?email=${encodeURIComponent(emailPostulante)}`);
         const data = await res.json();

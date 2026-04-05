@@ -52,7 +52,7 @@ export async function GET(request: Request) {
         fecha: props["Fecha"]?.number || 0,
         hora: props["Hora"]?.rich_text[0]?.plain_text || "",
         postulante: props["Postulante"]?.rich_text[0]?.plain_text || "Candidato",
-        correoPostulante: props["Correo Postulante"]?.email || "",
+        correoPostulante: (props["Correo Postulante"]?.email || props["Correo"]?.email || props["Correo"]?.rich_text?.[0]?.plain_text || "").trim(),
         meetLink: props["Link Meet"]?.url || "",
         // ✅ NUEVOS CAMPOS AÑADIDOS PARA INTERCAMBIOS
         solicitaIntercambio: props["Solicita Intercambio"]?.checkbox || false,

@@ -15,11 +15,12 @@ export interface AppUser {
   id: string;
   email: string;
   name: string;
-  role: "Admin Maestro" | "Miembro" | "Postulante";
+  role: "Admin Maestro" | "Miembro" | "Postulante" | "Administrador";
   passwordHash?: string;
   avatar?: string;
   celular?: string;
   estatus?: string; 
+  cargo?: string;
 }
 
 // 1. Buscar usuario por Email (Usando FETCH)
@@ -97,6 +98,7 @@ export async function getUserByEmail(email: string): Promise<AppUser | null> {
               page.properties["Avatar"]?.files?.[0]?.external?.url || 
               "", 
       estatus: estatusPostulante, 
+      cargo: page.properties["Cargo"]?.select?.name || "",
     };
   } catch (error) {
     console.error("Excepción en getUserByEmail:", error);
@@ -113,6 +115,7 @@ export async function createUser(userData: {
   avatar?: string;
   provider: "google" | "credentials";
   celular?: string; 
+  cargo?: string;
 }) {
   if (!USERS_DB_ID || !NOTION_TOKEN) throw new Error("Faltan credenciales DB");
 
@@ -128,20 +131,26 @@ export async function createUser(userData: {
     initialRole = "Admin Maestro";
   }
 
+  const properties: any = {
+    "Email": { title: [{ text: { content: userData.email } }] },
+    "Nombre": { rich_text: [{ text: { content: userData.name } }] },
+    "Password": { rich_text: [{ text: { content: passwordHash } }] },
+    "Rol": { select: { name: initialRole } },
+    "AuthProvider": { select: { name: userData.provider } },
+    "Avatar": { url: userData.avatar || null },
+    "Celular": { phone_number: userData.celular || null }, 
+  };
+
+  if (userData.cargo) {
+    properties["Cargo"] = { select: { name: userData.cargo } };
+  }
+
   const response = await fetch("https://api.notion.com/v1/pages", {
     method: "POST",
     headers: notionHeaders,
     body: JSON.stringify({
       parent: { database_id: USERS_DB_ID },
-      properties: {
-        "Email": { title: [{ text: { content: userData.email } }] },
-        "Nombre": { rich_text: [{ text: { content: userData.name } }] },
-        "Password": { rich_text: [{ text: { content: passwordHash } }] },
-        "Rol": { select: { name: initialRole } },
-        "AuthProvider": { select: { name: userData.provider } },
-        "Avatar": { url: userData.avatar || null },
-        "Celular": { phone_number: userData.celular || null }, 
-      },
+      properties,
     }),
   });
 

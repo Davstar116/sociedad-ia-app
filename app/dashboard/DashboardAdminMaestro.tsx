@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo, useRef } from "react";
 import { useSession, signOut } from "next-auth/react"; 
 import Link from "next/link"; 
 import OneSignal from 'react-onesignal';
+import { CandidatosPanel } from "@/app/components/CandidatosPanel";
 
 const DIAS_SEMANA = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
 const FECHAS_S1 = [6, 7, 8, 9, 10, 11, 12];
@@ -212,6 +213,10 @@ export default function DashboardAdminMaestro() {
   const [showGenerateModal, setShowGenerateModal] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [generateResult, setGenerateResult] = useState<{success?: boolean, message?: string} | null>(null);
+
+  // ESTADOS DIRECTIVAS
+  const [isGeneratingDirectivos, setIsGeneratingDirectivos] = useState(false);
+  const [directivosResult, setDirectivosResult] = useState<{success?: boolean, message?: string} | null>(null);
 
   // ESTADOS BLOQUEO GLOBAL DE HORARIOS
   const [isGlobalLockActive, setIsGlobalLockActive] = useState(false);
@@ -494,6 +499,24 @@ export default function DashboardAdminMaestro() {
 
   const triggerGlobalLockToggle = () => setShowLockConfirmModal(true);
 
+  const handleGenerarDirectivos = async () => {
+    setIsGeneratingDirectivos(true);
+    setDirectivosResult(null);
+    try {
+      const res = await fetch("/api/admin/setup-directivos", { method: "POST" });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setDirectivosResult({ success: true, message: "Directiva generada/actualizada con éxito." });
+      } else {
+        setDirectivosResult({ success: false, message: data.error || "Error al actualizar directiva." });
+      }
+    } catch (err: any) {
+      setDirectivosResult({ success: false, message: err.message });
+    } finally {
+      setIsGeneratingDirectivos(false);
+    }
+  };
+
   const executeGlobalLock = async () => {
     setIsTogglingLock(true);
     try {
@@ -643,17 +666,39 @@ export default function DashboardAdminMaestro() {
                 </button>
               </div>
 
+              <div className="bg-[#111111] border border-cyan-500/30 rounded-2xl p-6 shadow-xl flex flex-col justify-between group hover:border-cyan-500/60 transition-all">
+                <div>
+                  <div className="w-10 h-10 rounded-full bg-cyan-500/10 text-cyan-500 flex items-center justify-center text-xl mb-4">👑</div>
+                  <h3 className="text-lg font-bold text-white mb-2">Validar Directiva Activa</h3>
+                  <p className="text-xs text-gray-400 leading-relaxed mb-4">
+                    Instala o actualiza automáticamente los roles y accesos para todos los líderes de núcleos actuales.
+                  </p>
+                  
+                  {directivosResult && (
+                    <div className={`p-3 mb-4 rounded-xl text-xs font-bold w-full ${directivosResult.success ? "bg-cyan-500/20 text-cyan-400 border border-cyan-500/30" : "bg-red-500/10 text-red-400 border border-red-500/30"}`}>
+                      {directivosResult.message}
+                    </div>
+                  )}
+                </div>
+                <button disabled={isGeneratingDirectivos} onClick={handleGenerarDirectivos} className="w-full py-3 bg-cyan-500/10 hover:bg-cyan-500 disabled:opacity-50 text-cyan-500 hover:text-white font-bold text-sm uppercase tracking-wider rounded-xl transition-all border border-cyan-500/30 hover:border-cyan-500">
+                  {isGeneratingDirectivos ? "Sincronizando..." : "Definir Equipo"}
+                </button>
+              </div>
+
             </div>
           </main>
         );
 
       case "postulantes":
         return (
-          <main className="pt-24 pb-28 px-5 max-w-lg mx-auto min-h-screen animate-in fade-in duration-300">
-            <h2 className="text-xl font-bold mb-4 text-white">Base de Postulantes</h2>
-            <div className="bg-[#111111] border border-gray-800 rounded-2xl p-6 text-center text-gray-500 text-sm shadow-xl">
-              <p>Revisa el estatus, CVs y respuestas de los candidatos del reclutamiento.</p>
-            </div>
+          <main className="pt-24 pb-28 px-5 mx-auto w-full min-h-screen animate-in fade-in duration-300">
+             <div className="mb-6 max-w-4xl mx-auto">
+               <h2 className="text-2xl font-black text-white tracking-tight flex items-center gap-2">
+                 <span className="text-fuchsia-500">🧑‍🎓</span> Reclutamiento Activo
+               </h2>
+               <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-1">Dictamen Integral</p>
+             </div>
+             <CandidatosPanel user={session?.user} />
           </main>
         );
 

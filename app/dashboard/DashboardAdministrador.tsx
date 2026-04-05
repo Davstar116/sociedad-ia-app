@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo, useRef } from "react";
 import { useSession, signOut } from "next-auth/react"; 
 import Link from "next/link"; 
 import OneSignal from 'react-onesignal';
-
+import { CandidatosPanel } from "@/app/components/CandidatosPanel";
 const DIAS_SEMANA = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
 const FECHAS_S1 = [6, 7, 8, 9, 10, 11, 12];
 const FECHAS_S2 = [13, 14, 15, 16, 17, 18, 19];
@@ -490,11 +490,14 @@ export default function DashboardAdministrador() {
       
       case "postulantes":
         return (
-          <main className="pt-24 pb-28 px-5 max-w-lg mx-auto min-h-screen animate-in fade-in duration-300">
-            <h2 className="text-xl font-bold mb-4 text-white">Base de Postulantes</h2>
-            <div className="bg-[#111111] border border-gray-800 rounded-2xl p-6 text-center text-gray-500 text-sm shadow-xl">
-              <p>Revisa el estatus, CVs y respuestas de los candidatos del reclutamiento.</p>
-            </div>
+          <main className="pt-24 pb-28 px-5 mx-auto w-full min-h-screen animate-in fade-in duration-300">
+             <div className="mb-6 max-w-4xl mx-auto">
+               <h2 className="text-2xl font-black text-white tracking-tight flex items-center gap-2">
+                 <span className="text-fuchsia-500">🧑‍🎓</span> Reclutamiento Activo
+               </h2>
+               <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-1">Dictamen Integral</p>
+             </div>
+             <CandidatosPanel user={session?.user} />
           </main>
         );
 

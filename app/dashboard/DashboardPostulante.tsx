@@ -440,9 +440,14 @@ export default function DashboardPostulante() {
                 <p className="text-gray-300 text-sm leading-relaxed mb-8">
                   Nos emociona muchísimo informarte que has sido oficialmente <strong>Aceptad@</strong> en la Sociedad de Inteligencia Artificial de la Facultad de Ingeniería. ¡Comienza una nueva etapa!
                 </p>
-                <button className="w-full py-4 bg-green-500 hover:bg-green-400 text-[#0a0a0a] font-black text-sm uppercase tracking-wider rounded-xl transition-all shadow-lg shadow-green-500/20 active:scale-95">
+                <a 
+                  href="https://chat.whatsapp.com/K9BFLW6FjLQBP3PavhpWXn?mode=gi_t" 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  className="block w-full py-4 bg-green-500 hover:bg-green-400 text-[#0a0a0a] font-black text-sm uppercase tracking-wider rounded-xl transition-all shadow-lg shadow-green-500/20 active:scale-95 text-center"
+                >
                   Unirse al grupo de WhatsApp
-                </button>
+                </a>
               </div>
             </div>
           </main>

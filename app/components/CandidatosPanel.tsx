@@ -9,7 +9,9 @@ export function CandidatosPanel({ user }: { user: any }) {
   // Expediente Modal State
   const [selectedCandidato, setSelectedCandidato] = useState<any>(null);
   const [evalRespuestas, setEvalRespuestas] = useState<any[]>([]);
+  const [formRespuestas, setFormRespuestas] = useState<any[]>([]);
   const [loadingExp, setLoadingExp] = useState(false);
+  const [loadingForm, setLoadingForm] = useState(false);
   const [editingNota, setEditingNota] = useState<"Lider" | "Presidencia" | null>(null);
   const [tempNota, setTempNota] = useState("");
   
@@ -90,19 +92,69 @@ export function CandidatosPanel({ user }: { user: any }) {
     return <span className="bg-gray-500/20 text-gray-400 px-2 py-1 rounded text-[10px] font-bold">⏳ Pendiente</span>;
   };
 
+  const renderRespuesta = (texto: string) => {
+    if (texto.startsWith("http://") || texto.startsWith("https://")) {
+      return (
+        <a href={texto} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 mt-2 px-4 py-2 bg-gray-800 hover:bg-[#0051ff] text-white text-xs font-bold uppercase tracking-wider rounded-xl transition-all">
+          <span>🔗</span> Abrir Enlace
+        </a>
+      );
+    }
+
+    const lineas = texto.split('\n');
+    const esListaDeHabilidades = lineas.some(l => l.match(/^(.*?)(?:[:\-])?\s*([1-5])(?:\/5)?\s*$/i));
+
+    if (esListaDeHabilidades) {
+      return (
+        <div className="flex flex-col gap-2 mt-2">
+          {lineas.map((linea, i) => {
+            if (!linea.trim()) return null;
+            const match = linea.match(/^(.*?)(?:[:\-])?\s*([1-5])(?:\/5)?\s*$/i);
+            if (match) {
+              const skill = match[1].trim() || "Habilidad";
+              const calificacion = parseInt(match[2], 10);
+              return (
+                <div key={i} className="flex justify-between items-center bg-[#0a0a0a] px-3 py-2.5 rounded-lg border border-gray-800/50">
+                  <span className="text-sm font-bold text-gray-200 truncate pr-2">{skill}</span>
+                  <div className="flex gap-1 text-[13px] drop-shadow-[0_0_6px_rgba(250,204,21,0.5)] shrink-0">
+                    {[...Array(5)].map((_, j) => (
+                      <span key={j} className={j < calificacion ? "text-yellow-400" : "text-gray-800"}>★</span>
+                    ))}
+                  </div>
+                </div>
+              );
+            }
+            return <p key={i} className="text-sm text-gray-300 leading-relaxed">{linea}</p>;
+          })}
+        </div>
+      );
+    }
+    return <p className="text-sm text-gray-300 leading-relaxed whitespace-pre-wrap">{texto}</p>;
+  };
+
   const verExpediente = async (c: any) => {
      setSelectedCandidato(c);
      setEvalRespuestas([]);
+     setFormRespuestas([]);
+     
+     // Cargar la Rúbrica de la Entrevista si existe (para el Paso 3)
      if (c.evaluacion?.evalId) {
         setLoadingExp(true);
-        try {
-           const res = await fetch(`/api/admin/candidatos/evaluacion-detalles?evalId=${c.evaluacion.evalId}`);
-           const data = await res.json();
-           if (data.success) {
-              setEvalRespuestas(data.answers || []);
-           }
-        } catch(e) { console.error(e); }
-        setLoadingExp(false);
+        fetch(`/api/admin/candidatos/evaluacion-detalles?evalId=${c.evaluacion.evalId}`)
+           .then(res => res.json())
+           .then(data => { if (data.success) setEvalRespuestas(data.answers || []); })
+           .catch(e => console.error(e))
+           .finally(() => setLoadingExp(false));
+     }
+
+     // Cargar el Expediente Base del Postulante (Paso 2 y Paso 3)
+     if (c.correo) {
+         setLoadingForm(true);
+         fetch(`/api/postulantes/detalle?email=${encodeURIComponent(c.correo)}`)
+           .then(res => res.json())
+           .then(data => { if (data.success) setFormRespuestas(data.respuestasContenido || []); })
+           .catch(e => console.error(e))
+           .finally(() => setLoadingForm(false));
      }
   };
 
@@ -377,6 +429,24 @@ export function CandidatosPanel({ user }: { user: any }) {
                                 <p className="text-gray-300 text-sm leading-relaxed whitespace-pre-wrap border-l-2 border-yellow-500/30 pl-4">{selectedCandidato.humanNotes}</p>
                             </div>
                             
+                            {/* CAJA DE EXPEDIENTE PREVIO (Formulario de Admisión) */}
+                            {loadingForm ? (
+                                <p className="text-xs text-gray-500 italic animate-pulse">Cargando respuestas del formulario inicial...</p>
+                            ) : formRespuestas.length > 0 ? (
+                               <div className="bg-[#111111] border border-purple-500/30 p-6 rounded-xl mt-4">
+                                  <h3 className="text-purple-400 font-bold mb-4 flex items-center gap-2"><span>📋</span> Perfil General</h3>
+                                  <div className="space-y-6">
+                                    {formRespuestas.map((item, idx) => (
+                                        <div key={idx}>
+                                            <p className="text-xs text-purple-400 font-bold uppercase tracking-wider mb-2">{item.pregunta}</p>
+                                            {renderRespuesta(item.respuesta)}
+                                        </div>
+                                    ))}
+                                  </div>
+                               </div>
+                            ) : null}
+
+                            {/* CAJA DE RÚBRICA (Sólo Paso 3 o si ya hay rubric) */}
                             {selectedCandidato.evaluacion && (
                                <div className="bg-[#0a0a0a] border border-[#00baff]/30 p-6 rounded-xl mt-4">
                                   <h3 className="text-[#00baff] font-bold mb-4 flex items-center gap-2"><span>💬</span> Rúbrica de la Entrevista Aplicada ({selectedCandidato.evaluacion.nucleoPrincipal})</h3>

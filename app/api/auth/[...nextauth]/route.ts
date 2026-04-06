@@ -98,6 +98,10 @@ export const authOptions: NextAuthOptions = {
           // @ts-ignore
           session.user.estatus = dbUser.estatus || "Registrado";
           
+          // ✅ INYECTAMOS CARGO PARA LA LÓGICA DIRECTIVA
+          // @ts-ignore
+          session.user.cargo = dbUser.cargo || "";
+          
           if (session.user.email === process.env.MASTER_ADMIN_EMAIL) {
              // @ts-ignore
             session.user.role = "Admin Maestro";

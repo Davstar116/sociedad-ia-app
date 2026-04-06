@@ -360,7 +360,13 @@ export function CandidatosPanel({ user }: { user: any }) {
                 <div className="p-6 border-b border-gray-800 bg-[#0a0a0a] flex justify-between items-start">
                     <div>
                         <h2 className="text-2xl font-bold text-white mb-1">{selectedCandidato.nombre}</h2>
-                         <p className="text-sm text-gray-400">📧 {selectedCandidato.correo}</p>
+                        <div className="flex items-center gap-3">
+                           <p className="text-sm text-gray-400">📧 {selectedCandidato.correo}</p>
+                           <span className="text-gray-600">|</span>
+                           <p className="text-sm font-bold text-blue-400">{selectedCandidato.carrera}</p>
+                           <span className="text-gray-600">|</span>
+                           <p className="text-sm text-gray-400">{selectedCandidato.semestre}º Semestre</p>
+                        </div>
                     </div>
                     <button onClick={() => setSelectedCandidato(null)} className="p-2 hover:bg-white/10 rounded-full transition text-gray-400 hover:text-white">✕</button>
                 </div>

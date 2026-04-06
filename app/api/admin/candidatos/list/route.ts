@@ -85,6 +85,8 @@ export async function GET() {
            correo: correo,
            cvUrl: p["CV"]?.url || p["CV"]?.files?.[0]?.file?.url || p["CV"]?.files?.[0]?.external?.url || "",
            nucleosOriginales,
+           carrera: p["Carrera"]?.rich_text?.[0]?.plain_text || p["Licenciatura"]?.rich_text?.[0]?.plain_text || p["Carrera"]?.select?.name || "Carrera no especificada",
+           semestre: p["Semestre"]?.number?.toString() || p["Semestre"]?.select?.name || p["Semestre"]?.rich_text?.[0]?.plain_text || "N/A",
            estatus: p["Estatus del postulante"]?.status?.name || p["Estatus del postulante"]?.select?.name || "Registrado",
            nucleoEvaluador: p["Núcleo Evaluador"]?.select?.name || null,
            

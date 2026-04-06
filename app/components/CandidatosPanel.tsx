@@ -6,7 +6,12 @@ export function CandidatosPanel({ user }: { user: any }) {
   const [pasoActivo, setPasoActivo] = useState(1);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   
-  const isPresidente = user?.cargo === "Presidente";
+  // Expediente Modal State
+  const [selectedCandidato, setSelectedCandidato] = useState<any>(null);
+  const [evalRespuestas, setEvalRespuestas] = useState<any[]>([]);
+  const [loadingExp, setLoadingExp] = useState(false);
+  
+  const isPresidente = user?.cargo === "Presidente" || user?.role === "Admin Maestro";
   const isVice = user?.cargo === "Vicepresidente";
   const isGeneral = isPresidente || isVice;
 
@@ -61,6 +66,22 @@ export function CandidatosPanel({ user }: { user: any }) {
     return <span className="bg-gray-500/20 text-gray-400 px-2 py-1 rounded text-[10px] font-bold">⏳ Pendiente</span>;
   };
 
+  const verExpediente = async (c: any) => {
+     setSelectedCandidato(c);
+     setEvalRespuestas([]);
+     if (c.evaluacion?.evalId) {
+        setLoadingExp(true);
+        try {
+           const res = await fetch(`/api/admin/candidatos/evaluacion-detalles?evalId=${c.evaluacion.evalId}`);
+           const data = await res.json();
+           if (data.success) {
+              setEvalRespuestas(data.answers || []);
+           }
+        } catch(e) { console.error(e); }
+        setLoadingExp(false);
+     }
+  };
+
   // Filtrados de Paso
   const p1Candidatos = candidatos.filter(c => c.estatus === "Registrado");
   const p2Candidatos = candidatos.filter(c => c.estatus === "Registrado" && c.nucleoEvaluador);
@@ -103,6 +124,9 @@ export function CandidatosPanel({ user }: { user: any }) {
                     </div>
                   </div>
                   <div className="flex items-center gap-3 w-full md:w-auto">
+                    <button onClick={() => verExpediente(c)} className="bg-[#00baff]/10 text-[#00baff] text-[10px] px-2 py-1 rounded border border-[#00baff]/20 font-bold whitespace-nowrap hover:bg-[#00baff]/20 transition-all">
+                       EXPEDIENTE 📂
+                    </button>
                     {c.cvUrl && <a href={c.cvUrl} target="_blank" rel="noreferrer" className="text-cyan-400 text-xs underline font-bold whitespace-nowrap">Ver CV</a>}
                     <select 
                        className="bg-black border border-gray-700 text-xs text-white p-2 rounded-lg w-full md:w-40"
@@ -139,7 +163,12 @@ export function CandidatosPanel({ user }: { user: any }) {
                         <h4 className="font-bold text-white text-sm">{c.nombre} <span className="text-gray-500 font-normal">| {c.nucleoEvaluador}</span></h4>
                         <p className="text-xs text-gray-500">{c.correo}</p>
                       </div>
-                      {c.cvUrl && <a href={c.cvUrl} target="_blank" rel="noreferrer" className="text-fuchsia-400 text-xs underline font-bold">Revisar CV</a>}
+                      <div className="flex gap-3 items-center">
+                         <button onClick={() => verExpediente(c)} className="bg-[#00baff]/10 text-[#00baff] text-[10px] px-2 py-1 rounded border border-[#00baff]/20 font-bold whitespace-nowrap hover:bg-[#00baff]/20 transition-all">
+                           EXPEDIENTE 📂
+                         </button>
+                         {c.cvUrl && <a href={c.cvUrl} target="_blank" rel="noreferrer" className="text-fuchsia-400 text-xs underline font-bold">Revisar CV</a>}
+                      </div>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
@@ -189,9 +218,14 @@ export function CandidatosPanel({ user }: { user: any }) {
                       <div>
                         <h4 className="font-bold text-white text-sm">{c.nombre} <span className="text-blue-400 font-normal">| {ev.nucleoPrincipal}</span></h4>
                       </div>
-                      <button onClick={() => setExpandedId(isExpanded ? null : c.id)} className="text-xs text-blue-400 bg-blue-500/10 px-3 py-1 rounded-full font-bold">
-                        {isExpanded ? "Ocultar Detalles" : "Ver Evaluación"}
-                      </button>
+                      <div className="flex items-center gap-3">
+                         <button onClick={() => verExpediente(c)} className="bg-[#00baff]/10 text-[#00baff] text-[10px] px-2 py-1 rounded border border-[#00baff]/20 font-bold whitespace-nowrap hover:bg-[#00baff]/20 transition-all">
+                           EXPEDIENTE 📂
+                         </button>
+                         <button onClick={() => setExpandedId(isExpanded ? null : c.id)} className="text-xs text-blue-400 bg-blue-500/10 px-3 py-1 rounded-full font-bold">
+                           {isExpanded ? "Ocultar Detalles" : "Ver Evaluación"}
+                         </button>
+                      </div>
                     </div>
 
                     {isExpanded && (
@@ -239,6 +273,74 @@ export function CandidatosPanel({ user }: { user: any }) {
              </div>
           )}
 
+        </div>
+      )}
+
+      {/* --- MODAL DE EXPEDIENTE --- */}
+      {selectedCandidato && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
+            <div className="absolute inset-0" onClick={() => setSelectedCandidato(null)}></div>
+            <div className="bg-[#050505] border border-gray-800 w-full max-w-4xl h-[90vh] rounded-2xl shadow-2xl relative flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
+                <div className="p-6 border-b border-gray-800 bg-[#0a0a0a] flex justify-between items-start">
+                    <div>
+                        <h2 className="text-2xl font-bold text-white mb-1">{selectedCandidato.nombre}</h2>
+                         <p className="text-sm text-gray-400">📧 {selectedCandidato.correo}</p>
+                    </div>
+                    <button onClick={() => setSelectedCandidato(null)} className="p-2 hover:bg-white/10 rounded-full transition text-gray-400 hover:text-white">✕</button>
+                </div>
+                <div className="flex-grow overflow-y-auto custom-scrollbar p-6">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div className="space-y-6">
+                            <div className="bg-blue-900/10 border border-blue-500/20 p-5 rounded-xl text-center">
+                                <p className="text-blue-400 text-xs font-bold uppercase mb-2">SophIA Score</p>
+                                <div className="text-5xl font-black text-white mb-2">{selectedCandidato.sophiaScore || 0}/100</div>
+                            </div>
+                            <div className="bg-white/5 border border-white/5 p-5 rounded-xl">
+                                <h4 className="text-gray-400 text-xs font-bold uppercase mb-3">Núcleos Aplicados</h4>
+                                <div className="flex flex-wrap gap-2">
+                                    {selectedCandidato.nucleosOriginales?.map((n: string) => (
+                                        <span key={n} className="bg-[#00baff]/10 text-[#00baff] border border-[#00baff]/20 px-3 py-1 rounded-lg text-xs">{n}</span>
+                                    ))}
+                                </div>
+                            </div>
+                            {selectedCandidato.cvUrl && (
+                                <a href={selectedCandidato.cvUrl} target="_blank" rel="noreferrer" className="block w-full py-3 bg-white/10 hover:bg-white/20 border border-white/20 rounded-lg text-center text-white text-sm font-bold transition">
+                                   📄 Ver CV Original
+                                </a>
+                            )}
+                        </div>
+                        <div className="md:col-span-2 space-y-6">
+                            <div className="bg-black border border-gray-800 p-6 rounded-xl">
+                                <h3 className="flex items-center gap-2 text-teal-400 font-bold mb-4"><span>🧠</span> Análisis de IA</h3>
+                                <p className="text-gray-300 text-sm leading-relaxed whitespace-pre-wrap">{selectedCandidato.sophiaNotes}</p>
+                            </div>
+                            <div className="bg-black border border-gray-800 p-6 rounded-xl">
+                                <h3 className="flex items-center gap-2 text-yellow-400 font-bold mb-4"><span>📝</span> Notas Manuales Pre-Entrevista</h3>
+                                <p className="text-gray-300 text-sm leading-relaxed whitespace-pre-wrap border-l-2 border-yellow-500/30 pl-4">{selectedCandidato.humanNotes}</p>
+                            </div>
+                            
+                            {selectedCandidato.evaluacion && (
+                               <div className="bg-[#0a0a0a] border border-[#00baff]/30 p-6 rounded-xl mt-4">
+                                  <h3 className="text-[#00baff] font-bold mb-4 flex items-center gap-2"><span>💬</span> Rúbrica de la Entrevista Aplicada ({selectedCandidato.evaluacion.nucleoPrincipal})</h3>
+                                  {loadingExp ? (
+                                    <p className="text-xs text-gray-500 italic animate-pulse">Consultando respuestas guardadas...</p>
+                                  ) : (
+                                    <div className="space-y-4">
+                                       {evalRespuestas.map((r, i) => (
+                                          <div key={i} className="border-b border-gray-800 pb-3">
+                                             <p className="text-xs font-bold text-gray-300 mb-1">{r.pregunta}</p>
+                                             <p className={`text-sm text-gray-400 italic ${r.respuesta === 'Sin respuesta anotada.' ? 'opacity-50' : ''}`}>{r.respuesta}</p>
+                                          </div>
+                                       ))}
+                                       {evalRespuestas.length === 0 && <p className="text-xs text-gray-500 italic">No se encontraron respuestas registradas.</p>}
+                                    </div>
+                                  )}
+                               </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
       )}
     </div>

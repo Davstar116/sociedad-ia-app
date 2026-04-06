@@ -49,19 +49,15 @@ export async function GET() {
        fetchAllPages(EVALUACIONES_DB)
      ]);
 
-     // Create mapping of evaluations by email
+     // Create mapping of evaluations by name
      const evMap: Record<string, any> = {};
      for (const ev of evaluacionesData) {
         const props = ev.properties;
         
-        let correo = "";
-        const emailProp = props["Correo Postulante"] || props["Correo"] || props["Correo electrónico"];
-        if (emailProp?.email) correo = emailProp.email.toLowerCase().trim();
-        else if (emailProp?.rich_text?.[0]) correo = emailProp.rich_text[0].plain_text.toLowerCase().trim();
-        else if (emailProp?.title?.[0]) correo = emailProp.title[0].plain_text.toLowerCase().trim();
+        let nombreCandidato = props["Postulante"]?.title?.[0]?.plain_text?.toLowerCase()?.trim() || "";
 
-        if (correo) {
-           evMap[correo] = {
+        if (nombreCandidato) {
+           evMap[nombreCandidato] = {
                evalId: ev.id,
                nucleoPrincipal: props["Núcleo Principal"]?.select?.name || "",
                nucleoSecundario: props["Núcleo Secundario"]?.select?.name || "",
@@ -81,16 +77,21 @@ export async function GET() {
         else if (emailProp?.rich_text?.[0]) correo = emailProp.rich_text[0].plain_text.toLowerCase().trim();
 
         const nucleosOriginales = p["Núcleo"]?.multi_select?.map((m: any) => m.name) || [];
+        const candName = p["Nombre Completo"]?.title?.[0]?.plain_text || "Sin Nombre";
         
         const candidatoObj = {
            id: c.id,
-           nombre: p["Nombre Completo"]?.title?.[0]?.plain_text || "Sin Nombre",
+           nombre: candName,
            correo: correo,
-           cvUrl: p["CV"]?.url || "",
+           cvUrl: p["CV"]?.url || p["CV"]?.files?.[0]?.file?.url || p["CV"]?.files?.[0]?.external?.url || "",
            nucleosOriginales,
            estatus: p["Estatus del postulante"]?.status?.name || p["Estatus del postulante"]?.select?.name || "Registrado",
            nucleoEvaluador: p["Núcleo Evaluador"]?.select?.name || null,
            
+           sophiaScore: p["Puntuación Preliminar (IA)"]?.number || p["SophIA Score"]?.number || 0,
+           sophiaNotes: p["Análisis SophIA"]?.rich_text?.[0]?.plain_text || p["SophIA Notas"]?.rich_text?.[0]?.plain_text || "Sin notas de IA.",
+           humanNotes: p["Observaciones Manuales"]?.rich_text?.[0]?.plain_text || p["Notas Revisión"]?.rich_text?.[0]?.plain_text || "Sin notas de revisión previas.",
+
            votoPreLider: p["Voto Pre Lider"]?.select?.name || "Pendiente",
            votoPreVP: p["Voto Pre VP"]?.select?.name || "Pendiente",
            votoPrePresi: p["Voto Pre Presi"]?.select?.name || "Pendiente",
@@ -99,7 +100,7 @@ export async function GET() {
            votoFinalVP: p["Voto Final VP"]?.select?.name || "Pendiente",
            votoFinalPresi: p["Voto Final Presi"]?.select?.name || "Pendiente",
            
-           evaluacion: evMap[correo] || null
+           evaluacion: evMap[candName.toLowerCase().trim()] || null
         };
         return candidatoObj;
      });

@@ -234,25 +234,27 @@ export function CandidatosPanel({ user }: { user: any }) {
 
                  return (
                   <div key={c.id} className="bg-[#111111] p-4 rounded-xl border border-gray-800 shadow-lg">
-                    <div className="flex justify-between items-start mb-4">
+                    <div className="flex flex-col md:flex-row md:justify-between items-start mb-4 gap-4 md:gap-0">
                       <div>
                         <h4 className="font-bold text-white text-sm">{c.nombre} <span className="text-gray-500 font-normal">| {c.nucleoEvaluador}</span></h4>
                         <p className="text-xs text-gray-500">{c.correo}</p>
                       </div>
-                      <div className="flex gap-3 items-center">
+                      <div className="flex flex-wrap gap-3 items-center">
                          <button onClick={() => verExpediente(c)} className="bg-[#00baff]/10 text-[#00baff] text-[10px] px-2 py-1 rounded border border-[#00baff]/20 font-bold whitespace-nowrap hover:bg-[#00baff]/20 transition-all">
                            EXPEDIENTE 📂
                          </button>
-                         {c.cvUrl && <a href={c.cvUrl} target="_blank" rel="noreferrer" className="text-fuchsia-400 text-xs underline font-bold">Revisar CV</a>}
+                         {c.cvUrl && <a href={c.cvUrl} target="_blank" rel="noreferrer" className="text-fuchsia-400 text-xs underline font-bold whitespace-nowrap">Revisar CV</a>}
                       </div>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
                        {/* Control de Mi Voto */}
-                       <div className="bg-black/50 p-3 rounded-lg border border-gray-800 flex gap-2">
-                         <span className="text-xs text-gray-400 mb-1 block w-full">Mi Decisión ({user?.cargo}):</span>
-                         <button onClick={() => handleAction("VOTE", c.id, myPreVoteColumn, "Aprobar")} className={`text-xs px-3 py-1.5 rounded font-bold transition-all flex-1 ${myCurrentPreVote === 'Aprobar' ? 'bg-green-600 text-white' : 'bg-gray-800 hover:bg-gray-700 text-gray-300'}`}>Aprobar</button>
-                         <button onClick={() => handleAction("VOTE", c.id, myPreVoteColumn, "Rechazar")} className={`text-xs px-3 py-1.5 rounded font-bold transition-all flex-1 ${myCurrentPreVote === 'Rechazar' ? 'bg-red-600 text-white' : 'bg-gray-800 hover:bg-gray-700 text-gray-300'}`}>Rechazar</button>
+                       <div className="bg-black/50 p-3 rounded-lg border border-gray-800">
+                         <span className="text-xs text-gray-400 mb-2 block">Mi Decisión ({user?.cargo}):</span>
+                         <div className="flex gap-2">
+                           <button onClick={() => handleAction("VOTE", c.id, myPreVoteColumn, "Aprobar")} className={`text-xs px-3 py-1.5 rounded font-bold transition-all flex-1 ${myCurrentPreVote === 'Aprobar' ? 'bg-green-600 text-white' : 'bg-gray-800 hover:bg-gray-700 text-gray-300'}`}>Aprobar</button>
+                           <button onClick={() => handleAction("VOTE", c.id, myPreVoteColumn, "Rechazar")} className={`text-xs px-3 py-1.5 rounded font-bold transition-all flex-1 ${myCurrentPreVote === 'Rechazar' ? 'bg-red-600 text-white' : 'bg-gray-800 hover:bg-gray-700 text-gray-300'}`}>Rechazar</button>
+                         </div>
                        </div>
                        
                        {/* Panel Presidente */}
@@ -290,15 +292,15 @@ export function CandidatosPanel({ user }: { user: any }) {
 
                  return (
                   <div key={c.id} className={`bg-[#111111] p-4 rounded-xl border transition-all shadow-lg ${isExpanded ? 'border-blue-500/50' : 'border-gray-800'}`}>
-                    <div className="flex justify-between items-center mb-2">
+                    <div className="flex flex-col md:flex-row md:justify-between items-start md:items-center mb-2 gap-4 md:gap-0">
                       <div>
                         <h4 className="font-bold text-white text-sm">{c.nombre} <span className="text-blue-400 font-normal">| {ev.nucleoPrincipal}</span></h4>
                       </div>
-                      <div className="flex items-center gap-3">
+                      <div className="flex flex-wrap items-center gap-3">
                          <button onClick={() => verExpediente(c)} className="bg-[#00baff]/10 text-[#00baff] text-[10px] px-2 py-1 rounded border border-[#00baff]/20 font-bold whitespace-nowrap hover:bg-[#00baff]/20 transition-all">
                            EXPEDIENTE 📂
                          </button>
-                         <button onClick={() => setExpandedId(isExpanded ? null : c.id)} className="text-xs text-blue-400 bg-blue-500/10 px-3 py-1 rounded-full font-bold">
+                         <button onClick={() => setExpandedId(isExpanded ? null : c.id)} className="text-xs text-blue-400 bg-blue-500/10 px-3 py-1 rounded-full font-bold whitespace-nowrap">
                            {isExpanded ? "Ocultar Detalles" : "Ver Evaluación"}
                          </button>
                       </div>
@@ -322,10 +324,12 @@ export function CandidatosPanel({ user }: { user: any }) {
                     )}
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-center border-t border-gray-800 pt-3 mt-2">
-                       <div className="flex gap-2">
-                         <span className="text-xs text-gray-400 mb-1 block w-full mt-2">Dictamen de Líder ({user?.cargo}):</span>
-                         <button onClick={() => handleAction("VOTE", c.id, myFinalVoteColumn, "Aprobar")} className={`text-xs px-3 py-1.5 rounded font-bold transition-all flex-1 ${myCurrentFinalVote === 'Aprobar' ? 'bg-green-600 text-white' : 'bg-gray-800 hover:bg-gray-700 text-gray-300'}`}>Aprobar</button>
-                         <button onClick={() => handleAction("VOTE", c.id, myFinalVoteColumn, "Rechazar")} className={`text-xs px-3 py-1.5 rounded font-bold transition-all flex-1 ${myCurrentFinalVote === 'Rechazar' ? 'bg-red-600 text-white' : 'bg-gray-800 hover:bg-gray-700 text-gray-300'}`}>Rechazar</button>
+                       <div>
+                         <span className="text-xs text-gray-400 mb-2 block w-full mt-2">Dictamen de Líder ({user?.cargo}):</span>
+                         <div className="flex gap-2">
+                           <button onClick={() => handleAction("VOTE", c.id, myFinalVoteColumn, "Aprobar")} className={`text-xs px-3 py-1.5 rounded font-bold transition-all flex-1 ${myCurrentFinalVote === 'Aprobar' ? 'bg-green-600 text-white' : 'bg-gray-800 hover:bg-gray-700 text-gray-300'}`}>Aprobar</button>
+                           <button onClick={() => handleAction("VOTE", c.id, myFinalVoteColumn, "Rechazar")} className={`text-xs px-3 py-1.5 rounded font-bold transition-all flex-1 ${myCurrentFinalVote === 'Rechazar' ? 'bg-red-600 text-white' : 'bg-gray-800 hover:bg-gray-700 text-gray-300'}`}>Rechazar</button>
+                         </div>
                        </div>
                        
                        {isPresidente && (
@@ -359,13 +363,15 @@ export function CandidatosPanel({ user }: { user: any }) {
             <div className="bg-[#050505] border border-gray-800 w-full max-w-4xl h-[90vh] rounded-2xl shadow-2xl relative flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
                 <div className="p-6 border-b border-gray-800 bg-[#0a0a0a] flex justify-between items-start">
                     <div>
-                        <h2 className="text-2xl font-bold text-white mb-1">{selectedCandidato.nombre}</h2>
-                        <div className="flex items-center gap-3">
-                           <p className="text-sm text-gray-400">📧 {selectedCandidato.correo}</p>
-                           <span className="text-gray-600">|</span>
-                           <p className="text-sm font-bold text-blue-400">{selectedCandidato.carrera}</p>
-                           <span className="text-gray-600">|</span>
-                           <p className="text-sm text-gray-400">{selectedCandidato.semestre}º Semestre</p>
+                        <h2 className="text-xl md:text-2xl font-bold text-white mb-1">{selectedCandidato.nombre}</h2>
+                        <div className="flex flex-col md:flex-row md:items-center gap-1 md:gap-3 mt-1">
+                           <p className="text-xs md:text-sm text-gray-400">📧 {selectedCandidato.correo}</p>
+                           <span className="hidden md:inline text-gray-600">|</span>
+                           <div className="flex items-center gap-2">
+                             <p className="text-xs md:text-sm font-bold text-blue-400">{selectedCandidato.carrera}</p>
+                             <span className="text-gray-600">|</span>
+                             <p className="text-xs md:text-sm text-gray-400">{selectedCandidato.semestre}º Semestre</p>
+                           </div>
                         </div>
                     </div>
                     <button onClick={() => setSelectedCandidato(null)} className="p-2 hover:bg-white/10 rounded-full transition text-gray-400 hover:text-white">✕</button>

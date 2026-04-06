@@ -10,10 +10,13 @@ export function CandidatosPanel({ user }: { user: any }) {
   const [selectedCandidato, setSelectedCandidato] = useState<any>(null);
   const [evalRespuestas, setEvalRespuestas] = useState<any[]>([]);
   const [loadingExp, setLoadingExp] = useState(false);
+  const [editingNota, setEditingNota] = useState<"Lider" | "Presidencia" | null>(null);
+  const [tempNota, setTempNota] = useState("");
   
-  const isPresidente = user?.cargo === "Presidente" || user?.role === "Admin Maestro";
+  const isPresidente = user?.cargo === "Presidente";
   const isVice = user?.cargo === "Vicepresidente";
   const isGeneral = isPresidente || isVice;
+  const isLider = !isGeneral;
 
   const fetchCandidatos = async () => {
     setLoading(true);
@@ -57,6 +60,27 @@ export function CandidatosPanel({ user }: { user: any }) {
        method: "POST",
        headers: { "Content-Type": "application/json" },
        body: JSON.stringify({ type, candidatoId, column, value, targetEstatus, correo, nombre })
+    });
+  };
+
+  const handleSaveNota = async (column: string) => {
+    if (!selectedCandidato) return;
+    
+    // Update Optimistico
+    const nuevosCandidatos = [...candidatos];
+    const idx = nuevosCandidatos.findIndex(c => c.id === selectedCandidato.id);
+    if(idx !== -1) {
+       if (column === "Notas Lider") nuevosCandidatos[idx].notasLider = tempNota;
+       if (column === "Notas Presidencia") nuevosCandidatos[idx].notasPresidencia = tempNota;
+       setCandidatos(nuevosCandidatos);
+       setSelectedCandidato(nuevosCandidatos[idx]);
+    }
+
+    setEditingNota(null);
+    await fetch("/api/admin/candidatos/action", {
+       method: "POST",
+       headers: { "Content-Type": "application/json" },
+       body: JSON.stringify({ type: "UPDATE_NOTES", candidatoId: selectedCandidato.id, column, value: tempNota })
     });
   };
 
@@ -291,10 +315,48 @@ export function CandidatosPanel({ user }: { user: any }) {
                 <div className="flex-grow overflow-y-auto custom-scrollbar p-6">
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <div className="space-y-6">
-                            <div className="bg-blue-900/10 border border-blue-500/20 p-5 rounded-xl text-center">
-                                <p className="text-blue-400 text-xs font-bold uppercase mb-2">SophIA Score</p>
-                                <div className="text-5xl font-black text-white mb-2">{selectedCandidato.sophiaScore || 0}/100</div>
+                            
+                            {/* CAJAS DE NOTAS DIRECTIVAS */}
+                            <div className="bg-yellow-900/10 border border-yellow-500/20 p-5 rounded-xl">
+                               <div className="flex justify-between items-center mb-2">
+                                  <h4 className="text-yellow-400 text-xs font-bold uppercase">Notas de Líder</h4>
+                                  {!editingNota && isLider && (
+                                     <button onClick={() => { setEditingNota("Lider"); setTempNota(selectedCandidato.notasLider); }} className="text-[10px] text-gray-400 hover:text-white underline">Editar</button>
+                                  )}
+                               </div>
+                               {editingNota === "Lider" ? (
+                                  <div className="flex flex-col gap-2">
+                                     <textarea className="w-full text-xs p-2 rounded bg-black border border-yellow-500/30 text-gray-300" rows={3} value={tempNota} onChange={(e) => setTempNota(e.target.value)} />
+                                     <div className="flex justify-end gap-2">
+                                        <button onClick={() => setEditingNota(null)} className="text-[10px] text-gray-500 font-bold px-2">Cancelar</button>
+                                        <button onClick={() => handleSaveNota("Notas Lider")} className="bg-yellow-600 text-black text-[10px] font-bold px-3 py-1 rounded">Guardar</button>
+                                     </div>
+                                  </div>
+                               ) : (
+                                  <p className="text-gray-300 text-xs italic whitespace-pre-wrap">{selectedCandidato.notasLider || "Sin comentarios aún."}</p>
+                               )}
                             </div>
+
+                            <div className="bg-fuchsia-900/10 border border-fuchsia-500/20 p-5 rounded-xl mt-4">
+                               <div className="flex justify-between items-center mb-2">
+                                  <h4 className="text-fuchsia-400 text-xs font-bold uppercase">Notas de Presidencia</h4>
+                                  {!editingNota && isGeneral && (
+                                     <button onClick={() => { setEditingNota("Presidencia"); setTempNota(selectedCandidato.notasPresidencia); }} className="text-[10px] text-gray-400 hover:text-white underline">Editar</button>
+                                  )}
+                               </div>
+                               {editingNota === "Presidencia" ? (
+                                  <div className="flex flex-col gap-2">
+                                     <textarea className="w-full text-xs p-2 rounded bg-black border border-fuchsia-500/30 text-gray-300" rows={3} value={tempNota} onChange={(e) => setTempNota(e.target.value)} />
+                                     <div className="flex justify-end gap-2">
+                                        <button onClick={() => setEditingNota(null)} className="text-[10px] text-gray-500 font-bold px-2">Cancelar</button>
+                                        <button onClick={() => handleSaveNota("Notas Presidencia")} className="bg-fuchsia-600 text-white text-[10px] font-bold px-3 py-1 rounded">Guardar</button>
+                                     </div>
+                                  </div>
+                               ) : (
+                                  <p className="text-gray-300 text-xs italic whitespace-pre-wrap">{selectedCandidato.notasPresidencia || "Sin comentarios aún."}</p>
+                               )}
+                            </div>
+                            
                             <div className="bg-white/5 border border-white/5 p-5 rounded-xl">
                                 <h4 className="text-gray-400 text-xs font-bold uppercase mb-3">Núcleos Aplicados</h4>
                                 <div className="flex flex-wrap gap-2">
@@ -310,10 +372,6 @@ export function CandidatosPanel({ user }: { user: any }) {
                             )}
                         </div>
                         <div className="md:col-span-2 space-y-6">
-                            <div className="bg-black border border-gray-800 p-6 rounded-xl">
-                                <h3 className="flex items-center gap-2 text-teal-400 font-bold mb-4"><span>🧠</span> Análisis de IA</h3>
-                                <p className="text-gray-300 text-sm leading-relaxed whitespace-pre-wrap">{selectedCandidato.sophiaNotes}</p>
-                            </div>
                             <div className="bg-black border border-gray-800 p-6 rounded-xl">
                                 <h3 className="flex items-center gap-2 text-yellow-400 font-bold mb-4"><span>📝</span> Notas Manuales Pre-Entrevista</h3>
                                 <p className="text-gray-300 text-sm leading-relaxed whitespace-pre-wrap border-l-2 border-yellow-500/30 pl-4">{selectedCandidato.humanNotes}</p>

@@ -91,6 +91,8 @@ export async function GET() {
            sophiaScore: p["Puntuación Preliminar (IA)"]?.number || p["SophIA Score"]?.number || 0,
            sophiaNotes: p["Análisis SophIA"]?.rich_text?.[0]?.plain_text || p["SophIA Notas"]?.rich_text?.[0]?.plain_text || "Sin notas de IA.",
            humanNotes: p["Observaciones Manuales"]?.rich_text?.[0]?.plain_text || p["Notas Revisión"]?.rich_text?.[0]?.plain_text || "Sin notas de revisión previas.",
+           notasLider: p["Notas Lider"]?.rich_text?.[0]?.plain_text || "",
+           notasPresidencia: p["Notas Presidencia"]?.rich_text?.[0]?.plain_text || "",
 
            votoPreLider: p["Voto Pre Lider"]?.select?.name || "Pendiente",
            votoPreVP: p["Voto Pre VP"]?.select?.name || "Pendiente",

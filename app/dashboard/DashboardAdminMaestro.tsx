@@ -217,6 +217,9 @@ export default function DashboardAdminMaestro() {
   // ESTADOS DIRECTIVAS
   const [isGeneratingDirectivos, setIsGeneratingDirectivos] = useState(false);
   const [directivosResult, setDirectivosResult] = useState<{success?: boolean, message?: string} | null>(null);
+  
+  const [isSendingCredentials, setIsSendingCredentials] = useState(false);
+  const [credentialsResult, setCredentialsResult] = useState<{success?: boolean, message?: string} | null>(null);
 
   // ESTADOS BLOQUEO GLOBAL DE HORARIOS
   const [isGlobalLockActive, setIsGlobalLockActive] = useState(false);
@@ -517,6 +520,24 @@ export default function DashboardAdminMaestro() {
     }
   };
 
+  const handleSendCredentialEmails = async () => {
+    setIsSendingCredentials(true);
+    setCredentialsResult(null);
+    try {
+      const res = await fetch("/api/admin/setup-directivos/send-emails", { method: "POST" });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setCredentialsResult({ success: true, message: "Correos enviados exitosamente." });
+      } else {
+        setCredentialsResult({ success: false, message: data.error || "Error al enviar correos." });
+      }
+    } catch (err: any) {
+      setCredentialsResult({ success: false, message: err.message });
+    } finally {
+      setIsSendingCredentials(false);
+    }
+  };
+
   const executeGlobalLock = async () => {
     setIsTogglingLock(true);
     try {
@@ -680,9 +701,17 @@ export default function DashboardAdminMaestro() {
                     </div>
                   )}
                 </div>
-                <button disabled={isGeneratingDirectivos} onClick={handleGenerarDirectivos} className="w-full py-3 bg-cyan-500/10 hover:bg-cyan-500 disabled:opacity-50 text-cyan-500 hover:text-white font-bold text-sm uppercase tracking-wider rounded-xl transition-all border border-cyan-500/30 hover:border-cyan-500">
+                <button disabled={isGeneratingDirectivos || isSendingCredentials} onClick={handleGenerarDirectivos} className="w-full py-3 bg-cyan-500/10 hover:bg-cyan-500 disabled:opacity-50 text-cyan-500 hover:text-white font-bold text-sm uppercase tracking-wider rounded-xl transition-all border border-cyan-500/30 hover:border-cyan-500 mb-3">
                   {isGeneratingDirectivos ? "Sincronizando..." : "Definir Equipo"}
                 </button>
+                <button disabled={isSendingCredentials || isGeneratingDirectivos} onClick={handleSendCredentialEmails} className="w-full py-3 bg-fuchsia-500/10 hover:bg-fuchsia-500 disabled:opacity-50 text-fuchsia-500 hover:text-white font-bold text-sm uppercase tracking-wider rounded-xl transition-all border border-fuchsia-500/30 hover:border-fuchsia-500">
+                  {isSendingCredentials ? "Enviando..." : "Enviar Credenciales a Directivos"}
+                </button>
+                {credentialsResult && (
+                  <p className={`mt-3 text-xs text-center font-bold px-3 py-2 rounded-lg ${credentialsResult.success ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>
+                    {credentialsResult.message}
+                  </p>
+                )}
               </div>
 
             </div>

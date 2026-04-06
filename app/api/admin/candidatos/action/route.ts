@@ -37,6 +37,22 @@ export async function POST(req: Request) {
           if(!res.ok) throw new Error("Error patching Notion property");
           return NextResponse.json({ success: true });
        }
+
+       if (type === "UPDATE_NOTES") {
+          const properties: any = {};
+          properties[column] = { rich_text: [{ text: { content: value.substring(0, 2000) } }] };
+          const res = await fetch(`https://api.notion.com/v1/pages/${candidatoId}`, {
+             method: "PATCH",
+             headers: {
+               "Authorization": `Bearer ${NOTION_TOKEN}`,
+               "Notion-Version": "2022-06-28",
+               "Content-Type": "application/json"
+             },
+             body: JSON.stringify({ properties })
+          });
+          if(!res.ok) throw new Error("Error patching Notion notes");
+          return NextResponse.json({ success: true });
+       }
        
        if (type === "FINALIZE") {
           // 1. Patch Estatus del postulante

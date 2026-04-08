@@ -3,6 +3,8 @@ import { google } from "googleapis";
 import nodemailer from "nodemailer";
 import { PostulanteEntrevistaEmailTemplate } from "@/app/components/emails/PostulanteEntrevistaEmail";
 import { EntrevistadorAsignacionEmailTemplate } from "@/app/components/emails/EntrevistadorAsignacionEmail";
+import { extractMeetLink } from "@/app/api/entrevistas/utils/googleMeetHelper";
+
 
 const NOTION_TOKEN = process.env.NOTION_TOKEN;
 const ENTREVISTAS_DB_ID = process.env.NOTION_ENTREVISTAS_DB_ID;
@@ -144,8 +146,9 @@ export async function POST(request: Request) {
           }
         });
         
-        if (event.data.hangoutLink) {
-          meetLink = event.data.hangoutLink;
+        const extractedLink = extractMeetLink(event);
+        if (extractedLink) {
+          meetLink = extractedLink;
         }
       } else {
         meetLink = "Enlace pendiente de asignación";

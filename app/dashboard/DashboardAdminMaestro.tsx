@@ -1143,17 +1143,24 @@ export default function DashboardAdminMaestro() {
                     </h3>
                     <div className="grid gap-3">
                       {completadas.map((cita) => (
-                        <div key={cita.idBloque} className="bg-[#111111] border border-gray-800 p-4 rounded-xl flex justify-between items-center group hover:border-gray-600 transition-colors">
-                          <div className="flex flex-col">
-                            <h4 className="font-bold text-gray-400 group-hover:text-white transition-colors">{cita.postulante}</h4>
-                            <p className="text-[10px] text-gray-600 uppercase tracking-widest mt-1">{cita.dia} {cita.fecha} ABR • {cita.entrevistador1} & {cita.entrevistador2}</p>
+                        <div key={cita.idBloque} className="bg-[#111111] border border-gray-800 p-4 rounded-xl group hover:border-gray-600 transition-colors">
+                          <div className="flex justify-between items-center mb-3">
+                            <div className="flex flex-col">
+                              <h4 className="font-bold text-gray-400 group-hover:text-white transition-colors">{cita.postulante}</h4>
+                              <p className="text-[10px] text-gray-600 uppercase tracking-widest mt-1">{cita.dia} {cita.fecha} ABR • {cita.entrevistador1} & {cita.entrevistador2}</p>
+                            </div>
+                            <div className="flex items-center gap-3">
+                              <span className="text-sm font-black text-gray-500">{cita.hora}</span>
+                              <Link href={`/dashboard/entrevistador/postulante/${cita.idBloque || "null"}?email=${encodeURIComponent(cita.correoPostulante || "")}&dia=${cita.dia || ""}&fecha=${cita.fecha || ""}&hora=${cita.hora || ""}`} className="p-2 bg-gray-800 rounded-lg hover:bg-gray-700 transition-colors text-white">
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                              </Link>
+                            </div>
                           </div>
-                          <div className="flex items-center gap-3">
-                            <span className="text-sm font-black text-gray-500">{cita.hora}</span>
-                            <Link href={`/dashboard/entrevistador/postulante/${cita.idBloque || "null"}?email=${encodeURIComponent(cita.correoPostulante || "")}&dia=${cita.dia || ""}&fecha=${cita.fecha || ""}&hora=${cita.hora || ""}`} className="p-2 bg-gray-800 rounded-lg hover:bg-gray-700 transition-colors text-white">
-                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
-                            </Link>
-                          </div>
+                          {cita.meetLink && (
+                            <a href={cita.meetLink} target="_blank" rel="noreferrer" className="flex items-center justify-center gap-2 w-full py-2 bg-gray-800/60 hover:bg-gray-700 text-gray-400 hover:text-white text-[10px] font-black uppercase tracking-wider rounded-lg transition-colors">
+                              <span>📹</span> Google Meet
+                            </a>
+                          )}
                         </div>
                       ))}
                     </div>

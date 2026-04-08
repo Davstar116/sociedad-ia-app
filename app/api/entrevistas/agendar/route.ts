@@ -67,7 +67,7 @@ export async function POST(request: Request) {
           filter: {
             or: nombresABuscar.map(n => ({
               property: "Nombre", 
-              title: { equals: n }
+              rich_text: { equals: n }
             }))
           }
         })
@@ -76,7 +76,7 @@ export async function POST(request: Request) {
       if (buscarMiembrosRes.ok) {
         const miembrosData = await buscarMiembrosRes.json();
         miembrosData.results.forEach((m: any) => {
-          const correo = m.properties["Correo"]?.email || m.properties["Email"]?.email; 
+          const correo = m.properties["Correo"]?.email || m.properties["Email"]?.title?.[0]?.plain_text; 
           if (correo) correosEntrevistadores.push(correo);
         });
       }

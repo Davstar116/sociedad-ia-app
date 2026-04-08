@@ -139,7 +139,7 @@ export async function POST(request: Request) {
             guestsCanInviteOthers: true, 
             conferenceData: {
               createRequest: {
-                requestId: `siafi-entrevista-${bloqueId}`,
+                requestId: `siafi-entrevista-${bloqueId}-${Date.now()}`,
                 conferenceSolutionKey: { type: "hangoutsMeet" }
               }
             }

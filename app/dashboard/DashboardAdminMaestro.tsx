@@ -221,6 +221,13 @@ export default function DashboardAdminMaestro() {
   const [isSendingCredentials, setIsSendingCredentials] = useState(false);
   const [credentialsResult, setCredentialsResult] = useState<{success?: boolean, message?: string} | null>(null);
 
+  // ESTADOS NUEVAS FUNCIONES DE CONTROL
+  const [isRegeneratingMeets, setIsRegeneratingMeets] = useState(false);
+  const [regenerateMeetsResult, setRegenerateMeetsResult] = useState<{success?: boolean, message?: string} | null>(null);
+  
+  const [isResendingApology, setIsResendingApology] = useState(false);
+  const [resendApologyResult, setResendApologyResult] = useState<{success?: boolean, message?: string} | null>(null);
+
   // ESTADOS BLOQUEO GLOBAL DE HORARIOS
   const [isGlobalLockActive, setIsGlobalLockActive] = useState(false);
   const [isTogglingLock, setIsTogglingLock] = useState(false);
@@ -538,6 +545,51 @@ export default function DashboardAdminMaestro() {
     }
   };
 
+  const handleRegenerateMeets = async () => {
+    setIsRegeneratingMeets(true);
+    setRegenerateMeetsResult(null);
+    try {
+      const res = await fetch("/api/admin/regenerate-meets", { method: "POST" });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setRegenerateMeetsResult({ success: true, message: data.message || "Links regenerados exitosamente." });
+      } else {
+        setRegenerateMeetsResult({ success: false, message: data.error || "Error al regenerar links." });
+      }
+    } catch (err: any) {
+      setRegenerateMeetsResult({ success: false, message: err.message });
+    } finally {
+      setIsRegeneratingMeets(false);
+    }
+  };
+
+  const handleResendCredentialsConfirm = () => {
+    setModalInfo({
+      isOpen: true, 
+      title: "Reenviar Credenciales y Disculpas", 
+      message: "ATENCIÓN: Se generará una nueva contraseña para TODOS los postulantes cuyo estatus en la DB sea 'Registrado'. Esto sobreescribirá su acceso actual. ¿Estás absolutamente seguro de continuar?",
+      icon: "✉️", confirmText: "Sí, Enviar", isError: false, 
+      onConfirm: async () => {
+        setModalInfo(prev => ({ ...prev, isOpen: false }));
+        setIsResendingApology(true);
+        setResendApologyResult(null);
+        try {
+          const res = await fetch("/api/admin/resend-credentials", { method: "POST" });
+          const data = await res.json();
+          if (res.ok && data.success) {
+            setResendApologyResult({ success: true, message: data.message || "Correos enviados exitosamente." });
+          } else {
+            setResendApologyResult({ success: false, message: data.error || "Error al enviar correos." });
+          }
+        } catch (err: any) {
+          setResendApologyResult({ success: false, message: err.message });
+        } finally {
+          setIsResendingApology(false);
+        }
+      }
+    });
+  };
+
   const executeGlobalLock = async () => {
     setIsTogglingLock(true);
     try {
@@ -712,6 +764,42 @@ export default function DashboardAdminMaestro() {
                     {credentialsResult.message}
                   </p>
                 )}
+              </div>
+
+              <div className="bg-[#111111] border border-blue-500/30 rounded-2xl p-6 shadow-xl flex flex-col justify-between group hover:border-blue-500/60 transition-all">
+                <div>
+                  <div className="w-10 h-10 rounded-full bg-blue-500/10 text-blue-500 flex items-center justify-center text-xl mb-4">🎥</div>
+                  <h3 className="text-lg font-bold text-white mb-2">Regenerar Meets Pendientes</h3>
+                  <p className="text-xs text-gray-400 leading-relaxed mb-4">
+                    Busca en la base de datos de entrevistas todas las franjas "Reservadas" que no tengan un link de Meet y genera uno nuevo automáticamente.
+                  </p>
+                  {regenerateMeetsResult && (
+                    <div className={`p-3 mb-4 rounded-xl text-xs font-bold w-full ${regenerateMeetsResult.success ? "bg-blue-500/20 text-blue-400 border border-blue-500/30" : "bg-red-500/10 text-red-400 border border-red-500/30"}`}>
+                      {regenerateMeetsResult.message}
+                    </div>
+                  )}
+                </div>
+                <button disabled={isRegeneratingMeets} onClick={handleRegenerateMeets} className="w-full py-3 bg-blue-500/10 hover:bg-blue-500 disabled:opacity-50 text-blue-500 hover:text-white font-bold text-sm uppercase tracking-wider rounded-xl transition-all border border-blue-500/30 hover:border-blue-500 mb-3">
+                  {isRegeneratingMeets ? "Generando links..." : "Regenerar Links Meet"}
+                </button>
+              </div>
+
+              <div className="bg-[#111111] border border-pink-500/30 rounded-2xl p-6 shadow-xl flex flex-col justify-between group hover:border-pink-500/60 transition-all">
+                <div>
+                  <div className="w-10 h-10 rounded-full bg-pink-500/10 text-pink-500 flex items-center justify-center text-xl mb-4">📩</div>
+                  <h3 className="text-lg font-bold text-white mb-2">Reenviar Acceso a Postulantes</h3>
+                  <p className="text-xs text-gray-400 leading-relaxed mb-4">
+                    Genera una contraseña nueva aleatoria para postulantes ("Registrados") y les envía un correo de disculpa con las credenciales de acceso.
+                  </p>
+                  {resendApologyResult && (
+                    <div className={`p-3 mb-4 rounded-xl text-xs font-bold w-full ${resendApologyResult.success ? "bg-pink-500/20 text-pink-400 border border-pink-500/30" : "bg-red-500/10 text-red-400 border border-red-500/30"}`}>
+                      {resendApologyResult.message}
+                    </div>
+                  )}
+                </div>
+                <button disabled={isResendingApology} onClick={handleResendCredentialsConfirm} className="w-full py-3 bg-pink-500/10 hover:bg-pink-500 disabled:opacity-50 text-pink-500 hover:text-white font-bold text-sm uppercase tracking-wider rounded-xl transition-all border border-pink-500/30 hover:border-pink-500 mb-3">
+                  {isResendingApology ? "Procesando envíos..." : "Enviar Disculpas y Accesos"}
+                </button>
               </div>
 
             </div>

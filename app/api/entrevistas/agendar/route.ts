@@ -5,6 +5,9 @@ import { PostulanteEntrevistaEmailTemplate } from "@/app/components/emails/Postu
 import { EntrevistadorAsignacionEmailTemplate } from "@/app/components/emails/EntrevistadorAsignacionEmail";
 import { extractMeetLink } from "@/app/api/entrevistas/utils/googleMeetHelper";
 
+import dotenv from "dotenv";
+dotenv.config({ path: ".env.local" });
+
 
 const NOTION_TOKEN = process.env.NOTION_TOKEN;
 const ENTREVISTAS_DB_ID = process.env.NOTION_ENTREVISTAS_DB_ID;

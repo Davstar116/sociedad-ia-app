@@ -229,6 +229,7 @@ export default function WorkspaceEvaluacionPage() {
   });
 
   const typingTimeout = useRef<NodeJS.Timeout | null>(null);
+  const lastLocalEdit = useRef<Record<string, number>>({}); 
 
   useEffect(() => {
     if (status === "unauthenticated") router.push("/login");
@@ -311,14 +312,35 @@ export default function WorkspaceEvaluacionPage() {
       const res = await fetch(`/api/entrevistas/evaluacion?idBloque=${entrevistaId || ""}`);
       const data = await res.json();
       if (data.success && data.data) {
+        // Solo actualizamos si no hay un timeout de escritura global pendiente
         if (!typingTimeout.current) {
-          if (data.data.nucleoPrincipal) setNucleoPrincipal(data.data.nucleoPrincipal);
-          if (data.data.nucleoSecundario) setNucleoSecundario(data.data.nucleoSecundario);
-          if (data.data.respuestasEval) setRespuestasEval(data.data.respuestasEval);
-          if (data.data.comentariosE1) setComentariosE1(data.data.comentariosE1);
-          if (data.data.comentariosE2) setComentariosE2(data.data.comentariosE2);
-          if (data.data.estrellasE1) setEstrellasE1(data.data.estrellasE1);
-          if (data.data.estrellasE2) setEstrellasE2(data.data.estrellasE2);
+          const remote = data.data;
+          const now = Date.now();
+          const cooldown = 2000; // 2 segundos de protección tras escribir localmente
+
+          if (remote.nucleoPrincipal !== undefined && (now - (lastLocalEdit.current["nucleoPrincipal"] || 0) > cooldown)) setNucleoPrincipal(remote.nucleoPrincipal);
+          if (remote.nucleoSecundario !== undefined && (now - (lastLocalEdit.current["nucleoSecundario"] || 0) > cooldown)) setNucleoSecundario(remote.nucleoSecundario);
+          if (remote.comentariosE1 !== undefined && (now - (lastLocalEdit.current["comentariosE1"] || 0) > cooldown)) setComentariosE1(remote.comentariosE1);
+          if (remote.comentariosE2 !== undefined && (now - (lastLocalEdit.current["comentariosE2"] || 0) > cooldown)) setComentariosE2(remote.comentariosE2);
+          if (remote.estrellasE1 !== undefined && (now - (lastLocalEdit.current["estrellasE1"] || 0) > cooldown)) setEstrellasE1(remote.estrellasE1);
+          if (remote.estrellasE2 !== undefined && (now - (lastLocalEdit.current["estrellasE2"] || 0) > cooldown)) setEstrellasE2(remote.estrellasE2);
+          
+          if (remote.respuestasEval) {
+            setRespuestasEval(prev => {
+              const merged = { ...prev };
+              let changed = false;
+              Object.keys(remote.respuestasEval).forEach(key => {
+                // Protección por campo: si lo editamos hace poco, ignoramos la versión del servidor
+                if (now - (lastLocalEdit.current[key] || 0) > cooldown) {
+                  if (merged[key] !== remote.respuestasEval[key]) {
+                    merged[key] = remote.respuestasEval[key];
+                    changed = true;
+                  }
+                }
+              });
+              return changed ? merged : prev;
+            });
+          }
         }
       }
     } catch (error) {}
@@ -341,6 +363,9 @@ export default function WorkspaceEvaluacionPage() {
   };
 
   const handleInputChange = (field: string, value: any) => {
+    // Marcamos el momento de la edición local para proteger este campo del polling
+    lastLocalEdit.current[field] = Date.now();
+
     if (field === "nucleoPrincipal") setNucleoPrincipal(value);
     if (field === "nucleoSecundario") setNucleoSecundario(value);
     if (field === "comentariosE1") setComentariosE1(value);
@@ -349,19 +374,17 @@ export default function WorkspaceEvaluacionPage() {
     if (field === "estrellasE2") setEstrellasE2(value);
     if (field.startsWith("q_")) setRespuestasEval(prev => ({ ...prev, [field]: value }));
 
-    const currentPayload = {
-      nucleoPrincipal: field === "nucleoPrincipal" ? value : nucleoPrincipal,
-      nucleoSecundario: field === "nucleoSecundario" ? value : nucleoSecundario,
-      comentariosE1: field === "comentariosE1" ? value : comentariosE1,
-      comentariosE2: field === "comentariosE2" ? value : comentariosE2,
-      estrellasE1: field === "estrellasE1" ? value : estrellasE1,
-      estrellasE2: field === "estrellasE2" ? value : estrellasE2,
-      respuestasEval: field.startsWith("q_") ? { ...respuestasEval, [field]: value } : respuestasEval
-    };
+    // Preparamos solo el DELTA (el campo que cambió) para enviar al servidor
+    const deltaPayload: any = {};
+    if (field.startsWith("q_")) {
+      deltaPayload.respuestasEval = { [field]: value };
+    } else {
+      deltaPayload[field] = value;
+    }
 
     if (typingTimeout.current) clearTimeout(typingTimeout.current);
     typingTimeout.current = setTimeout(() => {
-      pushSyncData(currentPayload);
+      pushSyncData(deltaPayload);
       typingTimeout.current = null;
     }, 1000);
   };

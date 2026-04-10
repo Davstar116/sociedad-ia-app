@@ -27,7 +27,18 @@ export async function POST(request: Request) {
 
     // 🔄 ACCIÓN: SINCRONIZAR EN TIEMPO REAL
     if (action === "sync") {
-      syncCache[idBloque] = { ...syncCache[idBloque], ...payload };
+      const currentData = syncCache[idBloque] || {};
+      
+      // Realizamos un merge profundo para objetos anidados como respuestasEval
+      const mergedPayload = { ...payload };
+      if (payload.respuestasEval && currentData.respuestasEval) {
+        mergedPayload.respuestasEval = {
+          ...currentData.respuestasEval,
+          ...payload.respuestasEval
+        };
+      }
+
+      syncCache[idBloque] = { ...currentData, ...mergedPayload };
       return NextResponse.json({ success: true });
     }
 

@@ -286,7 +286,11 @@ export default function DashboardEntrevistador() {
       const res = await fetch(`/api/entrevistas/mis-asignaciones?entrevistador=${encodeURIComponent(session.user.name)}`);
       const data = await res.json();
       if (data.success && Array.isArray(data.entrevistas)) {
-        setMisEntrevistas(data.entrevistas);
+        const sorted = data.entrevistas.sort((a: any, b: any) => {
+          if (a.fecha !== b.fecha) return a.fecha - b.fecha;
+          return (a.hora || "").localeCompare(b.hora || "");
+        });
+        setMisEntrevistas(sorted);
       }
     } catch (error) {} finally { setIsLoadingEntrevistas(false); }
   };

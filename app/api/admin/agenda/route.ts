@@ -109,10 +109,12 @@ export async function GET() {
       }
     });
 
-    // Ordenar de forma cronológica
+    // 🛡️ ORDENAMIENTO CRONOLÓGICO ROBUSTO (PRÓXIMA ARRIBA)
     agenda.sort((a, b) => {
+       // 1. Prioridad por Fecha (Día del mes)
        if (a.fecha !== b.fecha) return a.fecha - b.fecha;
-       return a.hora.localeCompare(b.hora);
+       // 2. Prioridad por Hora (Formato HH:mm)
+       return (a.hora || "").localeCompare(b.hora || "");
     });
 
     return NextResponse.json({ success: true, agenda });

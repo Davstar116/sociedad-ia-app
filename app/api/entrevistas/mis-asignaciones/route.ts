@@ -32,7 +32,8 @@ export async function GET(request: Request) {
           ]
         },
         sorts: [
-          { property: "Fecha", direction: "ascending" }
+          { property: "Fecha", direction: "ascending" },
+          { property: "Hora", direction: "ascending" }
         ]
       }),
       cache: 'no-store'
@@ -54,12 +55,17 @@ export async function GET(request: Request) {
         postulante: props["Postulante"]?.rich_text[0]?.plain_text || "Candidato",
         correoPostulante: (props["Correo Postulante"]?.email || props["Correo"]?.email || props["Correo"]?.rich_text?.[0]?.plain_text || "").trim(),
         meetLink: props["Link Meet"]?.url || "",
-        // ✅ NUEVOS CAMPOS AÑADIDOS PARA INTERCAMBIOS
         solicitaIntercambio: props["Solicita Intercambio"]?.checkbox || false,
         entrevistadorSaliente: props["Entrevistador Saliente"]?.rich_text[0]?.plain_text || "",
         entrevistador1: props["Entrevistador 1"]?.rich_text[0]?.plain_text || "",
         entrevistador2: props["Entrevistador 2"]?.rich_text[0]?.plain_text || ""
       };
+    });
+
+    // 🛡️ REFUERZO DE ORDENAMIENTO CRONOLÓGICO
+    entrevistas.sort((a, b) => {
+      if (a.fecha !== b.fecha) return a.fecha - b.fecha;
+      return a.hora.localeCompare(b.hora);
     });
 
     return NextResponse.json({ success: true, entrevistas });

@@ -28,17 +28,45 @@ export async function POST(request: Request) {
     // 🔄 ACCIÓN: SINCRONIZAR EN TIEMPO REAL
     if (action === "sync") {
       const currentData = syncCache[idBloque] || {};
+      const newPayload = payload || {};
       
-      // Realizamos un merge profundo para objetos anidados como respuestasEval
-      const mergedPayload = { ...payload };
-      if (payload.respuestasEval && currentData.respuestasEval) {
-        mergedPayload.respuestasEval = {
-          ...currentData.respuestasEval,
-          ...payload.respuestasEval
-        };
+      const merged: any = { ...currentData };
+
+      // Función auxiliar para actualizar solo si el ts es más reciente
+      const updateIfNewer = (field: string, newValue: any, newTs: number) => {
+        const currentTs = currentData[`${field}_ts`] || 0;
+        if (newTs >= currentTs) {
+          merged[field] = newValue;
+          merged[`${field}_ts`] = newTs;
+        }
+      };
+
+      // 1. Procesar campos raíz
+      Object.keys(newPayload).forEach(key => {
+        if (key !== "respuestasEval" && !key.endsWith("_ts")) {
+          const ts = newPayload[`${key}_ts`] || Date.now();
+          updateIfNewer(key, newPayload[key], ts);
+        }
+      });
+
+      // 2. Procesar respuestasEval (especializado)
+      if (newPayload.respuestasEval) {
+        if (!merged.respuestasEval) merged.respuestasEval = {};
+        
+        Object.keys(newPayload.respuestasEval).forEach(qKey => {
+          if (!qKey.endsWith("_ts")) {
+            const ts = newPayload.respuestasEval[`${qKey}_ts`] || Date.now();
+            const currentQts = (currentData.respuestasEval && currentData.respuestasEval[`${qKey}_ts`]) || 0;
+            
+            if (ts >= currentQts) {
+              merged.respuestasEval[qKey] = newPayload.respuestasEval[qKey];
+              merged.respuestasEval[`${qKey}_ts`] = ts;
+            }
+          }
+        });
       }
 
-      syncCache[idBloque] = { ...currentData, ...mergedPayload };
+      syncCache[idBloque] = merged;
       return NextResponse.json({ success: true });
     }
 

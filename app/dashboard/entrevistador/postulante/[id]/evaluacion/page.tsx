@@ -230,6 +230,7 @@ export default function WorkspaceEvaluacionPage() {
 
   const typingTimeout = useRef<NodeJS.Timeout | null>(null);
   const lastLocalEdit = useRef<Record<string, number>>({}); 
+  const focusedField = useRef<string | null>(null);
 
   useEffect(() => {
     if (status === "unauthenticated") router.push("/login");
@@ -312,30 +313,54 @@ export default function WorkspaceEvaluacionPage() {
       const res = await fetch(`/api/entrevistas/evaluacion?idBloque=${entrevistaId || ""}`);
       const data = await res.json();
       if (data.success && data.data) {
-        // Solo actualizamos si no hay un timeout de escritura global pendiente
-        if (!typingTimeout.current) {
-          const remote = data.data;
-          const now = Date.now();
-          const cooldown = 2000; // 2 segundos de protección tras escribir localmente
+        const remote = data.data;
+        const now = Date.now();
+        const cooldown = 2000;
 
-          if (remote.nucleoPrincipal !== undefined && (now - (lastLocalEdit.current["nucleoPrincipal"] || 0) > cooldown)) setNucleoPrincipal(remote.nucleoPrincipal);
-          if (remote.nucleoSecundario !== undefined && (now - (lastLocalEdit.current["nucleoSecundario"] || 0) > cooldown)) setNucleoSecundario(remote.nucleoSecundario);
-          if (remote.comentariosE1 !== undefined && (now - (lastLocalEdit.current["comentariosE1"] || 0) > cooldown)) setComentariosE1(remote.comentariosE1);
-          if (remote.comentariosE2 !== undefined && (now - (lastLocalEdit.current["comentariosE2"] || 0) > cooldown)) setComentariosE2(remote.comentariosE2);
-          if (remote.estrellasE1 !== undefined && (now - (lastLocalEdit.current["estrellasE1"] || 0) > cooldown)) setEstrellasE1(remote.estrellasE1);
-          if (remote.estrellasE2 !== undefined && (now - (lastLocalEdit.current["estrellasE2"] || 0) > cooldown)) setEstrellasE2(remote.estrellasE2);
+        // Solo actualizamos si no estamos escribiendo activamente
+        if (!typingTimeout.current) {
+          
+          const updateField = (field: string, setter: (v: any) => void, remoteVal: any) => {
+            if (remoteVal === undefined) return;
+            // 🛡️ TRIPLE ESCUDO:
+            // 1. Focus Guard: No sobrescribir si el usuario tiene el foco en el campo
+            // 2. Cooldown Guard: Si editamos localmente hace poco (< 2s)
+            // 3. Timestamp Guard: Si la versión del servidor es más vieja que nuestra última edición
+            const remoteTs = remote[`${field}_ts`] || 0;
+            const localTs = lastLocalEdit.current[field] || 0;
+            
+            if (focusedField.current === field) return; 
+            if (now - localTs < cooldown) return;
+            if (remoteTs < localTs) return;
+
+            setter(remoteVal);
+          };
+
+          updateField("nucleoPrincipal", setNucleoPrincipal, remote.nucleoPrincipal);
+          updateField("nucleoSecundario", setNucleoSecundario, remote.nucleoSecundario);
+          updateField("comentariosE1", setComentariosE1, remote.comentariosE1);
+          updateField("comentariosE2", setComentariosE2, remote.comentariosE2);
+          updateField("estrellasE1", setEstrellasE1, remote.estrellasE1);
+          updateField("estrellasE2", setEstrellasE2, remote.estrellasE2);
           
           if (remote.respuestasEval) {
             setRespuestasEval(prev => {
               const merged = { ...prev };
               let changed = false;
               Object.keys(remote.respuestasEval).forEach(key => {
-                // Protección por campo: si lo editamos hace poco, ignoramos la versión del servidor
-                if (now - (lastLocalEdit.current[key] || 0) > cooldown) {
-                  if (merged[key] !== remote.respuestasEval[key]) {
-                    merged[key] = remote.respuestasEval[key];
-                    changed = true;
-                  }
+                if (key.endsWith("_ts")) return;
+
+                const remoteVal = remote.respuestasEval[key];
+                const remoteTs = remote.respuestasEval[`${key}_ts`] || 0;
+                const localTs = lastLocalEdit.current[key] || 0;
+
+                if (focusedField.current === key) return;
+                if (now - localTs < cooldown) return;
+                if (remoteTs < localTs) return;
+
+                if (merged[key] !== remoteVal) {
+                  merged[key] = remoteVal;
+                  changed = true;
                 }
               });
               return changed ? merged : prev;
@@ -363,8 +388,8 @@ export default function WorkspaceEvaluacionPage() {
   };
 
   const handleInputChange = (field: string, value: any) => {
-    // Marcamos el momento de la edición local para proteger este campo del polling
-    lastLocalEdit.current[field] = Date.now();
+    const ts = Date.now();
+    lastLocalEdit.current[field] = ts;
 
     if (field === "nucleoPrincipal") setNucleoPrincipal(value);
     if (field === "nucleoSecundario") setNucleoSecundario(value);
@@ -374,12 +399,15 @@ export default function WorkspaceEvaluacionPage() {
     if (field === "estrellasE2") setEstrellasE2(value);
     if (field.startsWith("q_")) setRespuestasEval(prev => ({ ...prev, [field]: value }));
 
-    // Preparamos solo el DELTA (el campo que cambió) para enviar al servidor
     const deltaPayload: any = {};
     if (field.startsWith("q_")) {
-      deltaPayload.respuestasEval = { [field]: value };
+      deltaPayload.respuestasEval = { 
+        [field]: value,
+        [`${field}_ts`]: ts 
+      };
     } else {
       deltaPayload[field] = value;
+      deltaPayload[`${field}_ts`] = ts;
     }
 
     if (typingTimeout.current) clearTimeout(typingTimeout.current);
@@ -498,6 +526,8 @@ export default function WorkspaceEvaluacionPage() {
           <textarea 
             className="w-full border border-gray-800 bg-[#0a0a0a] rounded-xl p-4 text-sm text-gray-300 outline-none transition-all resize-none min-h-[100px]"
             placeholder="Anota la respuesta o comentarios aquí..."
+            onFocus={() => { focusedField.current = id; }}
+            onBlur={() => { focusedField.current = null; }}
             value={respuestasEval[id] || ""}
             onChange={(e) => handleInputChange(id, e.target.value)}
           />
@@ -604,7 +634,10 @@ export default function WorkspaceEvaluacionPage() {
               <div>
                 <label className="block text-[10px] text-gray-500 uppercase tracking-widest font-bold mb-2">Núcleo Principal *</label>
                 <select 
-                  value={nucleoPrincipal} onChange={(e) => handleInputChange("nucleoPrincipal", e.target.value)}
+                  value={nucleoPrincipal} 
+                  onChange={(e) => handleInputChange("nucleoPrincipal", e.target.value)}
+                  onFocus={() => { focusedField.current = "nucleoPrincipal"; }}
+                  onBlur={() => { focusedField.current = null; }}
                   className="w-full border border-gray-800 bg-[#0a0a0a] rounded-xl p-3 text-sm text-white outline-none"
                 >
                   <option value="">Selecciona un núcleo...</option>
@@ -614,7 +647,10 @@ export default function WorkspaceEvaluacionPage() {
               <div>
                 <label className="block text-[10px] text-gray-500 uppercase tracking-widest font-bold mb-2">Núcleo Secundario *</label>
                 <select 
-                  value={nucleoSecundario} onChange={(e) => handleInputChange("nucleoSecundario", e.target.value)}
+                  value={nucleoSecundario} 
+                  onChange={(e) => handleInputChange("nucleoSecundario", e.target.value)}
+                  onFocus={() => { focusedField.current = "nucleoSecundario"; }}
+                  onBlur={() => { focusedField.current = null; }}
                   className="w-full border border-gray-800 bg-[#0a0a0a] rounded-xl p-3 text-sm text-white outline-none"
                 >
                   <option value="">Selecciona un núcleo...</option>
@@ -771,7 +807,10 @@ export default function WorkspaceEvaluacionPage() {
                     <textarea 
                       className="w-full border border-gray-800 bg-[#111111] rounded-xl p-4 text-sm text-gray-300 outline-none resize-none mb-4"
                       placeholder="Conclusiones y observaciones generales..."
-                      rows={4} value={comentariosE1} onChange={(e) => handleInputChange("comentariosE1", e.target.value)}
+                      rows={4} value={comentariosE1} 
+                      onChange={(e) => handleInputChange("comentariosE1", e.target.value)}
+                      onFocus={() => { focusedField.current = "comentariosE1"; }}
+                      onBlur={() => { focusedField.current = null; }}
                     />
                     <div className="flex flex-col items-center">
                       <p className="text-[10px] text-gray-500 uppercase font-bold mb-2">Calificación Final</p>
@@ -784,7 +823,10 @@ export default function WorkspaceEvaluacionPage() {
                     <textarea 
                       className="w-full border border-gray-800 bg-[#111111] rounded-xl p-4 text-sm text-gray-300 outline-none resize-none mb-4"
                       placeholder="Conclusiones y observaciones generales..."
-                      rows={4} value={comentariosE2} onChange={(e) => handleInputChange("comentariosE2", e.target.value)}
+                      rows={4} value={comentariosE2} 
+                      onChange={(e) => handleInputChange("comentariosE2", e.target.value)}
+                      onFocus={() => { focusedField.current = "comentariosE2"; }}
+                      onBlur={() => { focusedField.current = null; }}
                     />
                     <div className="flex flex-col items-center">
                       <p className="text-[10px] text-gray-500 uppercase font-bold mb-2">Calificación Final</p>

@@ -60,6 +60,21 @@ export async function POST(request: Request) {
   try {
     const data = await request.json();
 
+    // 🔒 BLINDAJE: Verificar si el reclutamiento está cerrado
+    try {
+      const ajustesRes = await fetch(`https://api.notion.com/v1/databases/${process.env.NOTION_AJUSTES_DB_ID}/query`, {
+        method: "POST",
+        headers: notionHeaders,
+        body: JSON.stringify({ filter: { property: "Ajuste", title: { equals: "CierreReclutamiento" } } }),
+        cache: 'no-store'
+      });
+      const ajustesData = await ajustesRes.json();
+      const isClosed = ajustesData.results?.[0]?.properties?.["Estado"]?.checkbox || false;
+      if (isClosed) {
+        return NextResponse.json({ error: "El período de reclutamiento ha concluido. Gracias por tu interés en SIAFI." }, { status: 403 });
+      }
+    } catch (_) {} // Si falla la consulta, permitir el registro por precaución
+
     // 0. BLINDAJE DUPLICADOS
     const checkDuplicateRes = await fetch(`https://api.notion.com/v1/databases/${CANDIDATOS_DB_ID}/query`, {
         method: "POST",

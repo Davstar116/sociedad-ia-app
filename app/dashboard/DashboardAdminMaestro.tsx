@@ -228,6 +228,10 @@ export default function DashboardAdminMaestro() {
   const [isResendingApology, setIsResendingApology] = useState(false);
   const [resendApologyResult, setResendApologyResult] = useState<{success?: boolean, message?: string} | null>(null);
 
+  // ESTADO CIERRE DE RECLUTAMIENTO
+  const [isReclutamientoCerrado, setIsReclutamientoCerrado] = useState(false);
+  const [isTogglingReclutamiento, setIsTogglingReclutamiento] = useState(false);
+
   // ESTADOS BLOQUEO GLOBAL DE HORARIOS
   const [isGlobalLockActive, setIsGlobalLockActive] = useState(false);
   const [isTogglingLock, setIsTogglingLock] = useState(false);
@@ -345,6 +349,41 @@ export default function DashboardAdminMaestro() {
     } catch (error) {}
   };
 
+  const checkReclutamiento = async () => {
+    try {
+      const res = await fetch("/api/admin/toggle-reclutamiento");
+      const data = await res.json();
+      setIsReclutamientoCerrado(data.isClosed === true);
+    } catch (error) {}
+  };
+
+  const handleToggleReclutamiento = async () => {
+    const nuevoEstado = !isReclutamientoCerrado;
+    setModalInfo({
+      isOpen: true,
+      title: nuevoEstado ? "Cerrar Reclutamiento" : "Reabrir Reclutamiento",
+      message: nuevoEstado
+        ? "¿Estás seguro de cerrar el reclutamiento? Se ocultará el botón de postulación del login y la página de registro mostrará un mensaje de cierre."
+        : "¿Estás seguro de reabrir el reclutamiento? El botón de postulación volverá a aparecer en el login y la página de registro funcionará normalmente.",
+      icon: nuevoEstado ? "🔒" : "🔓",
+      confirmText: nuevoEstado ? "Sí, Cerrar" : "Sí, Reabrir",
+      isError: false,
+      onConfirm: async () => {
+        setModalInfo(prev => ({ ...prev, isOpen: false }));
+        setIsTogglingReclutamiento(true);
+        try {
+          const res = await fetch("/api/admin/toggle-reclutamiento", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ close: nuevoEstado })
+          });
+          if (res.ok) setIsReclutamientoCerrado(nuevoEstado);
+        } catch (error) {}
+        finally { setIsTogglingReclutamiento(false); }
+      }
+    });
+  };
+
   const fetchMisEntrevistas = async () => {
     if (!session?.user?.name) return;
     setIsLoadingEntrevistas(true);
@@ -400,6 +439,7 @@ export default function DashboardAdminMaestro() {
       fetchNotificaciones();
       cargarHorario();
       checkGlobalLock();
+      checkReclutamiento();
     }
   }, [status, session]);
 
@@ -809,6 +849,35 @@ export default function DashboardAdminMaestro() {
                 </div>
                 <button disabled={isResendingApology} onClick={handleResendCredentialsConfirm} className="w-full py-3 bg-pink-500/10 hover:bg-pink-500 disabled:opacity-50 text-pink-500 hover:text-white font-bold text-sm uppercase tracking-wider rounded-xl transition-all border border-pink-500/30 hover:border-pink-500 mb-3">
                   {isResendingApology ? "Procesando envíos..." : "Enviar Disculpas y Accesos"}
+                </button>
+              </div>
+
+              {/* CARD: CIERRE DE RECLUTAMIENTO */}
+              <div className={`bg-[#111111] border ${isReclutamientoCerrado ? 'border-red-500' : 'border-red-500/30'} rounded-2xl p-6 shadow-xl flex flex-col justify-between group hover:border-red-500 transition-all`}>
+                <div>
+                  <div className={`w-10 h-10 rounded-full ${isReclutamientoCerrado ? 'bg-red-500 text-[#0a0a0a]' : 'bg-red-500/10 text-red-500'} flex items-center justify-center text-xl mb-4 transition-colors`}>
+                    {isReclutamientoCerrado ? '🔒' : '📣'}
+                  </div>
+                  <h3 className="text-lg font-bold text-white mb-2">Cierre de Reclutamiento</h3>
+                  <p className="text-xs text-gray-400 leading-relaxed mb-4">
+                    Oculta el botón de postulación en el login y bloquea la página de registro, reemplazándola con un mensaje de cierre invitando al siguiente proceso.
+                  </p>
+                  {isReclutamientoCerrado && (
+                    <div className="p-3 mb-4 rounded-xl text-xs font-bold w-full bg-red-500/20 text-red-400 border border-red-500/30">
+                      🔒 El reclutamiento está actualmente CERRADO. La página de postulación muestra el mensaje de cierre.
+                    </div>
+                  )}
+                </div>
+                <button
+                  onClick={handleToggleReclutamiento}
+                  disabled={isTogglingReclutamiento}
+                  className={`w-full py-3 font-bold text-sm uppercase tracking-wider rounded-xl transition-all border disabled:opacity-50 ${
+                    isReclutamientoCerrado
+                      ? "bg-red-500 text-[#0a0a0a] border-red-500 shadow-[0_0_15px_rgba(239,68,68,0.3)] hover:bg-red-400"
+                      : "bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-[#0a0a0a] border-red-500/30 hover:border-red-500"
+                  }`}
+                >
+                  {isTogglingReclutamiento ? "Actualizando..." : isReclutamientoCerrado ? "Reabrir Reclutamiento" : "Cerrar Reclutamiento"}
                 </button>
               </div>
 

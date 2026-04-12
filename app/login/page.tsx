@@ -13,6 +13,14 @@ function LoginContent() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [successMsg, setSuccessMsg] = useState("");
+  const [reclutamientoCerrado, setReclutamientoCerrado] = useState(false);
+
+  useEffect(() => {
+    fetch("/api/admin/toggle-reclutamiento", { cache: 'no-store' })
+      .then(r => r.json())
+      .then(d => setReclutamientoCerrado(d.isClosed === true))
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     if (searchParams.get("registered") === "true") {
@@ -142,20 +150,22 @@ function LoginContent() {
       </div>
 
       {/* --- SECCIÓN RECLUTAMIENTO --- */}
-      <div className="w-full mt-8 pt-8 border-t border-gray-800 flex flex-col items-center">
-        <p className="text-xs text-gray-500 uppercase tracking-widest font-bold mb-4">¿Eres postulante?</p>
-        
-        <Link href="/postulacion" className="w-full block group">
-          <div className="bg-[#0a0a0a] border border-gray-800 group-hover:border-[#0051ff]/50 rounded-xl p-4 transition-all text-center group-hover:bg-[#0051ff]/5">
-            <p className="text-white font-bold text-sm">
-              Reclutamiento 2026-2
-            </p>
-            <p className="text-xs text-[#00baff] mt-1 font-semibold transition-all">
-              Postúlate Aquí →
-            </p>
-          </div>
-        </Link>
-      </div>
+      {!reclutamientoCerrado && (
+        <div className="w-full mt-8 pt-8 border-t border-gray-800 flex flex-col items-center">
+          <p className="text-xs text-gray-500 uppercase tracking-widest font-bold mb-4">¿Eres postulante?</p>
+          
+          <Link href="/postulacion" className="w-full block group">
+            <div className="bg-[#0a0a0a] border border-gray-800 group-hover:border-[#0051ff]/50 rounded-xl p-4 transition-all text-center group-hover:bg-[#0051ff]/5">
+              <p className="text-white font-bold text-sm">
+                Reclutamiento 2026-2
+              </p>
+              <p className="text-xs text-[#00baff] mt-1 font-semibold transition-all">
+                Postúlate Aquí →
+              </p>
+            </div>
+          </Link>
+        </div>
+      )}
 
       {/* --- FOOTER & SOPORTE TÉCNICO --- */}
       <div className="w-full mt-8 pt-6 border-t border-gray-800 text-center flex flex-col gap-5">

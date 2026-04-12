@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 
 const PREGUNTAS_NUCLEOS: Record<string, string[]> = {
@@ -63,6 +63,14 @@ export default function PostulacionPage() {
   const [loading, setLoading] = useState(false);
   const [mensaje, setMensaje] = useState("");
   const [fileName, setFileName] = useState("");
+  const [isClosed, setIsClosed] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    fetch("/api/admin/toggle-reclutamiento", { cache: 'no-store' })
+      .then(r => r.json())
+      .then(d => setIsClosed(d.isClosed === true))
+      .catch(() => setIsClosed(false));
+  }, []);
 
   const [formData, setFormData] = useState({
     nombre: "", 
@@ -178,6 +186,42 @@ export default function PostulacionPage() {
       setLoading(false);
     }
   };
+
+  if (isClosed === null) {
+    return (
+      <div className="min-h-screen bg-[#0a0a0a] text-white flex flex-col items-center justify-center font-sans">
+        <div className="w-8 h-8 border-2 border-[#0051ff] border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
+  }
+
+  if (isClosed) {
+    return (
+      <div className="min-h-screen bg-[#0a0a0a] text-white flex flex-col items-center justify-center p-6 text-center font-sans">
+        <div className="animate-in zoom-in duration-700 flex flex-col items-center max-w-lg w-full bg-[#111111] border border-gray-800 p-10 rounded-2xl shadow-2xl">
+          <div className="w-20 h-20 bg-[#0051ff]/10 text-[#0051ff] rounded-full flex items-center justify-center text-4xl mb-6 border border-[#0051ff]/20">
+            🏁
+          </div>
+          <h1 className="text-3xl font-black mb-4 text-white tracking-tight">Proceso Finalizado</h1>
+          <p className="text-sm text-gray-400 leading-relaxed mb-3">
+            La etapa de entrevistas del reclutamiento <strong className="text-white">2026-2</strong> ha concluido.
+          </p>
+          <p className="text-sm text-gray-500 leading-relaxed mb-8">
+            ¡Gracias por tu interés en formar parte de <span className="text-[#00baff] font-bold">SIAFI</span>! 
+            Te invitamos a estar atento a nuestras redes sociales para conocer el inicio de nuestro 
+            próximo proceso de reclutamiento en el siguiente semestre.
+          </p>
+          <div className="w-full bg-[#0a0a0a] border border-gray-800 p-4 rounded-xl mb-8">
+            <p className="text-[#00baff] font-bold text-sm uppercase tracking-wider mb-1">📲 Síguenos</p>
+            <p className="text-xs text-gray-500">Mantente al tanto de nuestras convocatorias en nuestras redes sociales.</p>
+          </div>
+          <Link href="/login" className="w-full py-4 bg-[#0051ff] hover:bg-[#0041cc] rounded-xl font-bold text-white text-sm uppercase tracking-wider transition-all active:scale-95 shadow-lg shadow-[#0051ff]/20">
+            Ir al Portal de Acceso
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   if (status === 'processing') {
     return (

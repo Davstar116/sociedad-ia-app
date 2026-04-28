@@ -13,6 +13,14 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  async rewrites() {
+    return [
+      {
+        source: '/ws/sophia',
+        destination: 'http://localhost:8000/ws/sophia', // Next.js lo transformará a WebSocket automáticamente
+      },
+    ];
+  },
 };
 
 export default nextConfig;

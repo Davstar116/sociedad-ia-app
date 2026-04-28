@@ -1,0 +1,6 @@
+fastapi
+uvicorn
+websockets
+ollama
+openai-whisper
+edge-tts

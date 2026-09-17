@@ -19,7 +19,7 @@ function LoginContent() {
     fetch("/api/admin/toggle-reclutamiento", { cache: 'no-store' })
       .then(r => r.json())
       .then(d => setReclutamientoCerrado(d.isClosed === true))
-      .catch(() => {});
+      .catch(() => { });
   }, []);
 
   useEffect(() => {
@@ -57,14 +57,14 @@ function LoginContent() {
 
   return (
     <div className="w-full max-w-md bg-[#111111] border border-[#0051ff]/30 rounded-2xl p-8 shadow-2xl shadow-black/50 animate-in fade-in zoom-in duration-500 flex flex-col items-center">
-      
+
       {/* Header Limpio */}
       <div className="text-center mb-8 w-full flex flex-col items-center">
-        <Image 
-          src="/logo.png" 
-          width={80} 
-          height={80} 
-          alt="Logo SIAFI" 
+        <Image
+          src="/logo.png"
+          width={80}
+          height={80}
+          alt="Logo SIAFI"
           className="mb-4"
         />
         <h1 className="text-3xl font-black text-white tracking-tight mb-1">
@@ -153,11 +153,11 @@ function LoginContent() {
       {!reclutamientoCerrado && (
         <div className="w-full mt-8 pt-8 border-t border-gray-800 flex flex-col items-center">
           <p className="text-xs text-gray-500 uppercase tracking-widest font-bold mb-4">¿Eres postulante?</p>
-          
+
           <Link href="/postulacion" className="w-full block group">
             <div className="bg-[#0a0a0a] border border-gray-800 group-hover:border-[#0051ff]/50 rounded-xl p-4 transition-all text-center group-hover:bg-[#0051ff]/5">
               <p className="text-white font-bold text-sm">
-                Reclutamiento 2026-2
+                Reclutamiento 2027-1
               </p>
               <p className="text-xs text-[#00baff] mt-1 font-semibold transition-all">
                 Postúlate Aquí →
@@ -169,12 +169,12 @@ function LoginContent() {
 
       {/* --- FOOTER & SOPORTE TÉCNICO --- */}
       <div className="w-full mt-8 pt-6 border-t border-gray-800 text-center flex flex-col gap-5">
-        
+
         {/* Texto de Ayuda / Soporte */}
         <p className="text-xs text-gray-500 leading-relaxed">
           ¿Tienes algún problema o necesitas ayuda? Escríbenos a{" "}
-          <a 
-            href="mailto:siafi.reclutamiento@gmail.com" 
+          <a
+            href="mailto:siafi.reclutamiento@gmail.com"
             className="text-[#00baff] hover:text-white transition-colors font-semibold"
           >
             siafi.reclutamiento@gmail.com

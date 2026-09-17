@@ -218,17 +218,19 @@ export async function POST(request: Request) {
     });
 
     try {
+      const emailSender = `"Reclutamiento SIAFI" <${process.env.EMAIL_USER || "siafi.reclutamiento@gmail.com"}>`;
+
       // 4.1 Enviar el primer correo (Credenciales)
       await transporter.sendMail({
-        from: '"Reclutamiento SIAFI" <siafi.reclutamiento@gmail.com>',
+        from: emailSender,
         to: data.email,
-        subject: "Registro Exitoso - Reclutamiento SIAFI 2026-2",
+        subject: "Registro Exitoso - Reclutamiento SIAFI 2027-1",
         html: htmlBienvenida, 
       });
 
       // 4.2 Enviar el segundo correo (Instrucciones de Acceso)
       await transporter.sendMail({
-        from: '"Reclutamiento SIAFI" <siafi.reclutamiento@gmail.com>',
+        from: emailSender,
         to: data.email,
         subject: "Siguientes Pasos: Cómo acceder a la plataforma SIAFI",
         html: htmlInstrucciones, 

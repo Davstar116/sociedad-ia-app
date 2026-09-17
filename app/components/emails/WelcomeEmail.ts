@@ -44,7 +44,7 @@ export function WelcomeEmailTemplate({ nombre, baseUrl, passwordGenerada, emailU
                 <td style="padding: 30px 40px 40px 40px;">
                     <h2 style="margin: 0 0 20px 0; font-size: 22px; color: #ffffff;">¡Registro Exitoso, ${primerNombre}! 👋</h2>
                     <p style="margin: 0 0 20px 0; font-size: 15px; color: #9ca3af; line-height: 1.6;">
-                    Confirmamos que tus datos han sido recibidos correctamente para el reclutamiento <strong>2026-2</strong>. SophIA ha generado automáticamente una cuenta de acceso para ti y comenzará el análisis preliminar de tu perfil.
+                    Confirmamos que tus datos han sido recibidos correctamente para el reclutamiento <strong>2027-1</strong>. SophIA ha generado automáticamente una cuenta de acceso para ti y comenzará el análisis preliminar de tu perfil.
                     </p>
                     
                     <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #0a0a0a; border: 1px solid #0051ff; border-radius: 12px; margin-bottom: 30px;">

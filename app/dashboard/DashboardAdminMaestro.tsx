@@ -1609,7 +1609,7 @@ export default function DashboardAdminMaestro() {
                       <div className="p-5">
                         <h2 className="text-[#ef4444] text-lg mb-3">Aviso de Sistema ⚠️</h2>
                         <p className="mb-3">Hola <strong>[Nombre]</strong>,</p>
-                        <p className="text-gray-400 text-xs mb-3 leading-relaxed">Nos comunicamos contigo porque hemos detectado que creaste una cuenta estándar en la plataforma de SophIA en lugar de llenar el formulario oficial de postulación para el Reclutamiento 2026-2.</p>
+                        <p className="text-gray-400 text-xs mb-3 leading-relaxed">Nos comunicamos contigo porque hemos detectado que creaste una cuenta estándar en la plataforma de SophIA en lugar de llenar el formulario oficial de postulación para el Reclutamiento 2027-1.</p>
                         <div className="bg-[#ef44441a] border-l-2 border-[#ef4444] p-3 mb-4">
                           <p className="font-bold text-sm mb-1 text-white">Acción Tomada</p>
                           <p className="text-[#fca5a5] text-xs">Para evitar conflictos técnicos en nuestro sistema y asegurar que tu perfil sea evaluado correctamente, <strong>la cuenta que creaste ha sido eliminada.</strong></p>

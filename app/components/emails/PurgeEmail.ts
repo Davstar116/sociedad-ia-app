@@ -45,7 +45,7 @@ export function PurgeEmailTemplate({ nombre, baseUrl }: PurgeEmailProps) {
                       Hola <strong>${primerNombre}</strong>,
                     </p>
                     <p style="margin: 0 0 20px 0; font-size: 15px; color: #9ca3af; line-height: 1.6;">
-                      Nos comunicamos contigo porque hemos detectado que creaste una cuenta estándar en la plataforma de SophIA en lugar de llenar el formulario oficial de postulación para el Reclutamiento 2026-2.
+                      Nos comunicamos contigo porque hemos detectado que creaste una cuenta estándar en la plataforma de SophIA en lugar de llenar el formulario oficial de postulación para el Reclutamiento 2027-1.
                     </p>
                     
                     <div style="background-color: #ef44441a; border-left: 4px solid #ef4444; padding: 20px; margin-bottom: 30px;">

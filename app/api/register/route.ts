@@ -199,10 +199,10 @@ export async function POST(request: Request) {
     // ---------------------------------------------------------
     // 4. ENVÍO DE CORREOS
     // ---------------------------------------------------------
-    const baseUrl = request.headers.get("origin") || "https://tu-proyecto.vercel.app";
-    
-    // Aquí pon el link real de tu video de YouTube cuando lo tengas
-    const linkTutorial = "https://www.youtube.com/watch?v=TU_LINK_AQUI"; 
+    const host = request.headers.get("host") || process.env.VERCEL_PROJECT_PRODUCTION_URL || process.env.VERCEL_URL;
+    const protocol = host?.includes("localhost") ? "http" : "https";
+    const baseUrl = request.headers.get("origin") || (host ? `${protocol}://${host}` : "https://sociedad-ia-app.vercel.app");
+    const linkTutorial = "https://youtube.com/shorts/_fVEBnqtMWw?feature=share"; 
 
     const htmlBienvenida = WelcomeEmailTemplate({
         nombre: data.nombre,
@@ -217,22 +217,59 @@ export async function POST(request: Request) {
         youtubeLink: linkTutorial
     });
 
+    const primerNombre = data.nombre ? data.nombre.split(" ")[0] : "Candidato";
+    const textBienvenida = `¡Registro Exitoso, ${primerNombre}!
+
+Confirmamos que tus datos han sido recibidos correctamente para el reclutamiento 2027-1 de SIAFI.
+
+Tus Credenciales de Acceso:
+- Usuario: ${data.email}
+- Contraseña: ${passwordParaCorreo}
+
+Accede al portal en: ${baseUrl}/login
+
+Atentamente,
+Mesa Directiva & SophIA - SIAFI UNAM
+Contacto: ${process.env.EMAIL_USER || "siafi.unam.reclutamiento@gmail.com"}`;
+
+    const textInstrucciones = `Hola ${primerNombre},
+
+Aquí tienes las instrucciones para acceder a la plataforma SIAFI y dar seguimiento a tu postulación:
+
+Opción 1: Instalar la App en tu dispositivo (Recomendado)
+Tutorial de instalación: ${linkTutorial}
+
+Opción 2: Acceso Web
+Ingresa directamente desde tu navegador en: ${baseUrl}/login
+
+Atentamente,
+Equipo SIAFI - UNAM
+Contacto: ${process.env.EMAIL_USER || "siafi.unam.reclutamiento@gmail.com"}`;
+
     try {
-      const emailSender = `"Reclutamiento SIAFI" <${process.env.EMAIL_USER || "siafi.unam.reclutamiento@gmail.com"}>`;
+      const emailUser = process.env.EMAIL_USER || "siafi.unam.reclutamiento@gmail.com";
+      const emailSender = `"Reclutamiento SIAFI" <${emailUser}>`;
 
       // 4.1 Enviar el primer correo (Credenciales)
       await transporter.sendMail({
         from: emailSender,
         to: data.email,
+        replyTo: emailUser,
         subject: "Registro Exitoso - Reclutamiento SIAFI 2027-1",
+        text: textBienvenida,
         html: htmlBienvenida, 
       });
+
+      // Pausa para evitar que los filtros antispam penalicen por ráfaga simultánea
+      await new Promise((resolve) => setTimeout(resolve, 2000));
 
       // 4.2 Enviar el segundo correo (Instrucciones de Acceso)
       await transporter.sendMail({
         from: emailSender,
         to: data.email,
+        replyTo: emailUser,
         subject: "Siguientes Pasos: Cómo acceder a la plataforma SIAFI",
+        text: textInstrucciones,
         html: htmlInstrucciones, 
       });
 

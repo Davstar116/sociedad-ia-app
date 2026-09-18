@@ -241,9 +241,14 @@ export default function PostulacionPage() {
           <div className="w-20 h-20 bg-green-500/10 text-green-500 rounded-full flex items-center justify-center text-4xl mb-6 border border-green-500/20">✓</div>
           <h1 className="text-3xl font-black mb-4 text-white tracking-tight">Postulación Exitosa</h1>
           <p className="text-sm text-gray-400 leading-relaxed mb-6">Tus respuestas han sido guardadas. Hemos creado tu cuenta de acceso temporal.</p>
-          <div className="w-full bg-[#0a0a0a] border border-gray-800 p-4 rounded-xl mb-8">
-            <p className="text-[#00baff] font-bold text-sm uppercase tracking-wider mb-1">📩 Revisa tu correo</p>
-            <p className="text-xs text-gray-500">Te hemos enviado tus credenciales de acceso.</p>
+          <div className="w-full bg-[#0a0a0a] border border-gray-800 p-4 rounded-xl mb-6 text-left space-y-2">
+            <p className="text-[#00baff] font-bold text-sm uppercase tracking-wider">📩 Revisa tu correo</p>
+            <p className="text-xs text-gray-300">
+              Enviamos tus credenciales de acceso a {formData.email ? <strong className="text-white">{formData.email}</strong> : "tu correo"}.
+            </p>
+            <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg p-2.5 text-[11px] text-amber-300 leading-relaxed">
+              💡 <strong>¿No lo ves en tu bandeja de entrada?</strong> Revisa tu carpeta de <strong>Spam o Correo no deseado</strong> y selecciona <em>&quot;No es spam&quot;</em> para no perderte futuros avisos y entrevistas.
+            </div>
           </div>
           <Link href="/login" className="w-full py-4 bg-[#0051ff] hover:bg-[#0041cc] rounded-xl font-bold text-white text-sm uppercase tracking-wider transition-all active:scale-95 shadow-lg shadow-[#0051ff]/20">Ir al Portal de Acceso</Link>
         </div>

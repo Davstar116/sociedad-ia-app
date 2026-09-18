@@ -117,7 +117,7 @@ export async function POST(request: Request) {
 
       try {
         await transporter.sendMail({
-          from: '"Seguridad SIAFI" <siafi.reclutamiento@gmail.com>',
+          from: `"Seguridad SIAFI" <${process.env.EMAIL_USER || "siafi.unam.reclutamiento@gmail.com"}>`,
           to: email,
           subject: "Alerta de Seguridad: Tus credenciales han sido actualizadas",
           html: htmlContent,

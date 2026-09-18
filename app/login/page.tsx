@@ -174,10 +174,10 @@ function LoginContent() {
         <p className="text-xs text-gray-500 leading-relaxed">
           ¿Tienes algún problema o necesitas ayuda? Escríbenos a{" "}
           <a
-            href="mailto:siafi.reclutamiento@gmail.com"
+            href="mailto:siafi.unam.reclutamiento@gmail.com"
             className="text-[#00baff] hover:text-white transition-colors font-semibold"
           >
-            siafi.reclutamiento@gmail.com
+            siafi.unam.reclutamiento@gmail.com
           </a>
         </p>
 

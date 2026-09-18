@@ -218,7 +218,7 @@ export async function POST(request: Request) {
     });
 
     try {
-      const emailSender = `"Reclutamiento SIAFI" <${process.env.EMAIL_USER || "siafi.reclutamiento@gmail.com"}>`;
+      const emailSender = `"Reclutamiento SIAFI" <${process.env.EMAIL_USER || "siafi.unam.reclutamiento@gmail.com"}>`;
 
       // 4.1 Enviar el primer correo (Credenciales)
       await transporter.sendMail({

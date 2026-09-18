@@ -1597,7 +1597,7 @@ export default function DashboardAdminMaestro() {
                   <p className="text-sm text-gray-400 mb-4">Estás a punto de eliminar todas las cuentas de tipo "Miembro" y enviarles el siguiente correo automático. <strong>Revisa la previsualización:</strong></p>
                   <div className="bg-[#050505] rounded-2xl mb-6 text-white font-sans text-sm border border-[#1f2937] overflow-hidden">
                     <div className="bg-[#1f2937] px-4 py-2 border-b border-[#374151]">
-                      <p className="text-gray-300 text-xs"><span className="font-bold text-gray-400">De:</span> Soporte SIAFI &lt;siafi.reclutamiento@gmail.com&gt;</p>
+                      <p className="text-gray-300 text-xs"><span className="font-bold text-gray-400">De:</span> Soporte SIAFI &lt;siafi.unam.reclutamiento@gmail.com&gt;</p>
                       <p className="text-gray-300 text-xs"><span className="font-bold text-gray-400">Asunto:</span> ⚠️ Error en tu registro de SIAFI - Acción Requerida</p>
                     </div>
                     <div className="p-4 bg-[#111111]">

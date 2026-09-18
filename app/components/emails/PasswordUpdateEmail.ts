@@ -58,7 +58,7 @@ export function PasswordUpdateEmailTemplate({ nombre, baseUrl, newPassword, emai
                     <div style="background-color: #111111; border-left: 4px solid #00baff; padding: 20px; margin-bottom: 30px;">
                         <p style="margin: 0 0 8px 0; font-size: 14px; color: #ffffff; font-weight: bold;">¿No fuiste tú?</p>
                         <p style="margin: 0; font-size: 14px; color: #9ca3af; line-height: 1.5;">
-                            Si no realizaste este cambio, por favor escríbenos inmediatamente al correo <strong>siafi.reclutamiento@gmail.com</strong> para proteger tu cuenta.
+                            Si no realizaste este cambio, por favor escríbenos inmediatamente al correo <strong>siafi.unam.reclutamiento@gmail.com</strong> para proteger tu cuenta.
                         </p>
                     </div>
                     
@@ -99,7 +99,7 @@ export function PasswordUpdateEmailTemplate({ nombre, baseUrl, newPassword, emai
                     <p style="margin: 0 0 16px 0; font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: #4b5563;">Este es un mensaje generado por SophIA.</p>
                     <p style="margin: 0; font-size: 12px; color: #6b7280;">
                     ¿Problemas con el sistema? <br />
-                    <a href="mailto:siafi.reclutamiento@gmail.com" style="color: #00baff; text-decoration: none; font-weight: bold;">siafi.reclutamiento@gmail.com</a>
+                    <a href="mailto:siafi.unam.reclutamiento@gmail.com" style="color: #00baff; text-decoration: none; font-weight: bold;">siafi.unam.reclutamiento@gmail.com</a>
                     </p>
                 </td>
                 </tr>

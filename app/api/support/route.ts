@@ -70,9 +70,11 @@ export async function POST(request: Request) {
       baseUrl
     });
 
+    const soporteEmail = process.env.EMAIL_USER || "siafi.unam.reclutamiento@gmail.com";
+
     await transporter.sendMail({
-      from: '"SophIA Soporte" <siafi.reclutamiento@gmail.com>',
-      to: "siafi.reclutamiento@gmail.com", // El correo llega a esta misma bandeja para que los admins lo vean
+      from: `"SophIA Soporte" <${soporteEmail}>`,
+      to: soporteEmail, // El correo llega a esta misma bandeja para que los admins lo vean
       subject: `🚨 [SOPORTE] ${asunto} - ${nombre}`,
       replyTo: correo, // Si le dan "Responder" al correo, le llegará directo al usuario
       html: htmlContent,

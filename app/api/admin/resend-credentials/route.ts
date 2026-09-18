@@ -102,7 +102,7 @@ export async function POST(req: Request) {
                 });
 
                 await transporter.sendMail({
-                    from: '"Reclutamiento SIAFI" <siafi.reclutamiento@gmail.com>',
+                    from: `"Reclutamiento SIAFI" <${process.env.EMAIL_USER || "siafi.unam.reclutamiento@gmail.com"}>`,
                     to: correo,
                     subject: "AVISO IMPORTANTE - Nuevas Credenciales de Acceso SIAFI",
                     html: htmlEmail, 

@@ -64,7 +64,7 @@ export async function POST(request: Request) {
 
         try {
           await transporter.sendMail({
-            from: '"Soporte SIAFI" <siafi.reclutamiento@gmail.com>',
+            from: `"Soporte SIAFI" <${process.env.EMAIL_USER || "siafi.unam.reclutamiento@gmail.com"}>`,
             to: email,
             subject: "⚠️ Error en tu registro de SIAFI - Acción Requerida",
             html: htmlCorreo,
